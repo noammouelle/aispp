@@ -1,0 +1,16 @@
+file(REMOVE_RECURSE
+  "CMakeFiles/aispp.dir/src/AISAbcdPropagator.cc.o"
+  "CMakeFiles/aispp.dir/src/AISAtom.cc.o"
+  "CMakeFiles/aispp.dir/src/AISAtomEnsemble.cc.o"
+  "CMakeFiles/aispp.dir/src/AISFreePropagator.cc.o"
+  "CMakeFiles/aispp.dir/src/AISWavePacket.cc.o"
+  "CMakeFiles/aispp.dir/src/AIStttPropagator.cc.o"
+  "CMakeFiles/aispp.dir/src/main.cc.o"
+  "aispp"
+  "aispp.pdb"
+)
+
+# Per-language clean rules from dependency scanning.
+foreach(lang CXX)
+  include(CMakeFiles/aispp.dir/cmake_clean_${lang}.cmake OPTIONAL)
+endforeach()
