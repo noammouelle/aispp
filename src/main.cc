@@ -32,7 +32,7 @@ void writeFile(std::string fName, AISAtomEnsemble* atomEnsemble)
 
 int main()
 {   
-    int numAtoms      = 1000000;
+    int numAtoms      = 1000;
     double cloudTemp  = 15e-9;
     double cloudWidth = 1e-3;
 
@@ -47,7 +47,7 @@ int main()
 
     AISLinearGravityPropagator* propagator = new AISLinearGravityPropagator(dt);
 
-    writeFile("/home/noammouelle/sim/ais++/output0.csv",atomEnsemble);
+    writeFile("/home/noammouelle/sim/data_ais++/output0.csv",atomEnsemble);
 
     for(int i = 0; i < nsteps; ++i){
         propagator->PropagateEnsemble(atomEnsemble,dt);
@@ -56,7 +56,7 @@ int main()
         }
     }
 
-    writeFile("/home/noammouelle/sim/ais++/output1.csv",atomEnsemble);
+    writeFile("/home/noammouelle/sim/data_ais++/output1.csv",atomEnsemble);
     
     return 0;
 }
