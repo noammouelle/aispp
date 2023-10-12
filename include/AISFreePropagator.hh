@@ -13,8 +13,8 @@ protected:
     void PropagateAtom(AISAtom* atom, __float128 time);
     void PropagateWavePacket(AISWavePacket* wavePacket, __float128 time);
     
-    virtual doubleThreeVector CalculateNewPos(doubleThreeVector pos0, doubleThreeVector vel0, __float128 time) = 0;
-    virtual doubleThreeVector CalculateNewVel(doubleThreeVector pos0, doubleThreeVector vel0, __float128 time) = 0;
+    virtual doubleThreeVector CalculateNewPos(const doubleThreeVector& pos0, const doubleThreeVector& vel0, __float128 time) = 0;
+    virtual doubleThreeVector CalculateNewVel(const doubleThreeVector& pos0, const doubleThreeVector& vel0, __float128 time) = 0;
 
     doubleThreeVector newPos = {0., 0., 0.};
     doubleThreeVector newVel = {0., 0., 0.};

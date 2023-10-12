@@ -1,6 +1,6 @@
 #ifndef AISTTTPROPAGATOR_HH
 #define AISTTTPROPAGATOR_HH
-
+/*
 #include <array>
 
 using threeQuadVector = std::array<__float128,3>;
@@ -48,5 +48,5 @@ public:
     void TttPropagateWavePacket(AISWavePacket* wavePacket);
 };
 
-
+*/
 #endif

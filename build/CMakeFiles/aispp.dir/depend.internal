@@ -30,16 +30,31 @@ CMakeFiles/aispp.dir/src/AISFreePropagator.cc.o
  ../include/AISUtilities.hh
  ../include/AISWavePacket.hh
  /home/noammouelle/sim/ais++/src/AISFreePropagator.cc
+CMakeFiles/aispp.dir/src/AISLinearGravityPropagator.cc.o
+ ../include/AISAbcdPropagator.hh
+ ../include/AISAtom.hh
+ ../include/AISAtomEnsemble.hh
+ ../include/AISConstants.hh
+ ../include/AISFreePropagator.hh
+ ../include/AISLinearGravityPropagator.hh
+ ../include/AISUtilities.hh
+ ../include/AISWavePacket.hh
+ /home/noammouelle/sim/ais++/src/AISLinearGravityPropagator.cc
+CMakeFiles/aispp.dir/src/AISUtilities.cc.o
+ ../include/AISUtilities.hh
+ /home/noammouelle/sim/ais++/src/AISUtilities.cc
 CMakeFiles/aispp.dir/src/AISWavePacket.cc.o
  ../include/AISUtilities.hh
  ../include/AISWavePacket.hh
  /home/noammouelle/sim/ais++/src/AISWavePacket.cc
 CMakeFiles/aispp.dir/src/AIStttPropagator.cc.o
+ ../include/AISAbcdPropagator.hh
  ../include/AISAtom.hh
  ../include/AISAtomEnsemble.hh
  ../include/AISConstants.hh
  ../include/AISFreePropagator.hh
  ../include/AISInstensityProfile.hh
+ ../include/AISLinearGravityPropagator.hh
  ../include/AISUtilities.hh
  ../include/AISWaveFront.hh
  ../include/AISWavePacket.hh

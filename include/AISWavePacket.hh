@@ -18,11 +18,15 @@ public:
     doubleThreeVector GetVelocity();
     void SetVelocity(doubleThreeVector velocity);
 
-    __float128 GetPhase();
-    void SetPhase(__float128 phase);
+    // Phase components which require quad precision
+    __float128 GetPhaseQuad();
+    void SetPhaseQuad(__float128 phase);
+    // Phase components which do not require quad precision
+    double GetPhaseDouble();
+    void SetPhaseDouble(double phase);
 
-    __float128 GetAmplitude();
-    void SetAmplitude(__float128 amplitude);
+    double GetAmplitude();
+    void SetAmplitude(double amplitude);
 
     int GetState();
     void SetState(int state);
@@ -35,8 +39,9 @@ private:
     double fTime64 = 0.0;
     doubleThreeVector fPosition = {0.,0.,0.};
     doubleThreeVector fVelocity = {0.,0.,0.};
-    __float128 fPhase = 0.0q;
-    __float128 fAmplitude = 1.0q;
+    __float128 fPhaseQuad = 0.0q;
+    double fPhaseDouble = 0.0;
+    double fAmplitude = 1.0;
     int fState = 0;
     int fWavePacketID = 0;
 };

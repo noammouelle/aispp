@@ -8,7 +8,7 @@
 
 const double g    = 9.81;
 const double h    = 6.62607015e-34;
-const double pi   = M_PI;
+const double pi   = 3.141592653589;
 const double hbar = h/(2*pi);
 const double kB   = 1.3806488e-23;
 const int   c     = 2997942458;

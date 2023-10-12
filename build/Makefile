@@ -244,6 +244,60 @@ src/AISFreePropagator.cc.s:
 	$(MAKE) -f CMakeFiles/aispp.dir/build.make CMakeFiles/aispp.dir/src/AISFreePropagator.cc.s
 .PHONY : src/AISFreePropagator.cc.s
 
+src/AISLinearGravityPropagator.o: src/AISLinearGravityPropagator.cc.o
+
+.PHONY : src/AISLinearGravityPropagator.o
+
+# target to build an object file
+src/AISLinearGravityPropagator.cc.o:
+	$(MAKE) -f CMakeFiles/aispp.dir/build.make CMakeFiles/aispp.dir/src/AISLinearGravityPropagator.cc.o
+.PHONY : src/AISLinearGravityPropagator.cc.o
+
+src/AISLinearGravityPropagator.i: src/AISLinearGravityPropagator.cc.i
+
+.PHONY : src/AISLinearGravityPropagator.i
+
+# target to preprocess a source file
+src/AISLinearGravityPropagator.cc.i:
+	$(MAKE) -f CMakeFiles/aispp.dir/build.make CMakeFiles/aispp.dir/src/AISLinearGravityPropagator.cc.i
+.PHONY : src/AISLinearGravityPropagator.cc.i
+
+src/AISLinearGravityPropagator.s: src/AISLinearGravityPropagator.cc.s
+
+.PHONY : src/AISLinearGravityPropagator.s
+
+# target to generate assembly for a file
+src/AISLinearGravityPropagator.cc.s:
+	$(MAKE) -f CMakeFiles/aispp.dir/build.make CMakeFiles/aispp.dir/src/AISLinearGravityPropagator.cc.s
+.PHONY : src/AISLinearGravityPropagator.cc.s
+
+src/AISUtilities.o: src/AISUtilities.cc.o
+
+.PHONY : src/AISUtilities.o
+
+# target to build an object file
+src/AISUtilities.cc.o:
+	$(MAKE) -f CMakeFiles/aispp.dir/build.make CMakeFiles/aispp.dir/src/AISUtilities.cc.o
+.PHONY : src/AISUtilities.cc.o
+
+src/AISUtilities.i: src/AISUtilities.cc.i
+
+.PHONY : src/AISUtilities.i
+
+# target to preprocess a source file
+src/AISUtilities.cc.i:
+	$(MAKE) -f CMakeFiles/aispp.dir/build.make CMakeFiles/aispp.dir/src/AISUtilities.cc.i
+.PHONY : src/AISUtilities.cc.i
+
+src/AISUtilities.s: src/AISUtilities.cc.s
+
+.PHONY : src/AISUtilities.s
+
+# target to generate assembly for a file
+src/AISUtilities.cc.s:
+	$(MAKE) -f CMakeFiles/aispp.dir/build.make CMakeFiles/aispp.dir/src/AISUtilities.cc.s
+.PHONY : src/AISUtilities.cc.s
+
 src/AISWavePacket.o: src/AISWavePacket.cc.o
 
 .PHONY : src/AISWavePacket.o
@@ -347,6 +401,12 @@ help:
 	@echo "... src/AISFreePropagator.o"
 	@echo "... src/AISFreePropagator.i"
 	@echo "... src/AISFreePropagator.s"
+	@echo "... src/AISLinearGravityPropagator.o"
+	@echo "... src/AISLinearGravityPropagator.i"
+	@echo "... src/AISLinearGravityPropagator.s"
+	@echo "... src/AISUtilities.o"
+	@echo "... src/AISUtilities.i"
+	@echo "... src/AISUtilities.s"
 	@echo "... src/AISWavePacket.o"
 	@echo "... src/AISWavePacket.i"
 	@echo "... src/AISWavePacket.s"

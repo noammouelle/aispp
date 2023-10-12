@@ -7,19 +7,8 @@
 class AISLinearGravityPropagator : public AISAbcdPropagator 
 {
 public :
-    AISLinearGravityPropagator();
+    AISLinearGravityPropagator(__float128 dt);
     ~AISLinearGravityPropagator();
-
-protected:
-    quad3x3Matrix alpha = {};
-    quad3x3Matrix gamma = {{ {{-g/radiusEarth,      0.0q,            0.0q     }},
-                             {{     0.0q     , -g/radiusEarth,       0.0q     }},
-                             {{     0.0q     ,      0.0q,      2*g/radiusEarth}} }};
-
-    quadThreeVector gVector = {0.0q, 0.0q, -g};
-}
-
-AISLinearGravityPropagator::AISLinearGravityPropagator(){}
-AISLinearGravityPropagator::~AISLinearGravityPropagator(){}
+};
 
 #endif

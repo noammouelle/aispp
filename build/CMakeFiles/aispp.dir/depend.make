@@ -30,15 +30,30 @@ CMakeFiles/aispp.dir/src/AISFreePropagator.cc.o: ../include/AISUtilities.hh
 CMakeFiles/aispp.dir/src/AISFreePropagator.cc.o: ../include/AISWavePacket.hh
 CMakeFiles/aispp.dir/src/AISFreePropagator.cc.o: ../src/AISFreePropagator.cc
 
+CMakeFiles/aispp.dir/src/AISLinearGravityPropagator.cc.o: ../include/AISAbcdPropagator.hh
+CMakeFiles/aispp.dir/src/AISLinearGravityPropagator.cc.o: ../include/AISAtom.hh
+CMakeFiles/aispp.dir/src/AISLinearGravityPropagator.cc.o: ../include/AISAtomEnsemble.hh
+CMakeFiles/aispp.dir/src/AISLinearGravityPropagator.cc.o: ../include/AISConstants.hh
+CMakeFiles/aispp.dir/src/AISLinearGravityPropagator.cc.o: ../include/AISFreePropagator.hh
+CMakeFiles/aispp.dir/src/AISLinearGravityPropagator.cc.o: ../include/AISLinearGravityPropagator.hh
+CMakeFiles/aispp.dir/src/AISLinearGravityPropagator.cc.o: ../include/AISUtilities.hh
+CMakeFiles/aispp.dir/src/AISLinearGravityPropagator.cc.o: ../include/AISWavePacket.hh
+CMakeFiles/aispp.dir/src/AISLinearGravityPropagator.cc.o: ../src/AISLinearGravityPropagator.cc
+
+CMakeFiles/aispp.dir/src/AISUtilities.cc.o: ../include/AISUtilities.hh
+CMakeFiles/aispp.dir/src/AISUtilities.cc.o: ../src/AISUtilities.cc
+
 CMakeFiles/aispp.dir/src/AISWavePacket.cc.o: ../include/AISUtilities.hh
 CMakeFiles/aispp.dir/src/AISWavePacket.cc.o: ../include/AISWavePacket.hh
 CMakeFiles/aispp.dir/src/AISWavePacket.cc.o: ../src/AISWavePacket.cc
 
+CMakeFiles/aispp.dir/src/AIStttPropagator.cc.o: ../include/AISAbcdPropagator.hh
 CMakeFiles/aispp.dir/src/AIStttPropagator.cc.o: ../include/AISAtom.hh
 CMakeFiles/aispp.dir/src/AIStttPropagator.cc.o: ../include/AISAtomEnsemble.hh
 CMakeFiles/aispp.dir/src/AIStttPropagator.cc.o: ../include/AISConstants.hh
 CMakeFiles/aispp.dir/src/AIStttPropagator.cc.o: ../include/AISFreePropagator.hh
 CMakeFiles/aispp.dir/src/AIStttPropagator.cc.o: ../include/AISInstensityProfile.hh
+CMakeFiles/aispp.dir/src/AIStttPropagator.cc.o: ../include/AISLinearGravityPropagator.hh
 CMakeFiles/aispp.dir/src/AIStttPropagator.cc.o: ../include/AISUtilities.hh
 CMakeFiles/aispp.dir/src/AIStttPropagator.cc.o: ../include/AISWaveFront.hh
 CMakeFiles/aispp.dir/src/AIStttPropagator.cc.o: ../include/AISWavePacket.hh

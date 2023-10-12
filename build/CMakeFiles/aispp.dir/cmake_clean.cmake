@@ -3,6 +3,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/aispp.dir/src/AISAtom.cc.o"
   "CMakeFiles/aispp.dir/src/AISAtomEnsemble.cc.o"
   "CMakeFiles/aispp.dir/src/AISFreePropagator.cc.o"
+  "CMakeFiles/aispp.dir/src/AISLinearGravityPropagator.cc.o"
+  "CMakeFiles/aispp.dir/src/AISUtilities.cc.o"
   "CMakeFiles/aispp.dir/src/AISWavePacket.cc.o"
   "CMakeFiles/aispp.dir/src/AIStttPropagator.cc.o"
   "CMakeFiles/aispp.dir/src/main.cc.o"

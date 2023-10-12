@@ -11,7 +11,7 @@ double AISWavePacket::GetTime64(){
 };
 void AISWavePacket::SetTime(__float128 time){
     fTime = time;
-    fTime64 = time;
+    fTime64 = convertScalarToDouble(time);
 };
 
 doubleThreeVector AISWavePacket::GetPosition(){
@@ -28,17 +28,24 @@ void AISWavePacket::SetVelocity(doubleThreeVector velocity){
     fVelocity = velocity;
 };
 
-__float128 AISWavePacket::GetPhase(){
-    return fPhase;
+__float128 AISWavePacket::GetPhaseQuad(){
+    return fPhaseQuad;
 };
-void AISWavePacket::SetPhase(__float128 phase){
-    fPhase = phase;
+void AISWavePacket::SetPhaseQuad(__float128 phase){
+    fPhaseQuad = phase;
 }
 
-__float128 AISWavePacket::GetAmplitude(){
+double AISWavePacket::GetPhaseDouble(){
+    return fPhaseDouble;
+};
+void AISWavePacket::SetPhaseDouble(double phase){
+    fPhaseDouble = phase;
+}
+
+double AISWavePacket::GetAmplitude(){
     return fAmplitude;
 };
-void AISWavePacket::SetAmplitude(__float128 amplitude){
+void AISWavePacket::SetAmplitude(double amplitude){
     fAmplitude = amplitude;
 };
 

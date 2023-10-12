@@ -6,15 +6,17 @@
 
 class AISAbcdPropagator : public AISFreePropagator
 {
-protected:
+public:
+    AISAbcdPropagator(__float128 dt);
+    ~AISAbcdPropagator();
+
+//protected:
     // Hamiltonian coefficients
-    quad3x3Matrix alpha, gamma;
-    quadThreeVector gVector;
+    double3x3Matrix alpha, gamma;
+    doubleThreeVector gVector;
     // ABCDXiPhi matrices 
-    quad3x3Matrix A, B, C, D, I;
-    quadThreeVector Xi, Phi;
-    double3x3Matrix A64, B64, C64, D64;
-    doubleThreeVector Xi64, Phi64;
+    double3x3Matrix A, B, C, D, I;
+    doubleThreeVector Xi, Phi;
 
     // Propagation parameters
     __float128 deltaTime;
@@ -24,12 +26,8 @@ protected:
     void setABCDXiPhi();
 
     // Kinematic propagation
-    doubleThreeVector CalculateNewPos(doubleThreeVector pos0, doubleThreeVector vel0, __float128 time) override;
-    doubleThreeVector CalculateNewVel(doubleThreeVector pos0, doubleThreeVector vel0, __float128 time) override;
-
-public:
-    AISAbcdPropagator(__float128 dt);
-    ~AISAbcdPropagator();
+    doubleThreeVector CalculateNewPos(const doubleThreeVector& pos0, const doubleThreeVector& vel0, __float128 time) override;
+    doubleThreeVector CalculateNewVel(const doubleThreeVector& pos0, const doubleThreeVector& vel0, __float128 time) override;
 };
 
 

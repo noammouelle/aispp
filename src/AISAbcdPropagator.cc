@@ -4,12 +4,13 @@
 
 AISAbcdPropagator::AISAbcdPropagator(__float128 dt){
     deltaTime   = dt;
-    deltaTime64 = convertScalarToDouble(deltaTime);
+    //deltaTime64 = convertScalarToDouble(deltaTime);
+    deltaTime64 = convertScalarToDouble(dt);
 
     // Identity
-     I = {{ {{1.0q, 0.0q, 0.0q}},
-            {{0.0q, 1.0q, 0.0q}},
-            {{0.0q, 0.0q, 1.0q}} }};
+     I = {{ {{1.0, 0.0, 0.0}},
+            {{0.0, 1.0, 0.0}},
+            {{0.0, 0.0, 1.0}} }};
     
     // Dummy values for coefficients
     alpha   = {};
@@ -23,28 +24,27 @@ AISAbcdPropagator::AISAbcdPropagator(__float128 dt){
 AISAbcdPropagator::~AISAbcdPropagator(){}
 
 void AISAbcdPropagator::setABCDXiPhi(){
-
     // Precompute all the required coefficients
-    quad3x3Matrix gamma2 = matrixMultiply(gamma, gamma);
+    double3x3Matrix gamma2 = matrixMultiply(gamma, gamma);
 
-    quad3x3Matrix alpha2 = matrixMultiply(alpha, alpha);
-    quad3x3Matrix alpha3 = matrixMultiply(alpha2, alpha);
-    quad3x3Matrix alpha4 = matrixMultiply(alpha3,alpha);
+    double3x3Matrix alpha2 = matrixMultiply(alpha, alpha);
+    double3x3Matrix alpha3 = matrixMultiply(alpha2, alpha);
+    double3x3Matrix alpha4 = matrixMultiply(alpha3,alpha);
 
-    quad3x3Matrix alphaDotGamma = matrixMultiply(alpha, gamma);
-    quad3x3Matrix gammaDotAlpha = matrixMultiply(gamma, alpha);
+    double3x3Matrix alphaDotGamma = matrixMultiply(alpha, gamma);
+    double3x3Matrix gammaDotAlpha = matrixMultiply(gamma, alpha);
 
-    quad3x3Matrix alpha2DotGamma = matrixMultiply(alpha2, gamma);
-    quad3x3Matrix gammaDotAlpha2 = matrixMultiply(gamma, alpha2);
+    double3x3Matrix alpha2DotGamma = matrixMultiply(alpha2, gamma);
+    double3x3Matrix gammaDotAlpha2 = matrixMultiply(gamma, alpha2);
 
-    quad3x3Matrix alphaDotGammaDotAlpha = matrixMultiply(alphaDotGamma, alpha);
+    double3x3Matrix alphaDotGammaDotAlpha = matrixMultiply(alphaDotGamma, alpha);
 
-    __float128 dt  = deltaTime;
-    __float128 dt2 = dt * dt;
-    __float128 dt3 = dt2 * dt;
-    __float128 dt4 = dt3 * dt;
-    __float128 dt5 = dt4 * dt;
-    __float128 dt6 = dt5 * dt;
+    double dt  = deltaTime64;
+    double dt2 = dt * dt;
+    double dt3 = dt2 * dt;
+    double dt4 = dt3 * dt;
+    double dt5 = dt4 * dt;
+    double dt6 = dt5 * dt;
 
     /* Compute the Taylor series */
 
@@ -93,7 +93,7 @@ void AISAbcdPropagator::setABCDXiPhi(){
     }
 
     // Xi
-    quad3x3Matrix xiMatrix;
+    double3x3Matrix xiMatrix;
     for(int i = 0; i < 3; ++i){
         for(int j = 0; j < 3; ++j){
             xiMatrix[i][j] = I[i][j] * dt2 / 2 + alpha[i][j] * dt3 / 6 
@@ -108,7 +108,7 @@ void AISAbcdPropagator::setABCDXiPhi(){
     Xi = matrixMultiply(xiMatrix, gVector);
 
     // Phi
-    quad3x3Matrix phiMatrix;
+    double3x3Matrix phiMatrix;
     for(int i = 0; i < 3; ++i){
         for(int j = 0; j < 3; ++j){
             phiMatrix[i][j] = I[i][j] * dt + alpha[i][j] * dt2 / 2 
@@ -120,26 +120,18 @@ void AISAbcdPropagator::setABCDXiPhi(){
     }
     Phi = matrixMultiply(phiMatrix, gVector);
 
-    // Store the double-precision versions
-    A64 = convert3x3MatrixToDouble(A);
-    B64 = convert3x3MatrixToDouble(B);
-    C64 = convert3x3MatrixToDouble(C);
-    D64 = convert3x3MatrixToDouble(D);
-    Xi64  = convertThreeVectorToDouble(Xi);
-    Phi64 = convertThreeVectorToDouble(Phi);
-
 }
 
-doubleThreeVector AISAbcdPropagator::CalculateNewPos(doubleThreeVector pos0, doubleThreeVector vel0, __float128 dt){
+doubleThreeVector AISAbcdPropagator::CalculateNewPos(const doubleThreeVector& pos0, const doubleThreeVector& vel0, __float128 dt){
     doubleThreeVector pos1;
-    pos1 = matrixAdd(matrixMultiply(A64, pos0), matrixMultiply(B64, vel0));
-    pos1 = matrixAdd(pos1, Xi64);
+    pos1 = matrixAdd(matrixMultiply(A, pos0), matrixMultiply(B, vel0));
+    pos1 = matrixAdd(pos1, Xi);
     return pos1;
 }
 
-doubleThreeVector AISAbcdPropagator::CalculateNewVel(doubleThreeVector pos0, doubleThreeVector vel0, __float128 dt){
+doubleThreeVector AISAbcdPropagator::CalculateNewVel(const doubleThreeVector& pos0, const doubleThreeVector& vel0, __float128 dt){
     doubleThreeVector vel1;
-    vel1 = matrixAdd(matrixMultiply(C64, pos0), matrixMultiply(D64, vel0));
-    vel1 = matrixAdd(vel1, Phi64);
+    vel1 = matrixAdd(matrixMultiply(C, pos0), matrixMultiply(D, vel0));
+    vel1 = matrixAdd(vel1, Phi);
     return vel1;
 }

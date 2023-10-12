@@ -1,9 +1,10 @@
 #include "AIStttPropagator.hh"
-
+#include "AISLinearGravityPropagator.hh"
+/*
 AIStttPropagator::AIStttPropagator(__float128 deltaTime)
 {
     fDeltaTime = deltaTime;
-    fFreePropagator = new AISFreePropagator();
+    fFreePropagator = new AISLinearGravityPropagator(deltaTime);
 }
 
 AIStttPropagator::~AIStttPropagator()
@@ -38,9 +39,9 @@ void AIStttPropagator::TttPropagateAtom(AISAtom* atom)
         AISWavePacket* wavePacket1 = atom->GetWavePacket(wavePacketIndex);
         AISWavePacket* wavePacket2 = new AISWavePacket();
 
-        /*
-        NEED TO FIND EXPRESSIONS FOR ABCD MATRICES
-        */
+        
+        // NEED TO FIND EXPRESSIONS FOR ABCD MATRICES
+        
 
         // Excited to ground
         for(int dim = 0; dim < 3; ++dim)
@@ -50,3 +51,5 @@ void AIStttPropagator::TttPropagateAtom(AISAtom* atom)
         }
     }
 }
+
+*/
