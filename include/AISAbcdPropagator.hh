@@ -28,6 +28,10 @@ public:
     // Kinematic propagation
     doubleThreeVector CalculateNewPos(const doubleThreeVector& pos0, const doubleThreeVector& vel0, __float128 time) override;
     doubleThreeVector CalculateNewVel(const doubleThreeVector& pos0, const doubleThreeVector& vel0, __float128 time) override;
+
+    // Phase propagation
+    double CalculateNewPhaseDouble(const double& phase0, const doubleThreeVector& pos0, const doubleThreeVector& pos1, 
+                                   const doubleThreeVector& vel0, const doubleThreeVector& vel1) override;
 };
 
 

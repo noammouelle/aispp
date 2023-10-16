@@ -28,8 +28,14 @@ void AISFreePropagator::PropagateWavePacket(AISWavePacket* wavePacket, __float12
 {
     currentPos  = wavePacket->GetPosition();
     currentVel  = wavePacket->GetVelocity();
+
+    currentPhaseDouble = wavePacket->GetPhaseDouble();
+
     currentTime = wavePacket->GetTime();
 
     wavePacket->SetPosition(CalculateNewPos(currentPos, currentVel, time));
     wavePacket->SetVelocity(CalculateNewVel(currentPos, currentVel, time));
+    wavePacket->SetPhaseDouble(CalculateNewPhaseDouble(currentPhaseDouble, 
+                                                        currentPos, wavePacket->GetPosition(), 
+                                                        currentVel, wavePacket->GetVelocity()));
 }

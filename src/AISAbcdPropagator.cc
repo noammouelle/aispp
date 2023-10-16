@@ -25,19 +25,19 @@ AISAbcdPropagator::~AISAbcdPropagator(){}
 
 void AISAbcdPropagator::setABCDXiPhi(){
     // Precompute all the required coefficients
-    double3x3Matrix gamma2 = matrixMultiply(gamma, gamma);
+    double3x3Matrix gamma2 = dotProduct(gamma, gamma);
 
-    double3x3Matrix alpha2 = matrixMultiply(alpha, alpha);
-    double3x3Matrix alpha3 = matrixMultiply(alpha2, alpha);
-    double3x3Matrix alpha4 = matrixMultiply(alpha3,alpha);
+    double3x3Matrix alpha2 = dotProduct(alpha, alpha);
+    double3x3Matrix alpha3 = dotProduct(alpha2, alpha);
+    double3x3Matrix alpha4 = dotProduct(alpha3,alpha);
 
-    double3x3Matrix alphaDotGamma = matrixMultiply(alpha, gamma);
-    double3x3Matrix gammaDotAlpha = matrixMultiply(gamma, alpha);
+    double3x3Matrix alphaDotGamma = dotProduct(alpha, gamma);
+    double3x3Matrix gammaDotAlpha = dotProduct(gamma, alpha);
 
-    double3x3Matrix alpha2DotGamma = matrixMultiply(alpha2, gamma);
-    double3x3Matrix gammaDotAlpha2 = matrixMultiply(gamma, alpha2);
+    double3x3Matrix alpha2DotGamma = dotProduct(alpha2, gamma);
+    double3x3Matrix gammaDotAlpha2 = dotProduct(gamma, alpha2);
 
-    double3x3Matrix alphaDotGammaDotAlpha = matrixMultiply(alphaDotGamma, alpha);
+    double3x3Matrix alphaDotGammaDotAlpha = dotProduct(alphaDotGamma, alpha);
 
     double dt  = deltaTime64;
     double dt2 = dt * dt;
@@ -105,7 +105,7 @@ void AISAbcdPropagator::setABCDXiPhi(){
                                 + gamma2[i][j]) * dt6 / 720 ;
         }
     }
-    Xi = matrixMultiply(xiMatrix, gVector);
+    Xi = dotProduct(xiMatrix, gVector);
 
     // Phi
     double3x3Matrix phiMatrix;
@@ -118,20 +118,40 @@ void AISAbcdPropagator::setABCDXiPhi(){
                                 + 3 * gammaDotAlpha2[i][j] + gamma2[i][j]) * dt5 / 120 ; 
         }
     }
-    Phi = matrixMultiply(phiMatrix, gVector);
-
+    Phi = dotProduct(phiMatrix, gVector);
 }
 
 doubleThreeVector AISAbcdPropagator::CalculateNewPos(const doubleThreeVector& pos0, const doubleThreeVector& vel0, __float128 dt){
     doubleThreeVector pos1;
-    pos1 = matrixAdd(matrixMultiply(A, pos0), matrixMultiply(B, vel0));
+    pos1 = matrixAdd(dotProduct(A, pos0), dotProduct(B, vel0));
     pos1 = matrixAdd(pos1, Xi);
     return pos1;
 }
 
 doubleThreeVector AISAbcdPropagator::CalculateNewVel(const doubleThreeVector& pos0, const doubleThreeVector& vel0, __float128 dt){
     doubleThreeVector vel1;
-    vel1 = matrixAdd(matrixMultiply(C, pos0), matrixMultiply(D, vel0));
+    vel1 = matrixAdd(dotProduct(C, pos0), dotProduct(D, vel0));
     vel1 = matrixAdd(vel1, Phi);
     return vel1;
+}
+
+double AISAbcdPropagator::CalculateNewPhaseDouble(const double& phase0, const doubleThreeVector& pos0, const doubleThreeVector& pos1, 
+                                                  const doubleThreeVector& vel0, const doubleThreeVector& vel1){
+
+    double phase1;
+    // precompute matrix products
+    double gVector2                    = dotProduct(gVector, gVector);
+    doubleThreeVector gVectorDotGamma  = dotProduct(gVector, gamma);
+    double gVectorDotGammaDotgVector   = dotProduct(gVectorDotGamma, gVector);
+    doubleThreeVector gVectorDotGamma2 = dotProduct(gVectorDotGamma, gamma);
+    double gVectorDotGamma2DotgVector  = dotProduct(gVectorDotGamma2, gVector);
+
+    phase1 =  0.5 * dotProduct(pos1,vel1) - 0.5 * dotProduct(pos0,vel0);
+    phase1 += 0.5 * dotProduct(Phi,pos1)  - 0.5 * dotProduct(Xi,vel1);
+    phase1 += 0.5 * (gVector2 * pow(deltaTime64, 3)/6 
+                        + gVectorDotGammaDotgVector  * pow(deltaTime64, 5)/120
+                        + gVectorDotGamma2DotgVector * pow(deltaTime64, 7)/5040); //ignoring alpha
+    phase1 *= massSr87 / hbar;
+
+    return phase0 + phase1;
 }

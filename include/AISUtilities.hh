@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <array>
+#include <cmath>
 
 /* Custom variable types*/
 using doubleThreeVector = std::array<double, 3>;
@@ -12,18 +13,24 @@ using quadThreeVector = std::array<__float128, 3>;
 using quad3x3Matrix = std::array<std::array<__float128, 3>, 3>;
 
 // Printing routine
-void printMatrix(quad3x3Matrix A);
-void printVector(quadThreeVector v);
+void printMatrix(double3x3Matrix A);
+void printVector(doubleThreeVector v);
 
 /* Basic linear algebra functions*/
-quad3x3Matrix matrixMultiply(const quad3x3Matrix& A, const quad3x3Matrix& B);
-quadThreeVector matrixMultiply(const quad3x3Matrix& A, const quadThreeVector& B);
-double3x3Matrix matrixMultiply(const double3x3Matrix& A, const double3x3Matrix& B);
-doubleThreeVector matrixMultiply(const double3x3Matrix& A, const doubleThreeVector& B);
-quad3x3Matrix matrixScalarMultiply(const quad3x3Matrix& A, const __float128& B);
-__float128 dotProduct(const quadThreeVector& A, const quadThreeVector& B);
-quad3x3Matrix matrixAdd(const quad3x3Matrix& A, const quad3x3Matrix& B);
-double3x3Matrix matrixAdd(const double3x3Matrix& A, const double3x3Matrix& B);
+// Quad precision
+// quad3x3Matrix matrixMultiply(const quad3x3Matrix& A, const quad3x3Matrix& B);
+// quadThreeVector matrixMultiply(const quad3x3Matrix& A, const quadThreeVector& B);
+// quad3x3Matrix matrixScalarMultiply(const quad3x3Matrix& A, const __float128& B);
+// quad3x3Matrix matrixAdd(const quad3x3Matrix& A, const quad3x3Matrix& B);
+// __float128 dotProduct(const quadThreeVector& A, const quadThreeVector& B);
+
+// Double precision - multiplication
+double3x3Matrix   dotProduct(const double3x3Matrix& A, const double3x3Matrix& B);
+doubleThreeVector dotProduct(const doubleThreeVector& A, const double3x3Matrix& B);
+doubleThreeVector dotProduct(const double3x3Matrix& A, const doubleThreeVector& B);
+double            dotProduct(const doubleThreeVector& A, const doubleThreeVector& B);
+// Double precision - addition
+double3x3Matrix   matrixAdd(const double3x3Matrix& A, const double3x3Matrix& B);
 doubleThreeVector matrixAdd(const doubleThreeVector& A, const doubleThreeVector& B);
 
 /* Data type conversion routines*/

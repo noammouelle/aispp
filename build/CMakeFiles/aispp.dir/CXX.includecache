@@ -49,6 +49,8 @@ iostream
 -
 array
 -
+cmath
+-
 
 ../include/AISWavePacket.hh
 AISUtilities.hh

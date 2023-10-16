@@ -6,7 +6,7 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 include_directories(${CMAKE_SOURCE_DIR}/src)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
 
 file(GLOB sources ${PROJECT_SOURCE_DIR}/src/*.cc) # all source files
 file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh)

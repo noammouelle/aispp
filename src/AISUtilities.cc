@@ -2,22 +2,25 @@
 #include <iostream>
 
 // Printing routine
-void printMatrix(quad3x3Matrix A){
+void printMatrix(double3x3Matrix A){
     for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
-                std::cout << convertScalarToDouble(A[i][j]) << "\t"; 
+                std::cout << A[i][j] << "\t"; 
             }
             std::cout << std::endl; 
         }
+    std::cout << "" <<std::endl;
 }
 
-void printVector(quadThreeVector v){
+void printVector(doubleThreeVector v){
     for(int i = 0; i < 3; ++i){
-        std::cout << convertScalarToDouble(v[i]) << std::endl;
+        std::cout << v[i] << std::endl;
     }
+    std::cout << "" <<std::endl;
 }
 
 /* Basic linear algebra functions*/
+// Quad precision
 quad3x3Matrix matrixMultiply(const quad3x3Matrix& A, const quad3x3Matrix& B){
 
     quad3x3Matrix result = {};
@@ -35,32 +38,6 @@ quad3x3Matrix matrixMultiply(const quad3x3Matrix& A, const quad3x3Matrix& B){
 quadThreeVector matrixMultiply(const quad3x3Matrix& A, const quadThreeVector& B){
 
     quadThreeVector result = {};
-
-    for (int i = 0; i < 3; ++i) {
-        for (int k = 0; k < 3; ++k) {
-            result[i] += A[i][k] * B[k];
-        }
-    }
-    return result;
-}
-
-double3x3Matrix matrixMultiply(const double3x3Matrix& A, const double3x3Matrix& B){
-
-    double3x3Matrix result = {};
-
-    for (int i = 0; i < 3; ++i) {
-        for (int j = 0; j < 3; ++j) {
-            for (int k = 0; k < 3; ++k) {
-                result[i][j] += A[i][k] * B[k][j];
-            }
-        }
-    }
-    return result;
-}
-
-doubleThreeVector matrixMultiply(const double3x3Matrix& A, const doubleThreeVector& B){
-
-    doubleThreeVector result = {};
 
     for (int i = 0; i < 3; ++i) {
         for (int k = 0; k < 3; ++k) {
@@ -100,6 +77,55 @@ quad3x3Matrix matrixAdd(const quad3x3Matrix& A, const quad3x3Matrix& B){
         for(int j = 0; j < 3; ++j){
             result[i][j] = A[i][j] + B[i][j];
         }
+    }
+    return result;
+}
+
+// Double precision - multiplication
+double3x3Matrix dotProduct(const double3x3Matrix& A, const double3x3Matrix& B){
+
+    double3x3Matrix result = {};
+
+    for (int i = 0; i < 3; ++i) {
+        for (int j = 0; j < 3; ++j) {
+            for (int k = 0; k < 3; ++k) {
+                result[i][j] += A[i][k] * B[k][j];
+            }
+        }
+    }
+    return result;
+}
+
+doubleThreeVector dotProduct(const double3x3Matrix& A, const doubleThreeVector& B){
+
+    doubleThreeVector result = {};
+
+    for (int i = 0; i < 3; ++i) {
+        for (int k = 0; k < 3; ++k) {
+            result[i] += A[i][k] * B[k];
+        }
+    }
+    return result;
+}
+
+doubleThreeVector dotProduct(const doubleThreeVector& A, const double3x3Matrix& B){
+
+    doubleThreeVector result = {};
+
+    for (int i = 0; i < 3; ++i) {
+        for (int k = 0; k < 3; ++k) {
+            result[i] += A[k] * B[k][i];
+        }
+    }
+    return result;
+}
+
+double dotProduct(const doubleThreeVector& A, const doubleThreeVector& B){
+
+    double result = 0.0;
+
+    for (int i = 0; i < 3; ++i) {
+        result += A[i] * B[i];
     }
     return result;
 }
