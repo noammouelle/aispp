@@ -163,6 +163,33 @@ src/AISAbcdPropagator.cc.s:
 	$(MAKE) -f CMakeFiles/aispp.dir/build.make CMakeFiles/aispp.dir/src/AISAbcdPropagator.cc.s
 .PHONY : src/AISAbcdPropagator.cc.s
 
+src/AISAbcdUtilities.o: src/AISAbcdUtilities.cc.o
+
+.PHONY : src/AISAbcdUtilities.o
+
+# target to build an object file
+src/AISAbcdUtilities.cc.o:
+	$(MAKE) -f CMakeFiles/aispp.dir/build.make CMakeFiles/aispp.dir/src/AISAbcdUtilities.cc.o
+.PHONY : src/AISAbcdUtilities.cc.o
+
+src/AISAbcdUtilities.i: src/AISAbcdUtilities.cc.i
+
+.PHONY : src/AISAbcdUtilities.i
+
+# target to preprocess a source file
+src/AISAbcdUtilities.cc.i:
+	$(MAKE) -f CMakeFiles/aispp.dir/build.make CMakeFiles/aispp.dir/src/AISAbcdUtilities.cc.i
+.PHONY : src/AISAbcdUtilities.cc.i
+
+src/AISAbcdUtilities.s: src/AISAbcdUtilities.cc.s
+
+.PHONY : src/AISAbcdUtilities.s
+
+# target to generate assembly for a file
+src/AISAbcdUtilities.cc.s:
+	$(MAKE) -f CMakeFiles/aispp.dir/build.make CMakeFiles/aispp.dir/src/AISAbcdUtilities.cc.s
+.PHONY : src/AISAbcdUtilities.cc.s
+
 src/AISAtom.o: src/AISAtom.cc.o
 
 .PHONY : src/AISAtom.o
@@ -243,6 +270,33 @@ src/AISFreePropagator.s: src/AISFreePropagator.cc.s
 src/AISFreePropagator.cc.s:
 	$(MAKE) -f CMakeFiles/aispp.dir/build.make CMakeFiles/aispp.dir/src/AISFreePropagator.cc.s
 .PHONY : src/AISFreePropagator.cc.s
+
+src/AISIntensityProfile.o: src/AISIntensityProfile.cc.o
+
+.PHONY : src/AISIntensityProfile.o
+
+# target to build an object file
+src/AISIntensityProfile.cc.o:
+	$(MAKE) -f CMakeFiles/aispp.dir/build.make CMakeFiles/aispp.dir/src/AISIntensityProfile.cc.o
+.PHONY : src/AISIntensityProfile.cc.o
+
+src/AISIntensityProfile.i: src/AISIntensityProfile.cc.i
+
+.PHONY : src/AISIntensityProfile.i
+
+# target to preprocess a source file
+src/AISIntensityProfile.cc.i:
+	$(MAKE) -f CMakeFiles/aispp.dir/build.make CMakeFiles/aispp.dir/src/AISIntensityProfile.cc.i
+.PHONY : src/AISIntensityProfile.cc.i
+
+src/AISIntensityProfile.s: src/AISIntensityProfile.cc.s
+
+.PHONY : src/AISIntensityProfile.s
+
+# target to generate assembly for a file
+src/AISIntensityProfile.cc.s:
+	$(MAKE) -f CMakeFiles/aispp.dir/build.make CMakeFiles/aispp.dir/src/AISIntensityProfile.cc.s
+.PHONY : src/AISIntensityProfile.cc.s
 
 src/AISLinearGravityPropagator.o: src/AISLinearGravityPropagator.cc.o
 
@@ -352,6 +406,33 @@ src/AIStttPropagator.cc.s:
 	$(MAKE) -f CMakeFiles/aispp.dir/build.make CMakeFiles/aispp.dir/src/AIStttPropagator.cc.s
 .PHONY : src/AIStttPropagator.cc.s
 
+src/AIWaveFront.o: src/AIWaveFront.cc.o
+
+.PHONY : src/AIWaveFront.o
+
+# target to build an object file
+src/AIWaveFront.cc.o:
+	$(MAKE) -f CMakeFiles/aispp.dir/build.make CMakeFiles/aispp.dir/src/AIWaveFront.cc.o
+.PHONY : src/AIWaveFront.cc.o
+
+src/AIWaveFront.i: src/AIWaveFront.cc.i
+
+.PHONY : src/AIWaveFront.i
+
+# target to preprocess a source file
+src/AIWaveFront.cc.i:
+	$(MAKE) -f CMakeFiles/aispp.dir/build.make CMakeFiles/aispp.dir/src/AIWaveFront.cc.i
+.PHONY : src/AIWaveFront.cc.i
+
+src/AIWaveFront.s: src/AIWaveFront.cc.s
+
+.PHONY : src/AIWaveFront.s
+
+# target to generate assembly for a file
+src/AIWaveFront.cc.s:
+	$(MAKE) -f CMakeFiles/aispp.dir/build.make CMakeFiles/aispp.dir/src/AIWaveFront.cc.s
+.PHONY : src/AIWaveFront.cc.s
+
 src/main.o: src/main.cc.o
 
 .PHONY : src/main.o
@@ -392,6 +473,9 @@ help:
 	@echo "... src/AISAbcdPropagator.o"
 	@echo "... src/AISAbcdPropagator.i"
 	@echo "... src/AISAbcdPropagator.s"
+	@echo "... src/AISAbcdUtilities.o"
+	@echo "... src/AISAbcdUtilities.i"
+	@echo "... src/AISAbcdUtilities.s"
 	@echo "... src/AISAtom.o"
 	@echo "... src/AISAtom.i"
 	@echo "... src/AISAtom.s"
@@ -401,6 +485,9 @@ help:
 	@echo "... src/AISFreePropagator.o"
 	@echo "... src/AISFreePropagator.i"
 	@echo "... src/AISFreePropagator.s"
+	@echo "... src/AISIntensityProfile.o"
+	@echo "... src/AISIntensityProfile.i"
+	@echo "... src/AISIntensityProfile.s"
 	@echo "... src/AISLinearGravityPropagator.o"
 	@echo "... src/AISLinearGravityPropagator.i"
 	@echo "... src/AISLinearGravityPropagator.s"
@@ -413,6 +500,9 @@ help:
 	@echo "... src/AIStttPropagator.o"
 	@echo "... src/AIStttPropagator.i"
 	@echo "... src/AIStttPropagator.s"
+	@echo "... src/AIWaveFront.o"
+	@echo "... src/AIWaveFront.i"
+	@echo "... src/AIWaveFront.s"
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"

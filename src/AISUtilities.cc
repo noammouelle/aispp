@@ -1,6 +1,17 @@
 #include "AISUtilities.hh"
 #include <iostream>
 
+// complex number routines
+double complexAbs(complexDouble z){
+    double result = std::abs(z);
+    return result;
+}
+
+double complexArg(complexDouble z){
+    double result = std::arg(z);
+    return result;
+}
+
 // Printing routine
 void printMatrix(double3x3Matrix A){
     for (int i = 0; i < 3; i++) {
@@ -17,6 +28,14 @@ void printVector(doubleThreeVector v){
         std::cout << v[i] << std::endl;
     }
     std::cout << "" <<std::endl;
+}
+
+void printQuadVariable(__float128 value) {
+    // Convert the __float128 to long double
+    long double ldValue = static_cast<long double>(value);
+
+    // Print the long double with full precision
+    std::cout << std::setprecision(34) << ldValue << std::endl;
 }
 
 /* Basic linear algebra functions*/
@@ -130,6 +149,28 @@ double dotProduct(const doubleThreeVector& A, const doubleThreeVector& B){
     return result;
 }
 
+double3x3Matrix scalarMultiply(const double3x3Matrix& A, const double& B){
+    
+    double3x3Matrix result = {};
+
+    for(int i = 0; i < 3; ++i){
+        for(int j = 0; j < 3; ++j){ 
+            result[i][j] = A[i][j] * B;
+        }
+    }
+    return result;
+}
+
+doubleThreeVector scalarMultiply(const doubleThreeVector& A, const double& B){
+    
+    doubleThreeVector result = {};
+
+    for(int i = 0; i < 3; ++i){
+        result[i] = A[i] * B;
+    }
+    return result;
+}
+
 double3x3Matrix matrixAdd(const double3x3Matrix& A, const double3x3Matrix& B){
     
     double3x3Matrix result = {};
@@ -148,6 +189,19 @@ doubleThreeVector matrixAdd(const doubleThreeVector& A, const doubleThreeVector&
 
     for(int i = 0; i < 3; ++i){
         result[i] = A[i] + B[i];
+    }
+    return result;
+}
+
+// Double precision - transposition
+double3x3Matrix transpose(const double3x3Matrix& A){
+    
+    double3x3Matrix result = {};
+
+    for(int i = 0; i < 3; ++i){
+        for(int j = 0; j < 3; ++j){ 
+            result[i][j] = A[j][i];
+        }
     }
     return result;
 }

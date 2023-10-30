@@ -17,6 +17,8 @@ public:
                     doubleThreeVector initialPosition, doubleThreeVector initialVelocity);
     ~AISAtomEnsemble();
 
+    __float128 omega0 = 2 * pi128 * c / 689 * pow(10, 9);
+
     int GetNumberOfAtoms();
 
     AISAtom* GetAtom(int atomIndex);

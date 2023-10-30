@@ -10,8 +10,13 @@ CMakeFiles/aispp.dir/src/AISAbcdPropagator.cc.o
  ../include/AISUtilities.hh
  ../include/AISWavePacket.hh
  /home/noammouelle/sim/ais++/src/AISAbcdPropagator.cc
+CMakeFiles/aispp.dir/src/AISAbcdUtilities.cc.o
+ ../include/AISAbcdUtilities.hh
+ ../include/AISUtilities.hh
+ /home/noammouelle/sim/ais++/src/AISAbcdUtilities.cc
 CMakeFiles/aispp.dir/src/AISAtom.cc.o
  ../include/AISAtom.hh
+ ../include/AISConstants.hh
  ../include/AISUtilities.hh
  ../include/AISWavePacket.hh
  /home/noammouelle/sim/ais++/src/AISAtom.cc
@@ -30,6 +35,10 @@ CMakeFiles/aispp.dir/src/AISFreePropagator.cc.o
  ../include/AISUtilities.hh
  ../include/AISWavePacket.hh
  /home/noammouelle/sim/ais++/src/AISFreePropagator.cc
+CMakeFiles/aispp.dir/src/AISIntensityProfile.cc.o
+ ../include/AISIntensityProfile.hh
+ ../include/AISUtilities.hh
+ /home/noammouelle/sim/ais++/src/AISIntensityProfile.cc
 CMakeFiles/aispp.dir/src/AISLinearGravityPropagator.cc.o
  ../include/AISAbcdPropagator.hh
  ../include/AISAtom.hh
@@ -49,24 +58,34 @@ CMakeFiles/aispp.dir/src/AISWavePacket.cc.o
  /home/noammouelle/sim/ais++/src/AISWavePacket.cc
 CMakeFiles/aispp.dir/src/AIStttPropagator.cc.o
  ../include/AISAbcdPropagator.hh
+ ../include/AISAbcdUtilities.hh
  ../include/AISAtom.hh
  ../include/AISAtomEnsemble.hh
  ../include/AISConstants.hh
  ../include/AISFreePropagator.hh
- ../include/AISInstensityProfile.hh
+ ../include/AISIntensityProfile.hh
  ../include/AISLinearGravityPropagator.hh
  ../include/AISUtilities.hh
  ../include/AISWaveFront.hh
  ../include/AISWavePacket.hh
  ../include/AIStttPropagator.hh
  /home/noammouelle/sim/ais++/src/AIStttPropagator.cc
+CMakeFiles/aispp.dir/src/AIWaveFront.cc.o
+ ../include/AISConstants.hh
+ ../include/AISUtilities.hh
+ ../include/AISWaveFront.hh
+ /home/noammouelle/sim/ais++/src/AIWaveFront.cc
 CMakeFiles/aispp.dir/src/main.cc.o
  ../include/AISAbcdPropagator.hh
+ ../include/AISAbcdUtilities.hh
  ../include/AISAtom.hh
  ../include/AISAtomEnsemble.hh
  ../include/AISConstants.hh
  ../include/AISFreePropagator.hh
+ ../include/AISIntensityProfile.hh
  ../include/AISLinearGravityPropagator.hh
  ../include/AISUtilities.hh
+ ../include/AISWaveFront.hh
  ../include/AISWavePacket.hh
+ ../include/AIStttPropagator.hh
  /home/noammouelle/sim/ais++/src/main.cc

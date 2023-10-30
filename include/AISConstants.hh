@@ -13,7 +13,12 @@ const double hbar = h/(2*pi);
 const double kB   = 1.3806488e-23;
 const int   c     = 299792458;
 
+const __float128 pi128   = 3.1415926535897932384626433832795028q;
+
 const double massSr87    = 1.44e-25;
+const double lambdaSr87  = 689e-9;
+const __float128 omegaSr87 = 2.0q * pi128 * c / 689e-9q;
+
 const double massEarth   = 5.97e24;
 const double radiusEarth = 6.37e6;
 

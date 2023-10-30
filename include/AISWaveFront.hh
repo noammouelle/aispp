@@ -2,18 +2,25 @@
 #define AISWAVEFRONT_HH
 
 #include <array>
-
-using threeVector = std::array<double, 3>;
+#include "AISUtilities.hh"
 
 class AISWaveFront
 {
 private:
-    /* data */
+    double (*fAberrationFunction)(const doubleThreeVector&);
+    double (*fAberrationFunctionDerivative)(const doubleThreeVector&);
+    doubleThreeVector fPsrGradient;
+    double fLaserPhase;
 public:
-    AISWaveFront(/* args */);
+    AISWaveFront(double (*aberrationFunction)(const doubleThreeVector&), 
+                 double (*aberrationFunctionDerivative)(const doubleThreeVector&),
+                 doubleThreeVector psrGradient, double laserPhase);
     ~AISWaveFront();
 
-    void GetValue(threeVector pos);
+    double GetValue(const doubleThreeVector& pos);
 };
+
+// define a couple aberrationFunctions
+double zeroAberrationFunction(const doubleThreeVector& pos);
 
 #endif

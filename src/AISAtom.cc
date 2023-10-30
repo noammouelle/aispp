@@ -13,10 +13,20 @@ AISAtom::~AISAtom(){
 };
 
 int AISAtom::GetNumberOfWavePackets(){
-    return fWavePacketVector.size();
+    return fpWavePacketVector->size();
 };
 
 AISWavePacket* AISAtom::GetWavePacket(int wavePacketIndex)
 {
-    return fWavePacketVector[wavePacketIndex];
+    return (*fpWavePacketVector)[wavePacketIndex];
 }
+
+void AISAtom::DeleteWavePackets(){
+    for(int i = 0; i < fpWavePacketVector->size(); ++i){
+        delete (*fpWavePacketVector)[i];
+    }
+};
+
+void AISAtom::AddWavePackets(wavePacketVector* newWavePacketVector){
+    fpWavePacketVector = newWavePacketVector;
+};

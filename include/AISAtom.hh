@@ -1,6 +1,7 @@
 #ifndef ATOM_HH
 #define ATOM_HH
 
+#include "AISConstants.hh"
 #include <vector>
 #include "AISWavePacket.hh"
 
@@ -15,9 +16,12 @@ public:
 
     AISWavePacket* GetWavePacket(int wavePacketIndex);
 
+    void DeleteWavePackets();
+    void AddWavePackets(wavePacketVector* newWavePacketVector);
+
 private:
-    wavePacketVector fWavePacketVector;
-    wavePacketVector* fpWavePacketVector = &fWavePacketVector;
+    //wavePacketVector fWavePacketVector;
+    wavePacketVector* fpWavePacketVector = new wavePacketVector;
 
 };
 

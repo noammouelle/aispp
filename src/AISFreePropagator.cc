@@ -38,4 +38,5 @@ void AISFreePropagator::PropagateWavePacket(AISWavePacket* wavePacket, __float12
     wavePacket->SetPhaseDouble(CalculateNewPhaseDouble(currentPhaseDouble, 
                                                         currentPos, wavePacket->GetPosition(), 
                                                         currentVel, wavePacket->GetVelocity()));
+    wavePacket->SetTime(currentTime + time);
 }

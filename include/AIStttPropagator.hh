@@ -1,46 +1,77 @@
 #ifndef AISTTTPROPAGATOR_HH
 #define AISTTTPROPAGATOR_HH
-/*
-#include <array>
 
-using threeQuadVector = std::array<__float128,3>;
-
+#include "AISUtilities.hh"
 #include "AISWaveFront.hh"
-#include "AISInstensityProfile.hh"
+#include "AISIntensityProfile.hh"
 #include "AISAtomEnsemble.hh"
 #include "AISFreePropagator.hh"
 #include "AISConstants.hh"
+#include "AISAbcdUtilities.hh"
+#include "AISLinearGravityPropagator.hh"
+#include "AISAtom.hh"
 
 class AIStttPropagator
 {
 private:
     __float128 fDeltaTime;
-    AISInstensityProfile* fIntensityProfile;
+    double fDeltaTime64;
+    AISIntensityProfile* fIntensityProfile;
     AISWaveFront* fWaveFront;
 
     __float128 fOmega;
-    threeQuadVector fK;
-    threeVector fDoubleK;
+    __float128 fOmega0;
+    doubleThreeVector fK;
 
-    AISFreePropagator* fFreePropagator;
+    AISLinearGravityPropagator* fFreePropagator;
+
+    // Hamiltonian coefficients (same as the one for the propagator)
+    double3x3Matrix alpha, gamma;
+    doubleThreeVector gVector;
+
+    // ABCD matrices for T = + deltaTime / 2
+    double3x3Matrix A, B, C, D, I; 
+    doubleThreeVector Xi, Phi;
+    // ABCD matrices for T = - deltaTime / 2
+    double3x3Matrix A_, B_, C_, D_;
+    doubleThreeVector Xi_, Phi_;
 
     // some dummy variables
-    threeVector dx = {0., 0., 0.};
-    threeVector dv = {0., 0., 0.};
+    doubleThreeVector dx = {0., 0., 0.};
+    doubleThreeVector dv = {0., 0., 0.};
+
+    doubleThreeVector newPos1 = {0., 0., 0.};
+    doubleThreeVector newVel1 = {0., 0., 0.};
+    doubleThreeVector newPos2 = {0., 0., 0.};
+    doubleThreeVector newVel2 = {0., 0., 0.};
+
+    double newAmplitude1 = 0.;
+    double newAmplitude2 = 0.;
+    double newPhaseDouble1 = 0.;
+    double newPhaseDouble2 = 0.;
+    __float128 newPhaseQuad1 = 0.;
+    __float128 newPhaseQuad2 = 0.;
+
+    // methods to compute detuning and rotation matrix
+    double computeDetuning(const doubleThreeVector& pos, const doubleThreeVector& vel,
+                           const __float128& omega);
+    complexDouble Smatrix(const doubleThreeVector& pos, const doubleThreeVector& vel,
+                          const __float128& omega, const double& detuning, 
+                          const std::string& transition);
     
 public:
     AIStttPropagator(__float128 deltaTime);
     ~AIStttPropagator();
 
     void SetWaveFront(AISWaveFront* waveFront);
-    void SetIntensityProfile(AISInstensityProfile* intensityProfile);
+    void SetIntensityProfile(AISIntensityProfile* intensityProfile);
 
-    threeQuadVector GetWaveVector();
-    threeVector GetDoubleWaveVector();
-    void SetWaveVector(threeQuadVector waveVector);
+    doubleThreeVector GetWaveVector();
+    doubleThreeVector GetDoubleWaveVector();
+    void SetWaveVector(const doubleThreeVector& waveVector);
 
     __float128 GetOmega();
-    void SetOmega(__float128 omega);
+    void SetOmega(const __float128& omega);
 
     void PropagateEnsemble(AISAtomEnsemble* atomEnsemble);
     void TttPropagateEnsemble(AISAtomEnsemble* AISAtomEnsemble);
@@ -48,5 +79,5 @@ public:
     void TttPropagateWavePacket(AISWavePacket* wavePacket);
 };
 
-*/
+
 #endif

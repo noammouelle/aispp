@@ -8,9 +8,9 @@ AISAbcdPropagator::AISAbcdPropagator(__float128 dt){
     deltaTime64 = convertScalarToDouble(dt);
 
     // Identity
-     I = {{ {{1.0, 0.0, 0.0}},
-            {{0.0, 1.0, 0.0}},
-            {{0.0, 0.0, 1.0}} }};
+    I = {{ {{1.0, 0.0, 0.0}},
+           {{0.0, 1.0, 0.0}},
+           {{0.0, 0.0, 1.0}} }};
     
     // Dummy values for coefficients
     alpha   = {};
