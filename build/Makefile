@@ -244,6 +244,87 @@ src/AISAtomEnsemble.cc.s:
 	$(MAKE) -f CMakeFiles/aispp.dir/build.make CMakeFiles/aispp.dir/src/AISAtomEnsemble.cc.s
 .PHONY : src/AISAtomEnsemble.cc.s
 
+src/AISAtomInterferometer.o: src/AISAtomInterferometer.cc.o
+
+.PHONY : src/AISAtomInterferometer.o
+
+# target to build an object file
+src/AISAtomInterferometer.cc.o:
+	$(MAKE) -f CMakeFiles/aispp.dir/build.make CMakeFiles/aispp.dir/src/AISAtomInterferometer.cc.o
+.PHONY : src/AISAtomInterferometer.cc.o
+
+src/AISAtomInterferometer.i: src/AISAtomInterferometer.cc.i
+
+.PHONY : src/AISAtomInterferometer.i
+
+# target to preprocess a source file
+src/AISAtomInterferometer.cc.i:
+	$(MAKE) -f CMakeFiles/aispp.dir/build.make CMakeFiles/aispp.dir/src/AISAtomInterferometer.cc.i
+.PHONY : src/AISAtomInterferometer.cc.i
+
+src/AISAtomInterferometer.s: src/AISAtomInterferometer.cc.s
+
+.PHONY : src/AISAtomInterferometer.s
+
+# target to generate assembly for a file
+src/AISAtomInterferometer.cc.s:
+	$(MAKE) -f CMakeFiles/aispp.dir/build.make CMakeFiles/aispp.dir/src/AISAtomInterferometer.cc.s
+.PHONY : src/AISAtomInterferometer.cc.s
+
+src/AISAtomInterferometerParams.o: src/AISAtomInterferometerParams.cc.o
+
+.PHONY : src/AISAtomInterferometerParams.o
+
+# target to build an object file
+src/AISAtomInterferometerParams.cc.o:
+	$(MAKE) -f CMakeFiles/aispp.dir/build.make CMakeFiles/aispp.dir/src/AISAtomInterferometerParams.cc.o
+.PHONY : src/AISAtomInterferometerParams.cc.o
+
+src/AISAtomInterferometerParams.i: src/AISAtomInterferometerParams.cc.i
+
+.PHONY : src/AISAtomInterferometerParams.i
+
+# target to preprocess a source file
+src/AISAtomInterferometerParams.cc.i:
+	$(MAKE) -f CMakeFiles/aispp.dir/build.make CMakeFiles/aispp.dir/src/AISAtomInterferometerParams.cc.i
+.PHONY : src/AISAtomInterferometerParams.cc.i
+
+src/AISAtomInterferometerParams.s: src/AISAtomInterferometerParams.cc.s
+
+.PHONY : src/AISAtomInterferometerParams.s
+
+# target to generate assembly for a file
+src/AISAtomInterferometerParams.cc.s:
+	$(MAKE) -f CMakeFiles/aispp.dir/build.make CMakeFiles/aispp.dir/src/AISAtomInterferometerParams.cc.s
+.PHONY : src/AISAtomInterferometerParams.cc.s
+
+src/AISDetector.o: src/AISDetector.cc.o
+
+.PHONY : src/AISDetector.o
+
+# target to build an object file
+src/AISDetector.cc.o:
+	$(MAKE) -f CMakeFiles/aispp.dir/build.make CMakeFiles/aispp.dir/src/AISDetector.cc.o
+.PHONY : src/AISDetector.cc.o
+
+src/AISDetector.i: src/AISDetector.cc.i
+
+.PHONY : src/AISDetector.i
+
+# target to preprocess a source file
+src/AISDetector.cc.i:
+	$(MAKE) -f CMakeFiles/aispp.dir/build.make CMakeFiles/aispp.dir/src/AISDetector.cc.i
+.PHONY : src/AISDetector.cc.i
+
+src/AISDetector.s: src/AISDetector.cc.s
+
+.PHONY : src/AISDetector.s
+
+# target to generate assembly for a file
+src/AISDetector.cc.s:
+	$(MAKE) -f CMakeFiles/aispp.dir/build.make CMakeFiles/aispp.dir/src/AISDetector.cc.s
+.PHONY : src/AISDetector.cc.s
+
 src/AISFreePropagator.o: src/AISFreePropagator.cc.o
 
 .PHONY : src/AISFreePropagator.o
@@ -324,6 +405,60 @@ src/AISLinearGravityPropagator.s: src/AISLinearGravityPropagator.cc.s
 src/AISLinearGravityPropagator.cc.s:
 	$(MAKE) -f CMakeFiles/aispp.dir/build.make CMakeFiles/aispp.dir/src/AISLinearGravityPropagator.cc.s
 .PHONY : src/AISLinearGravityPropagator.cc.s
+
+src/AISPort.o: src/AISPort.cc.o
+
+.PHONY : src/AISPort.o
+
+# target to build an object file
+src/AISPort.cc.o:
+	$(MAKE) -f CMakeFiles/aispp.dir/build.make CMakeFiles/aispp.dir/src/AISPort.cc.o
+.PHONY : src/AISPort.cc.o
+
+src/AISPort.i: src/AISPort.cc.i
+
+.PHONY : src/AISPort.i
+
+# target to preprocess a source file
+src/AISPort.cc.i:
+	$(MAKE) -f CMakeFiles/aispp.dir/build.make CMakeFiles/aispp.dir/src/AISPort.cc.i
+.PHONY : src/AISPort.cc.i
+
+src/AISPort.s: src/AISPort.cc.s
+
+.PHONY : src/AISPort.s
+
+# target to generate assembly for a file
+src/AISPort.cc.s:
+	$(MAKE) -f CMakeFiles/aispp.dir/build.make CMakeFiles/aispp.dir/src/AISPort.cc.s
+.PHONY : src/AISPort.cc.s
+
+src/AISPortFrame.o: src/AISPortFrame.cc.o
+
+.PHONY : src/AISPortFrame.o
+
+# target to build an object file
+src/AISPortFrame.cc.o:
+	$(MAKE) -f CMakeFiles/aispp.dir/build.make CMakeFiles/aispp.dir/src/AISPortFrame.cc.o
+.PHONY : src/AISPortFrame.cc.o
+
+src/AISPortFrame.i: src/AISPortFrame.cc.i
+
+.PHONY : src/AISPortFrame.i
+
+# target to preprocess a source file
+src/AISPortFrame.cc.i:
+	$(MAKE) -f CMakeFiles/aispp.dir/build.make CMakeFiles/aispp.dir/src/AISPortFrame.cc.i
+.PHONY : src/AISPortFrame.cc.i
+
+src/AISPortFrame.s: src/AISPortFrame.cc.s
+
+.PHONY : src/AISPortFrame.s
+
+# target to generate assembly for a file
+src/AISPortFrame.cc.s:
+	$(MAKE) -f CMakeFiles/aispp.dir/build.make CMakeFiles/aispp.dir/src/AISPortFrame.cc.s
+.PHONY : src/AISPortFrame.cc.s
 
 src/AISUtilities.o: src/AISUtilities.cc.o
 
@@ -482,6 +617,15 @@ help:
 	@echo "... src/AISAtomEnsemble.o"
 	@echo "... src/AISAtomEnsemble.i"
 	@echo "... src/AISAtomEnsemble.s"
+	@echo "... src/AISAtomInterferometer.o"
+	@echo "... src/AISAtomInterferometer.i"
+	@echo "... src/AISAtomInterferometer.s"
+	@echo "... src/AISAtomInterferometerParams.o"
+	@echo "... src/AISAtomInterferometerParams.i"
+	@echo "... src/AISAtomInterferometerParams.s"
+	@echo "... src/AISDetector.o"
+	@echo "... src/AISDetector.i"
+	@echo "... src/AISDetector.s"
 	@echo "... src/AISFreePropagator.o"
 	@echo "... src/AISFreePropagator.i"
 	@echo "... src/AISFreePropagator.s"
@@ -491,6 +635,12 @@ help:
 	@echo "... src/AISLinearGravityPropagator.o"
 	@echo "... src/AISLinearGravityPropagator.i"
 	@echo "... src/AISLinearGravityPropagator.s"
+	@echo "... src/AISPort.o"
+	@echo "... src/AISPort.i"
+	@echo "... src/AISPort.s"
+	@echo "... src/AISPortFrame.o"
+	@echo "... src/AISPortFrame.i"
+	@echo "... src/AISPortFrame.s"
 	@echo "... src/AISUtilities.o"
 	@echo "... src/AISUtilities.i"
 	@echo "... src/AISUtilities.s"

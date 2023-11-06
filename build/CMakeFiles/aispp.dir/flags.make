@@ -6,5 +6,5 @@ CXX_FLAGS =  -O3 -g
 
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I/home/noammouelle/sim/ais++/include -I/home/noammouelle/sim/ais++/src 
+CXX_INCLUDES = -I/usr/include/hdf5/serial -I/home/noammouelle/sim/ais++/include -I/home/noammouelle/sim/ais++/src 
 

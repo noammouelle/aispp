@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <array>
+#include <vector>
 #include <cmath>
 #include <string>
 #include <complex>
@@ -17,7 +18,16 @@ using double3x3Matrix = std::array<std::array<double, 3>, 3>;
 using quadThreeVector = std::array<__float128, 3>;
 using quad3x3Matrix = std::array<std::array<__float128, 3>, 3>;
 
+using threeVectorList = std::vector<doubleThreeVector>;
+using sixVectorList = std::vector<std::array<double, 6>>;
+
 using complexDouble = std::complex<double>;
+
+using intVector = std::vector<int>;
+using intTuple = std::array<intVector,2>;
+using doubleVector = std::vector<double>;
+using quadVector = std::vector<__float128>;
+using boolVector = std::vector<bool>;
 
 // complex number routines
 double complexAbs(complexDouble z);

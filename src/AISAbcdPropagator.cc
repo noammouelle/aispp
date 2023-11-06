@@ -2,9 +2,8 @@
 #include "AISAbcdPropagator.hh"
 
 
-AISAbcdPropagator::AISAbcdPropagator(__float128 dt){
+AISAbcdPropagator::AISAbcdPropagator(__float128 dt) : AISFreePropagator(dt){
     deltaTime   = dt;
-    //deltaTime64 = convertScalarToDouble(deltaTime);
     deltaTime64 = convertScalarToDouble(dt);
 
     // Identity
@@ -121,14 +120,14 @@ void AISAbcdPropagator::setABCDXiPhi(){
     Phi = dotProduct(phiMatrix, gVector);
 }
 
-doubleThreeVector AISAbcdPropagator::CalculateNewPos(const doubleThreeVector& pos0, const doubleThreeVector& vel0, __float128 dt){
+doubleThreeVector AISAbcdPropagator::CalculateNewPos(const doubleThreeVector& pos0, const doubleThreeVector& vel0){
     doubleThreeVector pos1;
     pos1 = matrixAdd(dotProduct(A, pos0), dotProduct(B, vel0));
     pos1 = matrixAdd(pos1, Xi);
     return pos1;
 }
 
-doubleThreeVector AISAbcdPropagator::CalculateNewVel(const doubleThreeVector& pos0, const doubleThreeVector& vel0, __float128 dt){
+doubleThreeVector AISAbcdPropagator::CalculateNewVel(const doubleThreeVector& pos0, const doubleThreeVector& vel0){
     doubleThreeVector vel1;
     vel1 = matrixAdd(dotProduct(C, pos0), dotProduct(D, vel0));
     vel1 = matrixAdd(vel1, Phi);
@@ -154,4 +153,10 @@ double AISAbcdPropagator::CalculateNewPhaseDouble(const double& phase0, const do
     phase1 *= massSr87 / hbar;
 
     return phase0 + phase1;
+}
+
+__float128 AISAbcdPropagator::CalculateNewPhaseQuad(const __float128& phase0){
+    __float128 phase1;
+    phase1 = phase0 - omegaSr87 * deltaTime;
+    return phase1;
 }

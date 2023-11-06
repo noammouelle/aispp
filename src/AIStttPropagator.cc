@@ -7,7 +7,7 @@ AIStttPropagator::AIStttPropagator(__float128 deltaTime)
 {
     fDeltaTime = deltaTime;
     fDeltaTime64 = convertScalarToDouble(deltaTime);
-    fFreePropagator = new AISLinearGravityPropagator(deltaTime);
+    fFreePropagator = new AISLinearGravityPropagator(deltaTime / 2);
 
     fOmega0 = omegaSr87;
 
@@ -60,6 +60,11 @@ void AIStttPropagator::SetWaveVector(const doubleThreeVector& k)
     fK = k;
 }
 
+doubleThreeVector AIStttPropagator::GetWaveVector()
+{
+    return fK;
+}
+
 void AIStttPropagator::SetOmega(const __float128& omega)
 {
     fOmega = omega;
@@ -95,7 +100,7 @@ complexDouble AIStttPropagator::Smatrix(const doubleThreeVector& pos, const doub
                                  const std::string& transition)
 {   
     // compute the detuning
-    double computedDetuning = computeDetuning(pos, vel, omega);
+    double computedDetuning = detuning;
     // compute the effectrive Rabi frequency
     double effectiveRabiFreq = fIntensityProfile->GetEffectiveRabiFreq(pos);
     // compute the S matrix elements
@@ -105,10 +110,10 @@ complexDouble AIStttPropagator::Smatrix(const doubleThreeVector& pos, const doub
     complexDouble Sij;
 
     if(transition=="g->g"){
-        Sij = complexDouble(cos(arg), computedDetuning*sin(arg)/X);
+        Sij = complexDouble(cos(arg), -computedDetuning*sin(arg)/X);
     }
     if(transition=="e->e"){
-        Sij = complexDouble(cos(arg), -computedDetuning*sin(arg)/X);
+        Sij = complexDouble(cos(arg), computedDetuning*sin(arg)/X);
     }
     if(transition=="g->e" or transition=="e->g"){
         Sij = complexDouble(0.0, 2*effectiveRabiFreq*sin(arg)/X);
@@ -120,11 +125,11 @@ complexDouble AIStttPropagator::Smatrix(const doubleThreeVector& pos, const doub
 void AIStttPropagator::PropagateEnsemble(AISAtomEnsemble* atomEnsemble)
 {
     // propagate half a step freely
-    fFreePropagator->PropagateEnsemble(atomEnsemble, fDeltaTime / 2);
+    fFreePropagator->PropagateEnsemble(atomEnsemble);
     // apply the ttt scheme
     TttPropagateEnsemble(atomEnsemble);
     // propagate half a step freely
-    fFreePropagator->PropagateEnsemble(atomEnsemble, fDeltaTime / 2);
+    fFreePropagator->PropagateEnsemble(atomEnsemble);
 }
 
 void AIStttPropagator::TttPropagateEnsemble(AISAtomEnsemble* atomEnsemble)
@@ -224,8 +229,13 @@ void AIStttPropagator::TttPropagateAtom(AISAtom* atom)
             newVel2 = matrixAdd(wavePacket1->GetVelocity(), dv);
 
             // rotate the amplitude and phase
-            double detuning = computeDetuning(wavePacket1->GetPosition(), wavePacket1->GetVelocity(), fOmega);
-            complexDouble Seg = Smatrix(wavePacket1->GetPosition(), wavePacket1->GetVelocity(), fOmega, detuning, "e->g");
+            doubleThreeVector effectivePos = matrixAdd(wavePacket1->GetPosition(), 
+                                                       scalarMultiply(dotProduct(transpose(B_), fK), hbar/massSr87));
+            doubleThreeVector effectiveVel = matrixAdd(wavePacket1->GetVelocity(), 
+                                                       scalarMultiply(dotProduct(transpose(A_), fK), -hbar/massSr87));
+
+            double detuning = computeDetuning(effectivePos, effectiveVel, fOmega);
+            complexDouble Seg = Smatrix(effectivePos, effectiveVel, fOmega, detuning, "e->g");
 
             newAmplitude2 = wavePacket1->GetAmplitude() * std::abs(Seg);
             newPhaseDouble2 = wavePacket1->GetPhaseDouble() + std::arg(Seg) + detuning/2 * fDeltaTime64;
@@ -244,6 +254,10 @@ void AIStttPropagator::TttPropagateAtom(AISAtom* atom)
             newPhaseDouble2 += term1 + term2 + term3 + term4;
             newPhaseQuad2 = wavePacket1->GetPhaseQuad() + quadTerm;
 
+            long double quadTermLd = static_cast<long double>(quadTerm);
+            char quadTermLdStr[50];  // Adjust the buffer size as needed
+            snprintf(quadTermLdStr, sizeof(quadTermLdStr), "%.34Le", quadTermLd);
+
             /* excited -> excited transition */
             // propagate the kinematics
             dx = matrixAdd(scalarMultiply(dotProduct(transpose(B_), fK), hbar/massSr87),
@@ -255,10 +269,10 @@ void AIStttPropagator::TttPropagateAtom(AISAtom* atom)
             newVel1 = matrixAdd(wavePacket1->GetVelocity(), dv);
 
             // rotate the amplitude and phase
-            complexDouble See = Smatrix(wavePacket1->GetPosition(), wavePacket1->GetVelocity(), fOmega, detuning, "e->e");
+            complexDouble See = Smatrix(effectivePos, effectiveVel, fOmega, detuning, "e->e");
 
-            newAmplitude1 = wavePacket1->GetAmplitude() * std::abs(Seg);
-            newPhaseDouble1 = wavePacket1->GetPhaseDouble() + std::arg(Seg) + detuning/2 * fDeltaTime64;
+            newAmplitude1 = wavePacket1->GetAmplitude() * std::abs(See);
+            newPhaseDouble1 = wavePacket1->GetPhaseDouble() + std::arg(See) + detuning/2 * fDeltaTime64;
             
             // add the contribution of the EM field to the phase
             //doubleThreeVector v;
@@ -275,8 +289,8 @@ void AIStttPropagator::TttPropagateAtom(AISAtom* atom)
             quadTerm = - fOmega * fDeltaTime;
 
             // increment the phase
-            newPhaseDouble2 += term1 + term2 + term3;
-            newPhaseQuad2 = wavePacket1->GetPhaseQuad() + quadTerm;
+            newPhaseDouble1 += term1 + term2 + term3;
+            newPhaseQuad1 = wavePacket1->GetPhaseQuad() + quadTerm;
         }
 
         // update the wavepacket parameters

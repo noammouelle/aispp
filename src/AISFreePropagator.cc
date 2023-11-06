@@ -1,30 +1,37 @@
 #include "AISFreePropagator.hh"
 
-AISFreePropagator::AISFreePropagator()
-{}
+AISFreePropagator::AISFreePropagator(__float128 dt)
+{
+    deltaTime = dt;
+}
 
 AISFreePropagator::~AISFreePropagator()
 {}
 
-void AISFreePropagator::PropagateEnsemble(AISAtomEnsemble* atomEnsemble, __float128 time)
+void AISFreePropagator::SetAddEnergyPhase(bool addEnergyPhase)
+{
+    fAddEnergyPhase = addEnergyPhase;
+}
+
+void AISFreePropagator::PropagateEnsemble(AISAtomEnsemble* atomEnsemble)
 {
     for(int i_atom = 0; i_atom < atomEnsemble->GetNumberOfAtoms(); ++i_atom)
     {
         AISAtom* currentAtom = atomEnsemble->GetAtom(i_atom);
-        PropagateAtom(currentAtom, time);
+        PropagateAtom(currentAtom);
     }
 }
 
-void AISFreePropagator::PropagateAtom(AISAtom* atom, __float128 time)
+void AISFreePropagator::PropagateAtom(AISAtom* atom)
 {
     for(int i_wavePacket = 0; i_wavePacket < atom->GetNumberOfWavePackets(); ++i_wavePacket)
     {
         AISWavePacket* currentWavePacket = atom->GetWavePacket(i_wavePacket);
-        PropagateWavePacket(currentWavePacket, time);
+        PropagateWavePacket(currentWavePacket);
     }
 }
 
-void AISFreePropagator::PropagateWavePacket(AISWavePacket* wavePacket, __float128 time)
+void AISFreePropagator::PropagateWavePacket(AISWavePacket* wavePacket)
 {
     currentPos  = wavePacket->GetPosition();
     currentVel  = wavePacket->GetVelocity();
@@ -33,10 +40,15 @@ void AISFreePropagator::PropagateWavePacket(AISWavePacket* wavePacket, __float12
 
     currentTime = wavePacket->GetTime();
 
-    wavePacket->SetPosition(CalculateNewPos(currentPos, currentVel, time));
-    wavePacket->SetVelocity(CalculateNewVel(currentPos, currentVel, time));
+    wavePacket->SetPosition(CalculateNewPos(currentPos, currentVel));
+    wavePacket->SetVelocity(CalculateNewVel(currentPos, currentVel));
     wavePacket->SetPhaseDouble(CalculateNewPhaseDouble(currentPhaseDouble, 
                                                         currentPos, wavePacket->GetPosition(), 
                                                         currentVel, wavePacket->GetVelocity()));
-    wavePacket->SetTime(currentTime + time);
+    if(fAddEnergyPhase && wavePacket->GetState() == 1)
+    {
+        wavePacket->SetPhaseQuad(CalculateNewPhaseQuad(wavePacket->GetPhaseQuad()));
+    };
+    
+    wavePacket->SetTime(currentTime + deltaTime);
 }

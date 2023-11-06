@@ -21,17 +21,20 @@ public:
     // Propagation parameters
     __float128 deltaTime;
     double deltaTime64;
+    bool fAddEnergyPhase = false;
     
     // Methods to compute the ABCDXiPhi matrices
     void setABCDXiPhi();
 
     // Kinematic propagation
-    doubleThreeVector CalculateNewPos(const doubleThreeVector& pos0, const doubleThreeVector& vel0, __float128 time) override;
-    doubleThreeVector CalculateNewVel(const doubleThreeVector& pos0, const doubleThreeVector& vel0, __float128 time) override;
+    doubleThreeVector CalculateNewPos(const doubleThreeVector& pos0, const doubleThreeVector& vel0) override;
+    doubleThreeVector CalculateNewVel(const doubleThreeVector& pos0, const doubleThreeVector& vel0) override;
 
     // Phase propagation
     double CalculateNewPhaseDouble(const double& phase0, const doubleThreeVector& pos0, const doubleThreeVector& pos1, 
                                    const doubleThreeVector& vel0, const doubleThreeVector& vel1) override;
+    
+    __float128 CalculateNewPhaseQuad(const __float128& phase0) override;
 };
 
 
