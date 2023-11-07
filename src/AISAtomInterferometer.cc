@@ -95,8 +95,13 @@ void AISAtomInterferometer::run()
     }
     // mirror
     mirrorPropagator->PropagateEnsemble(atomEnsemble);
+    // free propagation
+    for(int n = 0; n < fParams.nSteps; ++n)
+    {
+        interrogationTimePropagator->PropagateEnsemble(atomEnsemble);
+    }
     // beam-splitting
-    //beamSplitterPropagator2->PropagateEnsemble(atomEnsemble);
+    beamSplitterPropagator2->PropagateEnsemble(atomEnsemble);
     // free propagation
     //driftPropagator->PropagateEnsemble(atomEnsemble);
 }

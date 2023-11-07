@@ -162,12 +162,6 @@ AISLinearGravityPropagator.hh
 AISAtom.hh
 ../include/AISAtom.hh
 
-/home/noammouelle/sim/ais++/src/AISAbcdPropagator.cc
-AISConstants.hh
-/home/noammouelle/sim/ais++/src/AISConstants.hh
-AISAbcdPropagator.hh
-/home/noammouelle/sim/ais++/src/AISAbcdPropagator.hh
-
 /home/noammouelle/sim/ais++/src/AISAtomInterferometer.cc
 AISAtomInterferometerParams.hh
 /home/noammouelle/sim/ais++/src/AISAtomInterferometerParams.hh
@@ -183,16 +177,6 @@ AIStttPropagator.hh
 /home/noammouelle/sim/ais++/src/AIStttPropagator.hh
 AISWaveFront.hh
 /home/noammouelle/sim/ais++/src/AISWaveFront.hh
-AISConstants.hh
-/home/noammouelle/sim/ais++/src/AISConstants.hh
-
-/home/noammouelle/sim/ais++/src/AIStttPropagator.cc
-AIStttPropagator.hh
-/home/noammouelle/sim/ais++/src/AIStttPropagator.hh
-AISLinearGravityPropagator.hh
-/home/noammouelle/sim/ais++/src/AISLinearGravityPropagator.hh
-AISUtilities.hh
-/home/noammouelle/sim/ais++/src/AISUtilities.hh
 AISConstants.hh
 /home/noammouelle/sim/ais++/src/AISConstants.hh
 
