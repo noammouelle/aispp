@@ -28,8 +28,11 @@ AISAtomInterferometer::AISAtomInterferometer(AISAtomInterferometerParams params)
     // create the intensity profile
     AISIntensityProfile* intensityProfile = new AISIntensityProfile(params.beamRadius, params.rabiFrequency);
     // create the wavefront
-    AISWaveFront* wavefront = new AISWaveFront(zeroAberrationFunction, zeroAberrationFunction,
-                                               params.psrGradient, params.laserPhase);
+    AISWaveFront* wavefront    = new AISWaveFront(zeroAberrationFunction, zeroAberrationFunction,
+                                                  {0.0, 0.0, 0.0}, 0.0);
+    AISWaveFront* wavefrontPsr = new AISWaveFront(zeroAberrationFunction, zeroAberrationFunction,
+                                                  params.psrGradient, params.laserPhase);
+                                                
     // compute the detuned frequency
     __float128 omega1 = computeDetunedOmega(omegaSr87, - 1 * g * params.interogationTime);
     __float128 omega2 = computeDetunedOmega(omegaSr87, - 2 * g * params.interogationTime);
@@ -55,7 +58,7 @@ AISAtomInterferometer::AISAtomInterferometer(AISAtomInterferometerParams params)
     mirrorPropagator->SetWaveVector(k2);
     // create the second pi/2 pulse ttt propagator
     beamSplitterPropagator2 = new AIStttPropagator(pi128 / (2 * params.rabiFrequency));
-    beamSplitterPropagator2->SetWaveFront(wavefront);
+    beamSplitterPropagator2->SetWaveFront(wavefrontPsr);
     beamSplitterPropagator2->SetIntensityProfile(intensityProfile);
     beamSplitterPropagator2->SetOmega(omega3);
     beamSplitterPropagator2->SetWaveVector(k3);  
@@ -103,7 +106,10 @@ void AISAtomInterferometer::run()
     // beam-splitting
     beamSplitterPropagator2->PropagateEnsemble(atomEnsemble);
     // free propagation
-    //driftPropagator->PropagateEnsemble(atomEnsemble);
+    for(int n = 0; n < fParams.nSteps; ++n)
+    {
+    driftPropagator->PropagateEnsemble(atomEnsemble);
+    }
 }
 
 void AISAtomInterferometer::detect()
@@ -119,14 +125,17 @@ void AISAtomInterferometer::write(std::string filename)
     // open a h5 file
     H5::H5File file(filename, H5F_ACC_TRUNC);
     int numSamples = fpDetector->GetNumberOfSamples();
-    // create the arrays for atom properties
-    double positions[numSamples][3];
-    double velocities[numSamples][3];
-    int states[numSamples];
-    double phaseShifts[numSamples];
+
+    // create the data vectors
+    std::vector<doubleThreeVector> positions(numSamples);
+    std::vector<doubleThreeVector> velocities(numSamples);
+    std::vector<int> states(numSamples);
+    std::vector<double> phaseShifts(numSamples);
+
     // loop over the samples to fill in the data
+    int sampleIndex = 0;
     for(int portFrameIndex = 0; portFrameIndex < fpDetector->GetNumberOfPortFrames(); portFrameIndex++)
-    {
+    {    
         int sampledPortIndex = sampledPortIndices[portFrameIndex];
         if(sampledPortIndex != -1)
         {
@@ -138,16 +147,18 @@ void AISAtomInterferometer::write(std::string filename)
             doubleThreeVector currentPosition = port->position;
             doubleThreeVector currentVelocity = port->velocity;
             int currentState = port->state;
-            //double currentPhaseShift = port->phaseShift;
+            double currentPhaseShift = port->phaseShift;
             // fill in the data
             for(int i = 0; i < 3; ++i)
             {
-                positions[portFrameIndex][i] = currentPosition[i];
-                velocities[portFrameIndex][i] = currentVelocity[i];
+                positions[sampleIndex][i] = currentPosition[i];
+                velocities[sampleIndex][i] = currentVelocity[i];
             }
-            states[portFrameIndex] = currentState;
-            phaseShifts[portFrameIndex] = 0.0;//currentPhaseShift;
-        }
+            states[sampleIndex] = currentState;
+            phaseShifts[sampleIndex] = currentPhaseShift;
+
+            sampleIndex++;
+        }        
     }
     // define the dimensionality of the datasets
     hsize_t numSamplesHsize = numSamples;
@@ -166,10 +177,10 @@ void AISAtomInterferometer::write(std::string filename)
     H5::DataSet dataset_states = file.createDataSet("states", H5::PredType::NATIVE_INT, dataspace_states);
     H5::DataSet dataset_phaseShifts = file.createDataSet("phaseShifts", H5::PredType::NATIVE_DOUBLE, dataspace_phaseShifts);
     // write the data
-    dataset_positions.write(positions, H5::PredType::NATIVE_DOUBLE);
-    dataset_velocities.write(velocities, H5::PredType::NATIVE_DOUBLE);
-    dataset_states.write(states, H5::PredType::NATIVE_INT);
-    dataset_phaseShifts.write(phaseShifts, H5::PredType::NATIVE_DOUBLE);
+    dataset_positions.write(positions.data(), H5::PredType::NATIVE_DOUBLE);
+    dataset_velocities.write(velocities.data(), H5::PredType::NATIVE_DOUBLE);
+    dataset_states.write(states.data(), H5::PredType::NATIVE_INT);
+    dataset_phaseShifts.write(phaseShifts.data(), H5::PredType::NATIVE_DOUBLE);
 
     // close the file
     file.close();

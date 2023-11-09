@@ -2,10 +2,13 @@
 
 AISDetector::AISDetector(AISAtomEnsemble* pAtomEnsemble, double coherenceLength)
 {
+    // initialize the port-frame vector
+    fpPortFrameVector = new portFrameVector;
+
     for(int atomIndex = 0; atomIndex < pAtomEnsemble->GetNumberOfAtoms(); atomIndex++)
     {
         AISAtom* currentAtom = pAtomEnsemble->GetAtom(atomIndex);
-        // get the indices of waveapckets close enough to interfere
+        // get the indices of wavepackets close enough to interfere
         intTuple adjacentWavepacketIndices = GetAdjacentWavepackets(currentAtom, coherenceLength);
         // create the port-frame object
         AISPortFrame* currentPortFrame = new AISPortFrame(currentAtom, adjacentWavepacketIndices);
@@ -40,7 +43,7 @@ intTuple AISDetector::GetAdjacentWavepackets(AISAtom* anAtom, double coherenceLe
                                    pow(currentPosition[1] - otherPosition[1], 2) + 
                                    pow(currentPosition[2] - otherPosition[2], 2));
             // check if the distance is smaller than the coherence length
-            if(distance < coherenceLength)
+            if(distance < coherenceLength && currentWavePacket->GetState() == otherWavePacket->GetState())
             {
                 // if so, add the wavepacket indices to the list
                 adjacentWavepacketIndices[0].push_back(wavepacketIndex);
@@ -112,5 +115,10 @@ int AISDetector::GetNumberOfSamples()
 
 AISPortFrame* AISDetector::GetPortFrame(int portFrameIndex)
 {
+    // assert that the port-frame vector is not empty
+    assert(fpPortFrameVector->size() > 0);
+    // assert that the port-frame index is valid
+    assert(portFrameIndex < GetNumberOfPortFrames());
+    // return the port-frame
     return fpPortFrameVector->at(portFrameIndex);
 }

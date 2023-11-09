@@ -5,6 +5,7 @@
 #include <iostream>
 #include <cmath>
 #include <cstdio>
+#include <chrono>
 
 #include "AISAtomEnsemble.hh"
 #include "AISFreePropagator.hh"
@@ -54,15 +55,49 @@ void writeFile(std::string fName, AISAtomEnsemble* atomEnsemble)
     outFile.close();
 }
 
+void writePortFile(std::string fName, AISAtomInterferometer* ai)
+{
+    // write a file to cross check
+    std::ofstream outFile(fName);
+    std::cout << "Writing to file: " << fName << std::endl;
+    outFile << std::fixed; // Use fixed-point notation
+    outFile << std::setprecision(15);
+    
+    outFile << "State, Probability, X, Y, Z, VX, VY, VZ, PhaseShift" << std::endl;
+
+    // get the port frame
+    AISDetector* aDetector = ai->fpDetector;
+    AISPortFrame* aPortFrame = aDetector->GetPortFrame(0);
+
+    // loop over ports
+    for(int portIndex = 0; portIndex < aPortFrame->GetNumberOfPorts(); portIndex++)
+    {   
+        // get port
+        AISPort* port = aPortFrame->GetPort(portIndex);
+        // get properties
+        int state = port->state;
+        double probability = port->probabilityAmplitude;
+        doubleThreeVector pos = port->position;
+        doubleThreeVector vel = port->velocity;
+        double phaseShift = port->phaseShift;
+        // write to file
+        outFile << state << "," << probability << "," << pos[0] << "," << pos[1] << "," << pos[2]
+                << "," << vel[0] << "," << vel[1] << "," << vel[2] << "," << phaseShift << std::endl;
+
+    }
+
+    outFile.close();
+}
+
 int main()
 {   
     // create a parameter object
     AISAtomInterferometerParams params;
 
     /* CLOUD PARAMETERS */
-    params.nAtoms          = 1;
-    params.cloudTemperature  = 15e-9 *0;
-    params.cloudWidth        = 1e-3 *0;
+    params.nAtoms            = 1000000;
+    params.cloudTemperature  = 15e-12;
+    params.cloudWidth        = 1e-3;
 
     params.initialPosition   = {0.,0.,0.};
     params.initialVelocity   = {0.,0.,0.};
@@ -72,9 +107,9 @@ int main()
     params.nSteps            = 20;
 
     /* PULSE PARAMETERS */
-    params.beamRadius        = 0.5e-2;
+    params.beamRadius        = 1e-2;
     params.rabiFrequency     = 2 * pi * 3e6;
-    params.psrGradient       = {0., 0., 0.};
+    params.psrGradient       = {1.6e-3 * pi / lambdaSr87, 0., 0.};
     params.laserPhase        = 0.0;
 
     /* DETECTOR PARAMETERS */
@@ -82,17 +117,24 @@ int main()
 
     // create the atom interferometer
     AISAtomInterferometer* ai = new AISAtomInterferometer(params);
+
+    auto t0 = std::chrono::high_resolution_clock::now();
     // run, detect, and write
     ai->run();
 
-    // check the status
-    writeFile("/home/noammouelle/sim/data_ais++/test.txt", ai->GetAtomEnsemble());
+    auto t1 = std::chrono::high_resolution_clock::now();
+    auto durationRun = std::chrono::duration_cast<std::chrono::seconds>(t1 - t0);
+    std::cout<<"Run was successful! ( "<< durationRun.count() << " seconds )" <<std::endl;
 
-    //ai->detect();
-    //ai->write("/home/noammouelle/sim/data_ais++/test.h5");
+    ai->detect();
+    auto t2 = std::chrono::high_resolution_clock::now();
+    auto durationDetect = std::chrono::duration_cast<std::chrono::seconds>(t2 - t1);
+    std::cout << "Detection was successful! ( " << durationDetect.count() << " seconds )" << std::endl;
 
-    // delete the atom interferometer
-    //delete ai;
+    ai->write("/home/noammouelle/sim/data_ais++/test.h5");
+    auto t3 = std::chrono::high_resolution_clock::now();
+    auto durationWrite = std::chrono::duration_cast<std::chrono::seconds>(t3 - t2);
+    std::cout << "Write was successful! ( " << durationWrite.count() << " seconds )" << std::endl;
 
     return 0;
 }
