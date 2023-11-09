@@ -326,6 +326,8 @@ aispp: /usr/lib/x86_64-linux-gnu/libsz.so
 aispp: /usr/lib/x86_64-linux-gnu/libz.so
 aispp: /usr/lib/x86_64-linux-gnu/libdl.so
 aispp: /usr/lib/x86_64-linux-gnu/libm.so
+aispp: /usr/lib/gcc/x86_64-linux-gnu/9/libgomp.so
+aispp: /usr/lib/x86_64-linux-gnu/libpthread.so
 aispp: CMakeFiles/aispp.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/noammouelle/sim/ais++/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_18) "Linking CXX executable aispp"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/aispp.dir/link.txt --verbose=$(VERBOSE)

@@ -15,6 +15,7 @@ void AISFreePropagator::SetAddEnergyPhase(bool addEnergyPhase)
 
 void AISFreePropagator::PropagateEnsemble(AISAtomEnsemble* atomEnsemble)
 {
+    #pragma omp parallel for
     for(int i_atom = 0; i_atom < atomEnsemble->GetNumberOfAtoms(); ++i_atom)
     {
         AISAtom* currentAtom = atomEnsemble->GetAtom(i_atom);
@@ -33,12 +34,12 @@ void AISFreePropagator::PropagateAtom(AISAtom* atom)
 
 void AISFreePropagator::PropagateWavePacket(AISWavePacket* wavePacket)
 {
-    currentPos  = wavePacket->GetPosition();
-    currentVel  = wavePacket->GetVelocity();
+    doubleThreeVector currentPos  = wavePacket->GetPosition();
+    doubleThreeVector currentVel  = wavePacket->GetVelocity();
 
-    currentPhaseDouble = wavePacket->GetPhaseDouble();
+    double currentPhaseDouble = wavePacket->GetPhaseDouble();
 
-    currentTime = wavePacket->GetTime();
+    __float128 currentTime = wavePacket->GetTime();
 
     wavePacket->SetPosition(CalculateNewPos(currentPos, currentVel));
     wavePacket->SetVelocity(CalculateNewVel(currentPos, currentVel));

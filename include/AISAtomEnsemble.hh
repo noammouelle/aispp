@@ -21,6 +21,7 @@ public:
 
     int GetNumberOfAtoms();
 
+    atomVector* GetAtomVector();
     AISAtom* GetAtom(int atomIndex);
 };
 

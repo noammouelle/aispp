@@ -124,16 +124,22 @@ complexDouble AIStttPropagator::Smatrix(const doubleThreeVector& pos, const doub
 
 void AIStttPropagator::PropagateEnsemble(AISAtomEnsemble* atomEnsemble)
 {
-    // propagate half a step freely
-    fFreePropagator->PropagateEnsemble(atomEnsemble);
-    // apply the ttt scheme
-    TttPropagateEnsemble(atomEnsemble);
-    // propagate half a step freely
-    fFreePropagator->PropagateEnsemble(atomEnsemble);
+    #pragma omp parallel for
+    for(int atomIndex = 0; atomIndex < atomEnsemble->GetNumberOfAtoms() ; ++atomIndex)
+    {
+        AISAtom* currentAtom = atomEnsemble->GetAtom(atomIndex);
+        // propagate half a step freely
+        fFreePropagator->PropagateAtom(currentAtom);
+        // apply the ttt scheme
+        TttPropagateAtom(currentAtom);
+        // propagate half a step freely
+        fFreePropagator->PropagateAtom(currentAtom);
+    }
 }
 
 void AIStttPropagator::TttPropagateEnsemble(AISAtomEnsemble* atomEnsemble)
 {
+    #pragma omp parallel for
     for(int atomIndex = 0; atomIndex < atomEnsemble->GetNumberOfAtoms() ; ++atomIndex)
     {
         AISAtom* currentAtom = atomEnsemble->GetAtom(atomIndex);
@@ -145,6 +151,22 @@ void AIStttPropagator::TttPropagateAtom(AISAtom* atom)
 {
     // create an empty wavepacket vector
     wavePacketVector* newWavePackets = new wavePacketVector;
+
+    // some dummy variables
+    doubleThreeVector dx;
+    doubleThreeVector dv;
+
+    doubleThreeVector newPos1;
+    doubleThreeVector newVel1;
+    doubleThreeVector newPos2;
+    doubleThreeVector newVel2;
+
+    double newAmplitude1;
+    double newAmplitude2;
+    double newPhaseDouble1;
+    double newPhaseDouble2;
+    __float128 newPhaseQuad1;
+    __float128 newPhaseQuad2;
 
     // loop over all the wavepackets in the atom
     for(int wavePacketIndex = 0; wavePacketIndex < atom->GetNumberOfWavePackets(); ++wavePacketIndex)

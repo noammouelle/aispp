@@ -36,22 +36,6 @@ private:
     double3x3Matrix A_, B_, C_, D_;
     doubleThreeVector Xi_, Phi_;
 
-    // some dummy variables
-    doubleThreeVector dx = {0., 0., 0.};
-    doubleThreeVector dv = {0., 0., 0.};
-
-    doubleThreeVector newPos1 = {0., 0., 0.};
-    doubleThreeVector newVel1 = {0., 0., 0.};
-    doubleThreeVector newPos2 = {0., 0., 0.};
-    doubleThreeVector newVel2 = {0., 0., 0.};
-
-    double newAmplitude1 = 0.;
-    double newAmplitude2 = 0.;
-    double newPhaseDouble1 = 0.;
-    double newPhaseDouble2 = 0.;
-    __float128 newPhaseQuad1 = 0.;
-    __float128 newPhaseQuad2 = 0.;
-
     // methods to compute detuning and rotation matrix
     double computeDetuning(const doubleThreeVector& pos, const doubleThreeVector& vel,
                            const __float128& omega);
