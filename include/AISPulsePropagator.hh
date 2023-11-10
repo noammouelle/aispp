@@ -4,15 +4,19 @@
 #include "AISIntensityProfile.hh"
 #include "AISWaveFront.hh"
 #include "AISUtilities.hh"
+#include "AISAtomEnsemble.hh"
+#include "AISAtom.hh"
+#include "AISWavePacket.hh"
 
 
 class AISPulsePropagator
 {
 public:
-    AISPulsePropagator();
+    AISPulsePropagator(__float128 deltaTime);
     ~AISPulsePropagator();
 
-protected:
+//protected:
+    /* data */
     __float128 fDeltaTime;
     double fDeltaTime64;
 
@@ -22,6 +26,22 @@ protected:
     __float128 fOmega;
     __float128 fOmega0;
     doubleThreeVector fK;
+
+    /* methods */
+    void SetWaveFront(AISWaveFront* waveFront);
+    void SetIntensityProfile(AISIntensityProfile* intensityProfile);
+
+    doubleThreeVector GetWaveVector();
+    doubleThreeVector GetDoubleWaveVector();
+    void SetWaveVector(const doubleThreeVector& waveVector);
+
+    __float128 GetOmega();
+    void SetOmega(const __float128& omega);
+
+    void PropagateEnsemble(AISAtomEnsemble* atomEnsemble);
+
+    /* virtual methods */
+    virtual void PropagateAtom(AISAtom* atom) = 0;
 };
 
 

@@ -40,6 +40,7 @@ CMakeFiles/aispp.dir/src/AISAtomInterferometer.cc.o: ../include/AISIntensityProf
 CMakeFiles/aispp.dir/src/AISAtomInterferometer.cc.o: ../include/AISLinearGravityPropagator.hh
 CMakeFiles/aispp.dir/src/AISAtomInterferometer.cc.o: ../include/AISPort.hh
 CMakeFiles/aispp.dir/src/AISAtomInterferometer.cc.o: ../include/AISPortFrame.hh
+CMakeFiles/aispp.dir/src/AISAtomInterferometer.cc.o: ../include/AISPulsePropagator.hh
 CMakeFiles/aispp.dir/src/AISAtomInterferometer.cc.o: ../include/AISUtilities.hh
 CMakeFiles/aispp.dir/src/AISAtomInterferometer.cc.o: ../include/AISWaveFront.hh
 CMakeFiles/aispp.dir/src/AISAtomInterferometer.cc.o: ../include/AISWavePacket.hh
@@ -161,6 +162,16 @@ CMakeFiles/aispp.dir/src/AISPortFrame.cc.o: ../include/AISUtilities.hh
 CMakeFiles/aispp.dir/src/AISPortFrame.cc.o: ../include/AISWavePacket.hh
 CMakeFiles/aispp.dir/src/AISPortFrame.cc.o: ../src/AISPortFrame.cc
 
+CMakeFiles/aispp.dir/src/AISPulsePropagator.cc.o: ../include/AISAtom.hh
+CMakeFiles/aispp.dir/src/AISPulsePropagator.cc.o: ../include/AISAtomEnsemble.hh
+CMakeFiles/aispp.dir/src/AISPulsePropagator.cc.o: ../include/AISConstants.hh
+CMakeFiles/aispp.dir/src/AISPulsePropagator.cc.o: ../include/AISIntensityProfile.hh
+CMakeFiles/aispp.dir/src/AISPulsePropagator.cc.o: ../include/AISPulsePropagator.hh
+CMakeFiles/aispp.dir/src/AISPulsePropagator.cc.o: ../include/AISUtilities.hh
+CMakeFiles/aispp.dir/src/AISPulsePropagator.cc.o: ../include/AISWaveFront.hh
+CMakeFiles/aispp.dir/src/AISPulsePropagator.cc.o: ../include/AISWavePacket.hh
+CMakeFiles/aispp.dir/src/AISPulsePropagator.cc.o: ../src/AISPulsePropagator.cc
+
 CMakeFiles/aispp.dir/src/AISUtilities.cc.o: ../include/AISUtilities.hh
 CMakeFiles/aispp.dir/src/AISUtilities.cc.o: ../src/AISUtilities.cc
 
@@ -176,6 +187,7 @@ CMakeFiles/aispp.dir/src/AIStttPropagator.cc.o: ../include/AISConstants.hh
 CMakeFiles/aispp.dir/src/AIStttPropagator.cc.o: ../include/AISFreePropagator.hh
 CMakeFiles/aispp.dir/src/AIStttPropagator.cc.o: ../include/AISIntensityProfile.hh
 CMakeFiles/aispp.dir/src/AIStttPropagator.cc.o: ../include/AISLinearGravityPropagator.hh
+CMakeFiles/aispp.dir/src/AIStttPropagator.cc.o: ../include/AISPulsePropagator.hh
 CMakeFiles/aispp.dir/src/AIStttPropagator.cc.o: ../include/AISUtilities.hh
 CMakeFiles/aispp.dir/src/AIStttPropagator.cc.o: ../include/AISWaveFront.hh
 CMakeFiles/aispp.dir/src/AIStttPropagator.cc.o: ../include/AISWavePacket.hh
@@ -200,6 +212,7 @@ CMakeFiles/aispp.dir/src/main.cc.o: ../include/AISIntensityProfile.hh
 CMakeFiles/aispp.dir/src/main.cc.o: ../include/AISLinearGravityPropagator.hh
 CMakeFiles/aispp.dir/src/main.cc.o: ../include/AISPort.hh
 CMakeFiles/aispp.dir/src/main.cc.o: ../include/AISPortFrame.hh
+CMakeFiles/aispp.dir/src/main.cc.o: ../include/AISPulsePropagator.hh
 CMakeFiles/aispp.dir/src/main.cc.o: ../include/AISUtilities.hh
 CMakeFiles/aispp.dir/src/main.cc.o: ../include/AISWaveFront.hh
 CMakeFiles/aispp.dir/src/main.cc.o: ../include/AISWavePacket.hh

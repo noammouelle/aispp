@@ -226,9 +226,22 @@ CMakeFiles/aispp.dir/src/AISPortFrame.cc.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/aispp.dir/src/AISPortFrame.cc.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/noammouelle/sim/ais++/src/AISPortFrame.cc -o CMakeFiles/aispp.dir/src/AISPortFrame.cc.s
 
+CMakeFiles/aispp.dir/src/AISPulsePropagator.cc.o: CMakeFiles/aispp.dir/flags.make
+CMakeFiles/aispp.dir/src/AISPulsePropagator.cc.o: ../src/AISPulsePropagator.cc
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/noammouelle/sim/ais++/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_14) "Building CXX object CMakeFiles/aispp.dir/src/AISPulsePropagator.cc.o"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/aispp.dir/src/AISPulsePropagator.cc.o -c /home/noammouelle/sim/ais++/src/AISPulsePropagator.cc
+
+CMakeFiles/aispp.dir/src/AISPulsePropagator.cc.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/aispp.dir/src/AISPulsePropagator.cc.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/noammouelle/sim/ais++/src/AISPulsePropagator.cc > CMakeFiles/aispp.dir/src/AISPulsePropagator.cc.i
+
+CMakeFiles/aispp.dir/src/AISPulsePropagator.cc.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/aispp.dir/src/AISPulsePropagator.cc.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/noammouelle/sim/ais++/src/AISPulsePropagator.cc -o CMakeFiles/aispp.dir/src/AISPulsePropagator.cc.s
+
 CMakeFiles/aispp.dir/src/AISUtilities.cc.o: CMakeFiles/aispp.dir/flags.make
 CMakeFiles/aispp.dir/src/AISUtilities.cc.o: ../src/AISUtilities.cc
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/noammouelle/sim/ais++/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_14) "Building CXX object CMakeFiles/aispp.dir/src/AISUtilities.cc.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/noammouelle/sim/ais++/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_15) "Building CXX object CMakeFiles/aispp.dir/src/AISUtilities.cc.o"
 	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/aispp.dir/src/AISUtilities.cc.o -c /home/noammouelle/sim/ais++/src/AISUtilities.cc
 
 CMakeFiles/aispp.dir/src/AISUtilities.cc.i: cmake_force
@@ -241,7 +254,7 @@ CMakeFiles/aispp.dir/src/AISUtilities.cc.s: cmake_force
 
 CMakeFiles/aispp.dir/src/AISWavePacket.cc.o: CMakeFiles/aispp.dir/flags.make
 CMakeFiles/aispp.dir/src/AISWavePacket.cc.o: ../src/AISWavePacket.cc
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/noammouelle/sim/ais++/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_15) "Building CXX object CMakeFiles/aispp.dir/src/AISWavePacket.cc.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/noammouelle/sim/ais++/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_16) "Building CXX object CMakeFiles/aispp.dir/src/AISWavePacket.cc.o"
 	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/aispp.dir/src/AISWavePacket.cc.o -c /home/noammouelle/sim/ais++/src/AISWavePacket.cc
 
 CMakeFiles/aispp.dir/src/AISWavePacket.cc.i: cmake_force
@@ -254,7 +267,7 @@ CMakeFiles/aispp.dir/src/AISWavePacket.cc.s: cmake_force
 
 CMakeFiles/aispp.dir/src/AIStttPropagator.cc.o: CMakeFiles/aispp.dir/flags.make
 CMakeFiles/aispp.dir/src/AIStttPropagator.cc.o: ../src/AIStttPropagator.cc
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/noammouelle/sim/ais++/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_16) "Building CXX object CMakeFiles/aispp.dir/src/AIStttPropagator.cc.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/noammouelle/sim/ais++/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_17) "Building CXX object CMakeFiles/aispp.dir/src/AIStttPropagator.cc.o"
 	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/aispp.dir/src/AIStttPropagator.cc.o -c /home/noammouelle/sim/ais++/src/AIStttPropagator.cc
 
 CMakeFiles/aispp.dir/src/AIStttPropagator.cc.i: cmake_force
@@ -267,7 +280,7 @@ CMakeFiles/aispp.dir/src/AIStttPropagator.cc.s: cmake_force
 
 CMakeFiles/aispp.dir/src/AIWaveFront.cc.o: CMakeFiles/aispp.dir/flags.make
 CMakeFiles/aispp.dir/src/AIWaveFront.cc.o: ../src/AIWaveFront.cc
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/noammouelle/sim/ais++/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_17) "Building CXX object CMakeFiles/aispp.dir/src/AIWaveFront.cc.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/noammouelle/sim/ais++/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_18) "Building CXX object CMakeFiles/aispp.dir/src/AIWaveFront.cc.o"
 	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/aispp.dir/src/AIWaveFront.cc.o -c /home/noammouelle/sim/ais++/src/AIWaveFront.cc
 
 CMakeFiles/aispp.dir/src/AIWaveFront.cc.i: cmake_force
@@ -293,6 +306,7 @@ aispp_OBJECTS = \
 "CMakeFiles/aispp.dir/src/AISLinearGravityPropagator.cc.o" \
 "CMakeFiles/aispp.dir/src/AISPort.cc.o" \
 "CMakeFiles/aispp.dir/src/AISPortFrame.cc.o" \
+"CMakeFiles/aispp.dir/src/AISPulsePropagator.cc.o" \
 "CMakeFiles/aispp.dir/src/AISUtilities.cc.o" \
 "CMakeFiles/aispp.dir/src/AISWavePacket.cc.o" \
 "CMakeFiles/aispp.dir/src/AIStttPropagator.cc.o" \
@@ -314,6 +328,7 @@ aispp: CMakeFiles/aispp.dir/src/AISIntensityProfile.cc.o
 aispp: CMakeFiles/aispp.dir/src/AISLinearGravityPropagator.cc.o
 aispp: CMakeFiles/aispp.dir/src/AISPort.cc.o
 aispp: CMakeFiles/aispp.dir/src/AISPortFrame.cc.o
+aispp: CMakeFiles/aispp.dir/src/AISPulsePropagator.cc.o
 aispp: CMakeFiles/aispp.dir/src/AISUtilities.cc.o
 aispp: CMakeFiles/aispp.dir/src/AISWavePacket.cc.o
 aispp: CMakeFiles/aispp.dir/src/AIStttPropagator.cc.o
@@ -329,7 +344,7 @@ aispp: /usr/lib/x86_64-linux-gnu/libm.so
 aispp: /usr/lib/gcc/x86_64-linux-gnu/9/libgomp.so
 aispp: /usr/lib/x86_64-linux-gnu/libpthread.so
 aispp: CMakeFiles/aispp.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/noammouelle/sim/ais++/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_18) "Linking CXX executable aispp"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/noammouelle/sim/ais++/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_19) "Linking CXX executable aispp"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/aispp.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

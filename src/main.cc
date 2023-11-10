@@ -95,7 +95,7 @@ int main()
     AISAtomInterferometerParams params;
 
     /* CLOUD PARAMETERS */
-    params.nAtoms            = 1000000;
+    params.nAtoms            = 10000;
     params.cloudTemperature  = 15e-12;
     params.cloudWidth        = 1e-3;
 

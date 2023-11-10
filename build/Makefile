@@ -460,6 +460,33 @@ src/AISPortFrame.cc.s:
 	$(MAKE) -f CMakeFiles/aispp.dir/build.make CMakeFiles/aispp.dir/src/AISPortFrame.cc.s
 .PHONY : src/AISPortFrame.cc.s
 
+src/AISPulsePropagator.o: src/AISPulsePropagator.cc.o
+
+.PHONY : src/AISPulsePropagator.o
+
+# target to build an object file
+src/AISPulsePropagator.cc.o:
+	$(MAKE) -f CMakeFiles/aispp.dir/build.make CMakeFiles/aispp.dir/src/AISPulsePropagator.cc.o
+.PHONY : src/AISPulsePropagator.cc.o
+
+src/AISPulsePropagator.i: src/AISPulsePropagator.cc.i
+
+.PHONY : src/AISPulsePropagator.i
+
+# target to preprocess a source file
+src/AISPulsePropagator.cc.i:
+	$(MAKE) -f CMakeFiles/aispp.dir/build.make CMakeFiles/aispp.dir/src/AISPulsePropagator.cc.i
+.PHONY : src/AISPulsePropagator.cc.i
+
+src/AISPulsePropagator.s: src/AISPulsePropagator.cc.s
+
+.PHONY : src/AISPulsePropagator.s
+
+# target to generate assembly for a file
+src/AISPulsePropagator.cc.s:
+	$(MAKE) -f CMakeFiles/aispp.dir/build.make CMakeFiles/aispp.dir/src/AISPulsePropagator.cc.s
+.PHONY : src/AISPulsePropagator.cc.s
+
 src/AISUtilities.o: src/AISUtilities.cc.o
 
 .PHONY : src/AISUtilities.o
@@ -641,6 +668,9 @@ help:
 	@echo "... src/AISPortFrame.o"
 	@echo "... src/AISPortFrame.i"
 	@echo "... src/AISPortFrame.s"
+	@echo "... src/AISPulsePropagator.o"
+	@echo "... src/AISPulsePropagator.i"
+	@echo "... src/AISPulsePropagator.s"
 	@echo "... src/AISUtilities.o"
 	@echo "... src/AISUtilities.i"
 	@echo "... src/AISUtilities.s"

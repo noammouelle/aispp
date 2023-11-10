@@ -10,19 +10,11 @@
 #include "AISAbcdUtilities.hh"
 #include "AISLinearGravityPropagator.hh"
 #include "AISAtom.hh"
+#include "AISPulsePropagator.hh"
 
-class AIStttPropagator
+class AIStttPropagator : public AISPulsePropagator
 {
-private:
-    __float128 fDeltaTime;
-    double fDeltaTime64;
-    AISIntensityProfile* fIntensityProfile;
-    AISWaveFront* fWaveFront;
-
-    __float128 fOmega;
-    __float128 fOmega0;
-    doubleThreeVector fK;
-
+protected:
     AISLinearGravityPropagator* fFreePropagator;
 
     // Hamiltonian coefficients (same as the one for the propagator)
@@ -46,21 +38,10 @@ private:
 public:
     AIStttPropagator(__float128 deltaTime);
     ~AIStttPropagator();
-
-    void SetWaveFront(AISWaveFront* waveFront);
-    void SetIntensityProfile(AISIntensityProfile* intensityProfile);
-
-    doubleThreeVector GetWaveVector();
-    doubleThreeVector GetDoubleWaveVector();
-    void SetWaveVector(const doubleThreeVector& waveVector);
-
-    __float128 GetOmega();
-    void SetOmega(const __float128& omega);
-
-    void PropagateEnsemble(AISAtomEnsemble* atomEnsemble);
-    void TttPropagateEnsemble(AISAtomEnsemble* AISAtomEnsemble);
+    
     void TttPropagateAtom(AISAtom* atom);
-    void TttPropagateWavePacket(AISWavePacket* wavePacket);
+
+    virtual void PropagateAtom(AISAtom* atom) override;
 };
 
 

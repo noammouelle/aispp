@@ -3,7 +3,7 @@
 #include "AISUtilities.hh"
 #include "AISConstants.hh"
 
-AIStttPropagator::AIStttPropagator(__float128 deltaTime)
+AIStttPropagator::AIStttPropagator(__float128 deltaTime) : AISPulsePropagator(deltaTime)
 {
     fDeltaTime = deltaTime;
     fDeltaTime64 = convertScalarToDouble(deltaTime);
@@ -41,34 +41,8 @@ AIStttPropagator::AIStttPropagator(__float128 deltaTime)
 AIStttPropagator::~AIStttPropagator()
 {
     delete fFreePropagator;
-    delete fIntensityProfile;
-    delete fWaveFront;
 }
 
-void AIStttPropagator::SetIntensityProfile(AISIntensityProfile* intensityProfile)
-{
-    fIntensityProfile = intensityProfile;
-}
-
-void AIStttPropagator::SetWaveFront(AISWaveFront* waveFront)
-{
-    fWaveFront = waveFront;
-}
-
-void AIStttPropagator::SetWaveVector(const doubleThreeVector& k)
-{
-    fK = k;
-}
-
-doubleThreeVector AIStttPropagator::GetWaveVector()
-{
-    return fK;
-}
-
-void AIStttPropagator::SetOmega(const __float128& omega)
-{
-    fOmega = omega;
-}
 
 double AIStttPropagator::computeDetuning(const doubleThreeVector& pos, const doubleThreeVector& vel,
                                          const __float128& omega)
@@ -122,29 +96,14 @@ complexDouble AIStttPropagator::Smatrix(const doubleThreeVector& pos, const doub
     return Sij;
 }
 
-void AIStttPropagator::PropagateEnsemble(AISAtomEnsemble* atomEnsemble)
+void AIStttPropagator::PropagateAtom(AISAtom* atom)
 {
-    #pragma omp parallel for
-    for(int atomIndex = 0; atomIndex < atomEnsemble->GetNumberOfAtoms() ; ++atomIndex)
-    {
-        AISAtom* currentAtom = atomEnsemble->GetAtom(atomIndex);
-        // propagate half a step freely
-        fFreePropagator->PropagateAtom(currentAtom);
-        // apply the ttt scheme
-        TttPropagateAtom(currentAtom);
-        // propagate half a step freely
-        fFreePropagator->PropagateAtom(currentAtom);
-    }
-}
-
-void AIStttPropagator::TttPropagateEnsemble(AISAtomEnsemble* atomEnsemble)
-{
-    #pragma omp parallel for
-    for(int atomIndex = 0; atomIndex < atomEnsemble->GetNumberOfAtoms() ; ++atomIndex)
-    {
-        AISAtom* currentAtom = atomEnsemble->GetAtom(atomIndex);
-        TttPropagateAtom(currentAtom);
-    }
+    // propagate freely half a time step
+    fFreePropagator->PropagateAtom(atom);
+    // propagate the atom using the TTT propagator
+    TttPropagateAtom(atom);
+    // propagator freely another time step
+    fFreePropagator->PropagateAtom(atom);
 }
 
 void AIStttPropagator::TttPropagateAtom(AISAtom* atom)
