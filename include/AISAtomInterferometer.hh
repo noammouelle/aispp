@@ -10,6 +10,7 @@
 #include "AIStttPropagator.hh"
 #include "AISDetector.hh"
 #include "AISUtilities.hh"
+#include "AISLmtTttPropagator.hh"
 
 class AISAtomInterferometer
 {
@@ -19,15 +20,23 @@ public:
 
     void run();
     void detect();
-    void write(std::string filename);
+    void writeDetectedAtomsInfo(std::string filename);
+    void writeWavepacketsInfo(std::string filename);
 
     AISAtomEnsemble* GetAtomEnsemble();
 
 //private:
     AISAtomEnsemble* atomEnsemble;
+
     AIStttPropagator* beamSplitterPropagator1;
     AIStttPropagator* beamSplitterPropagator2;
     AIStttPropagator* mirrorPropagator;
+
+    AISLmtTttPropagator* lmtPropagator1;
+    AISLmtTttPropagator* lmtPropagator2;
+    AISLmtTttPropagator* lmtPropagator3;
+    AISLmtTttPropagator* lmtPropagator4;
+    
     AISLinearGravityPropagator* driftPropagator;
     AISLinearGravityPropagator* interrogationTimePropagator;
 
@@ -38,6 +47,8 @@ public:
 
     doubleThreeVector computeDetunedWaveVector(const doubleThreeVector& k0, const double& vz);
     __float128 computeDetunedOmega(const __float128& omega0, const double& vz);
+
+    void runAtom(AISAtom* atom);
 
     intVector sampledPortIndices;
 };

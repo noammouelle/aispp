@@ -3,6 +3,7 @@
 
 #include "AISFreePropagator.hh"
 #include "AISUtilities.hh"
+#include "AISConstants.hh"
 
 class AISAbcdPropagator : public AISFreePropagator
 {

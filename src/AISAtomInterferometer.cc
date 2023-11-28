@@ -32,17 +32,30 @@ AISAtomInterferometer::AISAtomInterferometer(AISAtomInterferometerParams params)
                                                   {0.0, 0.0, 0.0}, 0.0);
     AISWaveFront* wavefrontPsr = new AISWaveFront(zeroAberrationFunction, zeroAberrationFunction,
                                                   params.psrGradient, params.laserPhase);
+
+    // compute the vertical velocities at each pulse
+    double vzBeamSplitter1 = - 1 * g * params.interogationTime; 
+
+    double vzLmt1 = vzBeamSplitter1 - g * params.lmtDelayTime; 
+    double vzLmt2 = vzLmt1 - g * ((params.lmtOrder - 1) / 2 * params.lmtDelayTime + params.interogationTime);
+
+    double vzMirror = vzLmt2 - g * (params.lmtOrder - 1) / 2 * params.lmtDelayTime; 
+
+    double vzLmt3 = vzMirror - g * params.lmtDelayTime; 
+    double vzLmt4 = vzLmt3 - g * ((params.lmtOrder - 1) / 2 * params.lmtDelayTime + params.interogationTime); 
+
+    double vzBeamSplitter2 = vzLmt4 - g * (params.lmtOrder - 1) / 2 * params.lmtDelayTime;; 
                                                 
     // compute the detuned frequency
-    __float128 omega1 = computeDetunedOmega(omegaSr87, - 1 * g * params.interogationTime);
-    __float128 omega2 = computeDetunedOmega(omegaSr87, - 2 * g * params.interogationTime);
-    __float128 omega3 = computeDetunedOmega(omegaSr87, - 3 * g * params.interogationTime);
+    __float128 omega1 = computeDetunedOmega(omegaSr87, vzBeamSplitter1);
+    __float128 omega2 = computeDetunedOmega(omegaSr87, vzMirror);
+    __float128 omega3 = computeDetunedOmega(omegaSr87, vzBeamSplitter2);
 
     // compute the detuned wavevectors
     doubleThreeVector k0 = {0., 0., convertScalarToDouble(omegaSr87 / c)};
-    doubleThreeVector k1 = computeDetunedWaveVector(k0, - 1 * g * params.interogationTime);
-    doubleThreeVector k2 = computeDetunedWaveVector(k0, - 2 * g * params.interogationTime);
-    doubleThreeVector k3 = computeDetunedWaveVector(k0, - 3 * g * params.interogationTime);
+    doubleThreeVector k1 = computeDetunedWaveVector(k0, vzBeamSplitter1);
+    doubleThreeVector k2 = computeDetunedWaveVector(k0, vzMirror);
+    doubleThreeVector k3 = computeDetunedWaveVector(k0, vzBeamSplitter2);
     
     // create the first pi/2 pulse ttt propagator
     beamSplitterPropagator1 = new AIStttPropagator(pi128 / (2 * params.rabiFrequency));
@@ -63,6 +76,22 @@ AISAtomInterferometer::AISAtomInterferometer(AISAtomInterferometerParams params)
     beamSplitterPropagator2->SetOmega(omega3);
     beamSplitterPropagator2->SetWaveVector(k3);  
 
+    // set the LMT propagator params
+    lmtPropagator1 = new AISLmtTttPropagator(params.lmtOrder, vzLmt1, params.lmtDelayTime, params.interogationTime, 0);
+    lmtPropagator2 = new AISLmtTttPropagator(params.lmtOrder, vzLmt2, params.lmtDelayTime, params.interogationTime, 1);
+    lmtPropagator3 = new AISLmtTttPropagator(params.lmtOrder, vzLmt3, params.lmtDelayTime, params.interogationTime, 2);
+    lmtPropagator4 = new AISLmtTttPropagator(params.lmtOrder, vzLmt4, params.lmtDelayTime, params.interogationTime, 3);
+
+    lmtPropagator1->SetWaveFronts(wavefront, wavefront);
+    lmtPropagator2->SetWaveFronts(wavefront, wavefront);
+    lmtPropagator3->SetWaveFronts(wavefront, wavefront);
+    lmtPropagator4->SetWaveFronts(wavefront, wavefront);
+
+    lmtPropagator1->SetIntensityProfiles(intensityProfile, intensityProfile);
+    lmtPropagator2->SetIntensityProfiles(intensityProfile, intensityProfile);
+    lmtPropagator3->SetIntensityProfiles(intensityProfile, intensityProfile);
+    lmtPropagator4->SetIntensityProfiles(intensityProfile, intensityProfile);
+
     // set the detector params
     coherenceLength = params.coherenceLength;
 }
@@ -75,6 +104,10 @@ AISAtomInterferometer::~AISAtomInterferometer(){
     delete driftPropagator;
     delete interrogationTimePropagator;
     delete fpDetector;
+    delete lmtPropagator1;
+    delete lmtPropagator2;
+    delete lmtPropagator3;
+    delete lmtPropagator4;
 }
 
 AISAtomEnsemble* AISAtomInterferometer::GetAtomEnsemble()
@@ -84,31 +117,59 @@ AISAtomEnsemble* AISAtomInterferometer::GetAtomEnsemble()
 
 void AISAtomInterferometer::run()
 {
+    // loop over the atoms
+    #pragma omp parallel for
+    for(int atomIndex = 0; atomIndex < atomEnsemble->GetNumberOfAtoms(); ++atomIndex)
+    {
+        AISAtom* currentAtom = atomEnsemble->GetAtom(atomIndex);
+        runAtom(currentAtom);
+    }
+}
+
+void AISAtomInterferometer::runAtom(AISAtom* anAtom)
+{
     // free propagation
     for(int n = 0; n < fParams.nSteps; ++n)
     {
-        driftPropagator->PropagateEnsemble(atomEnsemble);
+        driftPropagator->PropagateAtom(anAtom);
     }
+
     // beam-splitting
-    beamSplitterPropagator1->PropagateEnsemble(atomEnsemble);
+    beamSplitterPropagator1->PropagateAtom(anAtom);
+
+    // first LMT block
+    lmtPropagator1->PropagateAtom(anAtom);
+
     // free propagation
     for(int n = 0; n < fParams.nSteps; ++n)
     {
-        interrogationTimePropagator->PropagateEnsemble(atomEnsemble);
+        interrogationTimePropagator->PropagateAtom(anAtom);
     }
+
+    // second LMT block
+    lmtPropagator2->PropagateAtom(anAtom);
+
     // mirror
-    mirrorPropagator->PropagateEnsemble(atomEnsemble);
+    mirrorPropagator->PropagateAtom(anAtom);
+
+    // third LMT block
+    lmtPropagator3->PropagateAtom(anAtom);
+
     // free propagation
     for(int n = 0; n < fParams.nSteps; ++n)
     {
-        interrogationTimePropagator->PropagateEnsemble(atomEnsemble);
+        interrogationTimePropagator->PropagateAtom(anAtom);
     }
+
+    // fourth LMT block
+    lmtPropagator4->PropagateAtom(anAtom);
+
     // beam-splitting
-    beamSplitterPropagator2->PropagateEnsemble(atomEnsemble);
+    beamSplitterPropagator2->PropagateAtom(anAtom);
     // free propagation
     for(int n = 0; n < fParams.nSteps; ++n)
     {
-    driftPropagator->PropagateEnsemble(atomEnsemble);
+    driftPropagator->PropagateAtom(anAtom);
     }
 }
 
@@ -120,7 +181,7 @@ void AISAtomInterferometer::detect()
     sampledPortIndices = fpDetector->SampleAllPorts();
 }
 
-void AISAtomInterferometer::write(std::string filename)
+void AISAtomInterferometer::writeDetectedAtomsInfo(std::string filename)
 {
     // open a h5 file
     H5::H5File file(filename, H5F_ACC_TRUNC);
@@ -181,6 +242,94 @@ void AISAtomInterferometer::write(std::string filename)
     dataset_velocities.write(velocities.data(), H5::PredType::NATIVE_DOUBLE);
     dataset_states.write(states.data(), H5::PredType::NATIVE_INT);
     dataset_phaseShifts.write(phaseShifts.data(), H5::PredType::NATIVE_DOUBLE);
+
+    // close the file
+    file.close();
+}
+
+void AISAtomInterferometer::writeWavepacketsInfo(std::string filename)
+{
+    /* This was written only for the case where each atom has the 
+     * same number of wavepackets. (i.e. no wavepackets are deleted)
+    */
+   
+    // open H5 file
+    H5::H5File file(filename, H5F_ACC_TRUNC);
+
+    // get the number of atoms
+    int nAtoms = atomEnsemble->GetNumberOfAtoms();
+    // get the number of wavepackets
+    int nWavepackets = atomEnsemble->GetAtom(0)->GetNumberOfWavePackets();
+
+    // create data vectors
+    std::vector<std::vector<doubleThreeVector>> positions(nAtoms);
+    std::vector<std::vector<doubleThreeVector>> velocities(nAtoms);
+    std::vector<std::vector<double>> phases(nAtoms);
+    std::vector<std::vector<__float128>> quadPhases(nAtoms);
+    std::vector<std::vector<double>> amplitudes(nAtoms);
+    std::vector<std::vector<int>> states(nAtoms);
+
+    // loop over the atoms
+    for(int atomIndex = 0; atomIndex < nAtoms; atomIndex++){
+        // get the atom
+        AISAtom* currentAtom = atomEnsemble->GetAtom(atomIndex);
+
+        // loop over the wavepacket vector
+        for(int wavepacketIndex = 0; wavepacketIndex < nWavepackets; wavepacketIndex++){
+            // get the wavepacket
+            AISWavePacket* currentWavepacket = currentAtom->GetWavePacket(wavepacketIndex);
+
+            // get the data
+            doubleThreeVector currentPosition = currentWavepacket->GetPosition();
+            doubleThreeVector currentVelocity = currentWavepacket->GetVelocity();
+            double currentPhase = currentWavepacket->GetPhaseDouble();
+            __float128 currentQuadPhase = currentWavepacket->GetPhaseQuad();
+            double currentAmplitude = currentWavepacket->GetAmplitude();
+            int currentState = currentWavepacket->GetState();
+
+            // fill in the data
+            positions[atomIndex].push_back(currentPosition);
+            velocities[atomIndex].push_back(currentVelocity);
+            phases[atomIndex].push_back(currentPhase);
+            quadPhases[atomIndex].push_back(currentQuadPhase);
+            amplitudes[atomIndex].push_back(currentAmplitude);
+            states[atomIndex].push_back(currentState);
+        }
+    }
+
+    // define the dimensionality of the datasets
+    hsize_t nAtomsHsize       = nAtoms;
+    hsize_t nWavepacketsHsize = nWavepackets;
+    hsize_t dim_positions[3]  = {nAtomsHsize, nWavepacketsHsize, 3};
+    hsize_t dim_velocities[3] = {nAtomsHsize, nWavepacketsHsize, 3};
+    hsize_t dim_phases[2]     = {nAtomsHsize, nWavepacketsHsize};
+    hsize_t dim_quadPhases[2] = {nAtomsHsize, nWavepacketsHsize};
+    hsize_t dim_amplitudes[2] = {nAtomsHsize, nWavepacketsHsize};
+    hsize_t dim_states[2]     = {nAtomsHsize, nWavepacketsHsize};
+    
+    // create the dataspace
+    H5::DataSpace dataspace_positions(3, dim_positions);
+    H5::DataSpace dataspace_velocities(3, dim_velocities);
+    H5::DataSpace dataspace_phases(2, dim_phases);
+    H5::DataSpace dataspace_quadPhases(2, dim_quadPhases);
+    H5::DataSpace dataspace_amplitudes(2, dim_amplitudes);
+    H5::DataSpace dataspace_states(2, dim_states);
+    
+    // create the datasets
+    H5::DataSet dataset_positions = file.createDataSet("positions", H5::PredType::NATIVE_DOUBLE, dataspace_positions);
+    H5::DataSet dataset_velocities = file.createDataSet("velocities", H5::PredType::NATIVE_DOUBLE, dataspace_velocities);
+    H5::DataSet dataset_phases = file.createDataSet("phases", H5::PredType::NATIVE_DOUBLE, dataspace_phases);
+    H5::DataSet dataset_quadPhases = file.createDataSet("quadPhases", H5::PredType::NATIVE_LDOUBLE, dataspace_quadPhases);
+    H5::DataSet dataset_amplitudes = file.createDataSet("amplitudes", H5::PredType::NATIVE_DOUBLE, dataspace_amplitudes);
+    H5::DataSet dataset_states = file.createDataSet("states", H5::PredType::NATIVE_INT, dataspace_states);
+
+    // write the data
+    dataset_positions.write(positions.data(), H5::PredType::NATIVE_DOUBLE);
+    dataset_velocities.write(velocities.data(), H5::PredType::NATIVE_DOUBLE);
+    dataset_phases.write(phases.data(), H5::PredType::NATIVE_DOUBLE);
+    dataset_quadPhases.write(quadPhases.data(), H5::PredType::NATIVE_LDOUBLE);
+    dataset_amplitudes.write(amplitudes.data(), H5::PredType::NATIVE_DOUBLE);
+    dataset_states.write(states.data(), H5::PredType::NATIVE_INT);
 
     // close the file
     file.close();

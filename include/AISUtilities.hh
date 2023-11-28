@@ -1,6 +1,8 @@
 #ifndef AISUTILITIES_HH
 #define AISUTILITIES_HH
 
+#include "AISConstants.hh"
+
 #include <iostream>
 #include <array>
 #include <vector>
@@ -63,5 +65,9 @@ double3x3Matrix transpose(const double3x3Matrix& A);
 double convertScalarToDouble(__float128 x);
 doubleThreeVector convertThreeVectorToDouble(quadThreeVector v);
 double3x3Matrix convert3x3MatrixToDouble(quad3x3Matrix A);
+
+/* Detuning functions */
+doubleThreeVector computeDetunedWaveVector(const doubleThreeVector& k0, const double& vz);
+__float128 computeDetunedOmega(const __float128& omega0, const double& vz);
 
 #endif

@@ -229,3 +229,20 @@ double3x3Matrix convert3x3MatrixToDouble(quad3x3Matrix A){
     }
     return result;
 }
+
+doubleThreeVector computeDetunedWaveVector(const doubleThreeVector& k0, const double& vz)
+{
+    doubleThreeVector detunedK = k0;
+    for(int i = 0; i < 3; ++i)
+    {
+        if(i == 2){
+            detunedK[i] = k0[i] /(1 - vz / c);
+        }
+    }
+
+    return detunedK;
+}
+
+__float128 computeDetunedOmega(const __float128& omega0, const double& vz){
+    return omega0 / (1 - vz / c);
+}

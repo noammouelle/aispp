@@ -46,6 +46,9 @@
         "typeinfo": "cpp",
         "ctime": "cpp",
         "iomanip": "cpp",
-        "complex": "cpp"
+        "complex": "cpp",
+        "chrono": "cpp",
+        "ratio": "cpp",
+        "cinttypes": "cpp"
     }
 }

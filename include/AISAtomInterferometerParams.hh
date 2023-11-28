@@ -26,6 +26,10 @@ public:
     __float128 interogationTime;
     int nSteps;
 
+    /* LMT PARAMS */
+    int lmtOrder;
+    double lmtDelayTime;
+
     /* DETECTOR PARAMETERS */
     double coherenceLength;
 };

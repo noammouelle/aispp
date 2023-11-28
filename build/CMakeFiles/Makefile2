@@ -53,7 +53,7 @@ CMAKE_BINARY_DIR = /home/noammouelle/sim/ais++/build
 # Directory level rules for the build root directory
 
 # The main recursive "all" target.
-all: CMakeFiles/aispp.dir/all
+all: CMakeFiles/AISppLib.dir/all
 
 .PHONY : all
 
@@ -63,64 +63,36 @@ preinstall:
 .PHONY : preinstall
 
 # The main recursive "clean" target.
-clean: CMakeFiles/AISim++.dir/clean
-clean: CMakeFiles/aispp.dir/clean
+clean: CMakeFiles/AISppLib.dir/clean
 
 .PHONY : clean
 
 #=============================================================================
-# Target rules for target CMakeFiles/AISim++.dir
+# Target rules for target CMakeFiles/AISppLib.dir
 
 # All Build rule for target.
-CMakeFiles/AISim++.dir/all: CMakeFiles/aispp.dir/all
-	$(MAKE) -f CMakeFiles/AISim++.dir/build.make CMakeFiles/AISim++.dir/depend
-	$(MAKE) -f CMakeFiles/AISim++.dir/build.make CMakeFiles/AISim++.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/noammouelle/sim/ais++/build/CMakeFiles --progress-num= "Built target AISim++"
-.PHONY : CMakeFiles/AISim++.dir/all
+CMakeFiles/AISppLib.dir/all:
+	$(MAKE) -f CMakeFiles/AISppLib.dir/build.make CMakeFiles/AISppLib.dir/depend
+	$(MAKE) -f CMakeFiles/AISppLib.dir/build.make CMakeFiles/AISppLib.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/noammouelle/sim/ais++/build/CMakeFiles --progress-num=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20 "Built target AISppLib"
+.PHONY : CMakeFiles/AISppLib.dir/all
 
 # Build rule for subdir invocation for target.
-CMakeFiles/AISim++.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/noammouelle/sim/ais++/build/CMakeFiles 19
-	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/AISim++.dir/all
+CMakeFiles/AISppLib.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/noammouelle/sim/ais++/build/CMakeFiles 20
+	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/AISppLib.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/noammouelle/sim/ais++/build/CMakeFiles 0
-.PHONY : CMakeFiles/AISim++.dir/rule
+.PHONY : CMakeFiles/AISppLib.dir/rule
 
 # Convenience name for target.
-AISim++: CMakeFiles/AISim++.dir/rule
+AISppLib: CMakeFiles/AISppLib.dir/rule
 
-.PHONY : AISim++
-
-# clean rule for target.
-CMakeFiles/AISim++.dir/clean:
-	$(MAKE) -f CMakeFiles/AISim++.dir/build.make CMakeFiles/AISim++.dir/clean
-.PHONY : CMakeFiles/AISim++.dir/clean
-
-#=============================================================================
-# Target rules for target CMakeFiles/aispp.dir
-
-# All Build rule for target.
-CMakeFiles/aispp.dir/all:
-	$(MAKE) -f CMakeFiles/aispp.dir/build.make CMakeFiles/aispp.dir/depend
-	$(MAKE) -f CMakeFiles/aispp.dir/build.make CMakeFiles/aispp.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/noammouelle/sim/ais++/build/CMakeFiles --progress-num=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19 "Built target aispp"
-.PHONY : CMakeFiles/aispp.dir/all
-
-# Build rule for subdir invocation for target.
-CMakeFiles/aispp.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/noammouelle/sim/ais++/build/CMakeFiles 19
-	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/aispp.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/noammouelle/sim/ais++/build/CMakeFiles 0
-.PHONY : CMakeFiles/aispp.dir/rule
-
-# Convenience name for target.
-aispp: CMakeFiles/aispp.dir/rule
-
-.PHONY : aispp
+.PHONY : AISppLib
 
 # clean rule for target.
-CMakeFiles/aispp.dir/clean:
-	$(MAKE) -f CMakeFiles/aispp.dir/build.make CMakeFiles/aispp.dir/clean
-.PHONY : CMakeFiles/aispp.dir/clean
+CMakeFiles/AISppLib.dir/clean:
+	$(MAKE) -f CMakeFiles/AISppLib.dir/build.make CMakeFiles/AISppLib.dir/clean
+.PHONY : CMakeFiles/AISppLib.dir/clean
 
 #=============================================================================
 # Special targets to cleanup operation of make.
