@@ -10,7 +10,7 @@
 #include <string>
 #include <complex>
 #include <sstream>
-#include <quadmath.h>
+//#include <quadmath.h>
 #include <iomanip>
 
 /* Custom variable types*/
