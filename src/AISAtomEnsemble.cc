@@ -59,7 +59,7 @@ AISAtomEnsemble::~AISAtomEnsemble()
 
 int AISAtomEnsemble::GetNumberOfAtoms()
 {
-    return fAtomVector.size();
+    return fpAtomVector->size();
 }
 
 atomVector* AISAtomEnsemble::GetAtomVector()
@@ -69,5 +69,5 @@ atomVector* AISAtomEnsemble::GetAtomVector()
 
 AISAtom* AISAtomEnsemble::GetAtom(int atomIndex)
 {
-    return fAtomVector[atomIndex]; // Find better way
+    return fpAtomVector->at(atomIndex); // Find better way
 }

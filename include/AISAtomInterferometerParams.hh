@@ -23,6 +23,8 @@ public:
     doubleThreeVector psrGradient;
 
     /* SEQUENCE PARAMETERS */
+    __float128 initialPropagationTime;
+    __float128 finalPropagationTime;
     __float128 interogationTime;
     int nSteps;
 

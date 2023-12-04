@@ -8,8 +8,10 @@ AISPulsePropagator::AISPulsePropagator(__float128 deltaTime)
 
 AISPulsePropagator::~AISPulsePropagator()
 {
-    delete fIntensityProfile;
-    delete fWaveFront;
+    // in practice those are defined externally and should not be deleted here I think
+    
+    //delete fIntensityProfile;
+    //delete fWaveFront;
 }
 
 void AISPulsePropagator::SetWaveFront(AISWaveFront* waveFront)

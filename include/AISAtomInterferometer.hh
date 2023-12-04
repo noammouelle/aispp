@@ -37,7 +37,8 @@ public:
     AISLmtTttPropagator* lmtPropagator3;
     AISLmtTttPropagator* lmtPropagator4;
     
-    AISLinearGravityPropagator* driftPropagator;
+    AISLinearGravityPropagator* initialDriftPropagator;
+    AISLinearGravityPropagator* finalDriftPropagator;
     AISLinearGravityPropagator* interrogationTimePropagator;
 
     AISAtomInterferometerParams fParams;

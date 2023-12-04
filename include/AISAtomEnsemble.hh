@@ -10,8 +10,7 @@ using atomVector = std::vector<AISAtom*>;
 class AISAtomEnsemble
 {
 private:
-    atomVector fAtomVector;
-    atomVector* fpAtomVector = &fAtomVector;
+    atomVector* fpAtomVector = new atomVector;
 public:
     AISAtomEnsemble(int nAtoms, double temperature, double width,
                     doubleThreeVector initialPosition, doubleThreeVector initialVelocity);

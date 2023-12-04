@@ -19,8 +19,9 @@ AISAtomInterferometer::AISAtomInterferometer(AISAtomInterferometerParams params)
     // create the ensemble
     atomEnsemble = new AISAtomEnsemble(params.nAtoms, params.cloudTemperature, params.cloudWidth,
                                        params.initialPosition, params.initialVelocity);
-    // create the "drift" propagator
-    driftPropagator = new AISLinearGravityPropagator(params.interogationTime / params.nSteps);
+    // create the "drift" propagators
+    initialDriftPropagator = new AISLinearGravityPropagator(params.initialPropagationTime / params.nSteps);
+    finalDriftPropagator   = new AISLinearGravityPropagator(params.finalPropagationTime / params.nSteps);
     // create the interrogation time propagators
     interrogationTimePropagator = new AISLinearGravityPropagator(params.interogationTime / params.nSteps);
     interrogationTimePropagator->SetAddEnergyPhase(true);
@@ -34,7 +35,7 @@ AISAtomInterferometer::AISAtomInterferometer(AISAtomInterferometerParams params)
                                                   params.psrGradient, params.laserPhase);
 
     // compute the vertical velocities at each pulse
-    double vzBeamSplitter1 = - 1 * g * params.interogationTime; 
+    double vzBeamSplitter1 = params.initialVelocity[2] - 1 * g * params.initialPropagationTime; 
 
     double vzLmt1 = vzBeamSplitter1 - g * params.lmtDelayTime; 
     double vzLmt2 = vzLmt1 - g * ((params.lmtOrder - 1) / 2 * params.lmtDelayTime + params.interogationTime);
@@ -101,7 +102,8 @@ AISAtomInterferometer::~AISAtomInterferometer(){
     delete beamSplitterPropagator1;
     delete beamSplitterPropagator2;
     delete mirrorPropagator;
-    delete driftPropagator;
+    delete initialDriftPropagator;
+    delete finalDriftPropagator;
     delete interrogationTimePropagator;
     delete fpDetector;
     delete lmtPropagator1;
@@ -131,7 +133,7 @@ void AISAtomInterferometer::runAtom(AISAtom* anAtom)
     // free propagation
     for(int n = 0; n < fParams.nSteps; ++n)
     {
-        driftPropagator->PropagateAtom(anAtom);
+        initialDriftPropagator->PropagateAtom(anAtom);
     }
 
     // beam-splitting
@@ -169,7 +171,7 @@ void AISAtomInterferometer::runAtom(AISAtom* anAtom)
     // free propagation
     for(int n = 0; n < fParams.nSteps; ++n)
     {
-    driftPropagator->PropagateAtom(anAtom);
+    finalDriftPropagator->PropagateAtom(anAtom);
     }
 }
 
@@ -252,7 +254,7 @@ void AISAtomInterferometer::writeWavepacketsInfo(std::string filename)
     /* This was written only for the case where each atom has the 
      * same number of wavepackets. (i.e. no wavepackets are deleted)
     */
-   
+
     // open H5 file
     H5::H5File file(filename, H5F_ACC_TRUNC);
 
