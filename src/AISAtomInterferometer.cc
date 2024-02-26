@@ -29,9 +29,9 @@ AISAtomInterferometer::AISAtomInterferometer(AISAtomInterferometerParams params)
     // create the intensity profile
     AISIntensityProfile* intensityProfile = new AISIntensityProfile(params.beamRadius, params.rabiFrequency);
     // create the wavefront
-    AISWaveFront* wavefront    = new AISWaveFront(zeroAberrationFunction, zeroAberrationFunction,
+    AISWaveFront* wavefront    = new AISWaveFront(params.aberrationFunction, zeroAberrationFunction,
                                                   {0.0, 0.0, 0.0}, 0.0);
-    AISWaveFront* wavefrontPsr = new AISWaveFront(zeroAberrationFunction, zeroAberrationFunction,
+    AISWaveFront* wavefrontPsr = new AISWaveFront(params.aberrationFunction, zeroAberrationFunction,
                                                   params.psrGradient, params.laserPhase);
 
     // compute the vertical velocities at each pulse

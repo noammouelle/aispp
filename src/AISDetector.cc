@@ -2,8 +2,8 @@
 
 AISDetector::AISDetector(AISAtomEnsemble* pAtomEnsemble, double coherenceLength)
 {
-    // initialize the port-frame vector
-    fpPortFrameVector = new portFrameVector;
+    // initialize the port-frame vector and allocate memory
+    fpPortFrameVector = new portFrameVector();
 
     for(int atomIndex = 0; atomIndex < pAtomEnsemble->GetNumberOfAtoms(); atomIndex++)
     {
@@ -18,6 +18,12 @@ AISDetector::AISDetector(AISAtomEnsemble* pAtomEnsemble, double coherenceLength)
 
 AISDetector::~AISDetector()
 {
+    // delete all the port-frames
+    for(int portFrameIndex = 0; portFrameIndex < fpPortFrameVector->size(); portFrameIndex++)
+    {
+        delete fpPortFrameVector->at(portFrameIndex);
+    }
+    // delete the vector
     delete fpPortFrameVector;
 }
 

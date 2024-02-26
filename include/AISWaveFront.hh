@@ -20,7 +20,8 @@ public:
     double GetValue(const doubleThreeVector& pos);
 };
 
-// define a couple aberrationFunctions
+// define a few aberrationFunctions
 double zeroAberrationFunction(const doubleThreeVector& pos);
+double sineAberrationFunction(const doubleThreeVector& pos, double A, double k);
 
 #endif

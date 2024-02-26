@@ -24,8 +24,12 @@ double AISWaveFront::GetValue(const  doubleThreeVector& pos)
     return linearComponent + aberration;
 }
 
-// define a couple aberrationFunctions
+// define a few aberrationFunctions
 double zeroAberrationFunction(const doubleThreeVector& pos)
 {
     return 0.;
+}
+double sineAberrationFunction(const doubleThreeVector& pos, double A, doubleThreeVector k)
+{
+    return A * sin(dotProduct(k, pos));
 }

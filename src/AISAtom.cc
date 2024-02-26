@@ -9,6 +9,12 @@ AISAtom::AISAtom(doubleThreeVector initialPos, doubleThreeVector initialVel, __f
 };
 
 AISAtom::~AISAtom(){
+    // delete all the wavepackets
+    for(int wavePacketIndex = 0; wavePacketIndex < fpWavePacketVector->size(); wavePacketIndex++)
+    {
+        delete (*fpWavePacketVector)[wavePacketIndex];
+    }
+    // delete the vector
     delete fpWavePacketVector;
 };
 

@@ -54,6 +54,12 @@ AISAtomEnsemble::AISAtomEnsemble(int nAtoms, double temperature, double width,
 
 AISAtomEnsemble::~AISAtomEnsemble()
 {
+    // delete all the atoms
+    for(int atomIndex = 0; atomIndex < fpAtomVector->size(); atomIndex++)
+    {
+        delete fpAtomVector->at(atomIndex);
+    }
+    // 
     delete fpAtomVector;
 };
 

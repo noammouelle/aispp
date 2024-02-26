@@ -7,7 +7,7 @@ AISPortFrame::AISPortFrame(AISAtom* anAtom, intTuple adjacentWavepacketIndices)
     // create the port vector
     initializePortVector(numberOfPorts);
     // associate the ports with the wavepackets
-     associatePortsWithWavePackets(anAtom, adjacentWavepacketIndices);
+    associatePortsWithWavePackets(anAtom, adjacentWavepacketIndices);
     // set the port parameters
     setPortParameters(anAtom, adjacentWavepacketIndices);
 }
