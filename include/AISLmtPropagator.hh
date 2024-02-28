@@ -4,6 +4,7 @@
 #include "AISUtilities.hh"
 #include "AISAtom.hh"
 #include "AISWaveFront.hh"
+#include "AISSineWaveFront.hh"
 #include "AISIntensityProfile.hh"
 
 class AISLmtPropagator
@@ -18,14 +19,14 @@ public:
     int GetLmtBlockIndex();
     int GetNpulses();
 
-    void SetWaveFronts(AISWaveFront* upwardWavefront, AISWaveFront* downwardWavefront);
+    void SetWaveFronts(AISSineWaveFront* upwardWavefront, AISSineWaveFront* downwardWavefront);
     void SetIntensityProfiles(AISIntensityProfile* upwardIntensityProfile, AISIntensityProfile* downwardIntensityProfile);
 
     void PropagateAtom(AISAtom* atom);
 
     virtual double computeVelocity(const double& vz0, const __float128& t) = 0;
     virtual void PropagateAtomInPulse(AISAtom* atom, const doubleThreeVector& k, const __float128& omega,
-                                      AISWaveFront* waveFront, AISIntensityProfile* intensityProfile) = 0;
+                                      AISSineWaveFront* waveFront, AISIntensityProfile* intensityProfile) = 0;
     virtual void PropagateAtomFreely(AISAtom* atom) = 0;
 
 
@@ -36,8 +37,8 @@ public:
     int fLmtBlockIndex;
     double fVz0;
 
-    AISWaveFront* fUpwardWavefront;
-    AISWaveFront* fDownwardWavefront;
+    AISSineWaveFront* fUpwardWavefront;
+    AISSineWaveFront* fDownwardWavefront;
     AISIntensityProfile* fUpwardIntensityProfile;
     AISIntensityProfile* fDownwardIntensityProfile;
     doubleThreeVector fK0;

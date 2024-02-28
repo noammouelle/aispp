@@ -4,7 +4,7 @@
 #include "AISLinearGravityPropagator.hh"
 #include "AISIntensityProfile.hh"
 #include "AIStttPropagator.hh"
-#include "AISWaveFront.hh"
+#include "AISSineWaveFront.hh"
 #include "AISConstants.hh"
 
 AISAtomInterferometer::AISAtomInterferometer(AISAtomInterferometerParams params)
@@ -29,10 +29,8 @@ AISAtomInterferometer::AISAtomInterferometer(AISAtomInterferometerParams params)
     // create the intensity profile
     AISIntensityProfile* intensityProfile = new AISIntensityProfile(params.beamRadius, params.rabiFrequency);
     // create the wavefront
-    AISWaveFront* wavefront    = new AISWaveFront(params.aberrationFunction, zeroAberrationFunction,
-                                                  {0.0, 0.0, 0.0}, 0.0);
-    AISWaveFront* wavefrontPsr = new AISWaveFront(params.aberrationFunction, zeroAberrationFunction,
-                                                  params.psrGradient, params.laserPhase);
+    AISSineWaveFront* wavefront    = new AISSineWaveFront({0.0, 0.0, 0.0}, 0.0, params.aberrationAmplitude, params.aberrationK);
+    AISSineWaveFront* wavefrontPsr = new AISSineWaveFront(params.psrGradient, params.laserPhase, params.aberrationAmplitude, params.aberrationK);
 
     // compute the vertical velocities at each pulse
     double vzBeamSplitter1 = params.initialVelocity[2] - 1 * g * params.initialPropagationTime; 

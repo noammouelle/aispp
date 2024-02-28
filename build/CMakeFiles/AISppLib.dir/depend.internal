@@ -45,6 +45,7 @@ CMakeFiles/AISppLib.dir/src/AISAtomInterferometer.cc.o
  ../include/AISPort.hh
  ../include/AISPortFrame.hh
  ../include/AISPulsePropagator.hh
+ ../include/AISSineWaveFront.hh
  ../include/AISUtilities.hh
  ../include/AISWaveFront.hh
  ../include/AISWavePacket.hh
@@ -132,6 +133,12 @@ CMakeFiles/AISppLib.dir/src/AISDetector.cc.o
  ../include/AISUtilities.hh
  ../include/AISWavePacket.hh
  /home/noammouelle/sim/ais++/src/AISDetector.cc
+CMakeFiles/AISppLib.dir/src/AISFlatWaveFront.cc.o
+ ../include/AISConstants.hh
+ ../include/AISFlatWaveFront.hh
+ ../include/AISUtilities.hh
+ ../include/AISWaveFront.hh
+ /home/noammouelle/sim/ais++/src/AISFlatWaveFront.cc
 CMakeFiles/AISppLib.dir/src/AISFreePropagator.cc.o
  ../include/AISAtom.hh
  ../include/AISAtomEnsemble.hh
@@ -160,6 +167,7 @@ CMakeFiles/AISppLib.dir/src/AISLmtPropagator.cc.o
  ../include/AISConstants.hh
  ../include/AISIntensityProfile.hh
  ../include/AISLmtPropagator.hh
+ ../include/AISSineWaveFront.hh
  ../include/AISUtilities.hh
  ../include/AISWaveFront.hh
  ../include/AISWavePacket.hh
@@ -176,6 +184,7 @@ CMakeFiles/AISppLib.dir/src/AISLmtTttPropagator.cc.o
  ../include/AISLmtPropagator.hh
  ../include/AISLmtTttPropagator.hh
  ../include/AISPulsePropagator.hh
+ ../include/AISSineWaveFront.hh
  ../include/AISUtilities.hh
  ../include/AISWaveFront.hh
  ../include/AISWavePacket.hh
@@ -200,14 +209,26 @@ CMakeFiles/AISppLib.dir/src/AISPulsePropagator.cc.o
  ../include/AISConstants.hh
  ../include/AISIntensityProfile.hh
  ../include/AISPulsePropagator.hh
+ ../include/AISSineWaveFront.hh
  ../include/AISUtilities.hh
  ../include/AISWaveFront.hh
  ../include/AISWavePacket.hh
  /home/noammouelle/sim/ais++/src/AISPulsePropagator.cc
+CMakeFiles/AISppLib.dir/src/AISSineWaveFront.cc.o
+ ../include/AISConstants.hh
+ ../include/AISSineWaveFront.hh
+ ../include/AISUtilities.hh
+ ../include/AISWaveFront.hh
+ /home/noammouelle/sim/ais++/src/AISSineWaveFront.cc
 CMakeFiles/AISppLib.dir/src/AISUtilities.cc.o
  ../include/AISConstants.hh
  ../include/AISUtilities.hh
  /home/noammouelle/sim/ais++/src/AISUtilities.cc
+CMakeFiles/AISppLib.dir/src/AISWaveFront.cc.o
+ ../include/AISConstants.hh
+ ../include/AISUtilities.hh
+ ../include/AISWaveFront.hh
+ /home/noammouelle/sim/ais++/src/AISWaveFront.cc
 CMakeFiles/AISppLib.dir/src/AISWavePacket.cc.o
  ../include/AISConstants.hh
  ../include/AISUtilities.hh
@@ -223,13 +244,9 @@ CMakeFiles/AISppLib.dir/src/AIStttPropagator.cc.o
  ../include/AISIntensityProfile.hh
  ../include/AISLinearGravityPropagator.hh
  ../include/AISPulsePropagator.hh
+ ../include/AISSineWaveFront.hh
  ../include/AISUtilities.hh
  ../include/AISWaveFront.hh
  ../include/AISWavePacket.hh
  ../include/AIStttPropagator.hh
  /home/noammouelle/sim/ais++/src/AIStttPropagator.cc
-CMakeFiles/AISppLib.dir/src/AIWaveFront.cc.o
- ../include/AISConstants.hh
- ../include/AISUtilities.hh
- ../include/AISWaveFront.hh
- /home/noammouelle/sim/ais++/src/AIWaveFront.cc

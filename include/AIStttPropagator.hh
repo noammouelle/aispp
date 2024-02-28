@@ -41,7 +41,7 @@ public:
     
     void TttPropagateAtom(AISAtom* atom);
 
-    virtual void PropagateAtom(AISAtom* atom) override;
+    void PropagateAtom(AISAtom* atom) override;
 };
 
 

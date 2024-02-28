@@ -21,7 +21,8 @@ public:
     double laserPhase;
     double rabiFrequency;
     doubleThreeVector psrGradient;
-    double (*aberrationFunction)(const doubleThreeVector&);
+    doubleThreeVector aberrationK;
+    double aberrationAmplitude;
 
     /* SEQUENCE PARAMETERS */
     __float128 initialPropagationTime;
