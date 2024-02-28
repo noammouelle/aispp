@@ -36,7 +36,7 @@ protected:
                           const std::string& transition);
 
     // amplitude threshold
-    double amplitudeThreshold;
+    double amplitudeThreshold = 0.0; // default value is zero
     
 public:
     AIStttPropagator(__float128 deltaTime);

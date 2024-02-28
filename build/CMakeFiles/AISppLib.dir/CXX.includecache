@@ -244,6 +244,10 @@ AISSineWaveFront.hh
 AISConstants.hh
 /home/noammouelle/sim/ais++/src/AISConstants.hh
 
+/home/noammouelle/sim/ais++/src/AISAtomInterferometerParams.cc
+AISAtomInterferometerParams.hh
+/home/noammouelle/sim/ais++/src/AISAtomInterferometerParams.hh
+
 /home/noammouelle/sim/ais++/src/AISFlatWaveFront.cc
 AISFlatWaveFront.hh
 /home/noammouelle/sim/ais++/src/AISFlatWaveFront.hh
