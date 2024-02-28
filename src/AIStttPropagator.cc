@@ -43,6 +43,10 @@ AIStttPropagator::~AIStttPropagator()
     delete fFreePropagator;
 }
 
+void AIStttPropagator::setAmplitudeThreshold(double A)
+{
+    amplitudeThreshold = A;
+}
 
 double AIStttPropagator::computeDetuning(const doubleThreeVector& pos, const doubleThreeVector& vel,
                                          const __float128& omega)
