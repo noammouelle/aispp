@@ -40,5 +40,5 @@ void AISLmtTttPropagator::PropagateAtomFreely(AISAtom* atom)
 
 void AISLmtTttPropagator::setAmplitudeThreshold(double A)
 {
-    fTttPropagator->setAmplitudeThreshold(A);
+    //fTttPropagator->setAmplitudeThreshold(A);
 }

@@ -291,18 +291,18 @@ void AIStttPropagator::TttPropagateAtom(AISAtom* atom)
         wavePacket2->SetPhaseQuad(newPhaseQuad2);
 
         // add the new wavepackets to the vector if the amplitude is above the threshold
+        /*
         if(newAmplitude1 > amplitudeThreshold){
+            std::cout << "Adding wavepacket 1\n" << std::endl;
             newWavePackets->push_back(wavePacket1);
         }
-        else{
-            delete wavePacket1;
-        }
         if(newAmplitude2 > amplitudeThreshold){
+            std::cout << "Adding wavepacket 2\n" << std::endl;
             newWavePackets->push_back(wavePacket2);
         }
-        else{
-            delete wavePacket2;
-        }
+        */
+        newWavePackets->push_back(wavePacket1);
+        newWavePackets->push_back(wavePacket2);
     // delete the old wavepackets
     atom->DeleteWavePackets();
     // add the new wavepackets to the atom
