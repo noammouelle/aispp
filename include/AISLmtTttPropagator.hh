@@ -20,6 +20,8 @@ public:
                               AISSineWaveFront* waveFront, AISIntensityProfile* intensityProfile) override;
     void PropagateAtomFreely(AISAtom* atom) override;
 
+    void setAmplitudeThreshold(double A);
+
 protected:
     AISLinearGravityPropagator* fLinearGravityPropagator;
     AIStttPropagator* fTttPropagator;

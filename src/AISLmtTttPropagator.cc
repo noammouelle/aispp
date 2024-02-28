@@ -37,3 +37,8 @@ void AISLmtTttPropagator::PropagateAtomFreely(AISAtom* atom)
 {
     fLinearGravityPropagator->PropagateAtom(atom);
 }
+
+void AISLmtTttPropagator::setAmplitudeThreshold(double A)
+{
+    fTttPropagator->setAmplitudeThreshold(A);
+}
