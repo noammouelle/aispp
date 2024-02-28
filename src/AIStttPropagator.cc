@@ -294,10 +294,15 @@ void AIStttPropagator::TttPropagateAtom(AISAtom* atom)
         if(newAmplitude1 > amplitudeThreshold){
             newWavePackets->push_back(wavePacket1);
         }
+        else{
+            delete wavePacket1;
+        }
         if(newAmplitude2 > amplitudeThreshold){
             newWavePackets->push_back(wavePacket2);
         }
-    }
+        else{
+            delete wavePacket2;
+        }
     // delete the old wavepackets
     atom->DeleteWavePackets();
     // add the new wavepackets to the atom
