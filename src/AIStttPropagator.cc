@@ -308,3 +308,4 @@ void AIStttPropagator::TttPropagateAtom(AISAtom* atom)
     // add the new wavepackets to the atom
     atom->AddWavePackets(newWavePackets);
 }
+}
