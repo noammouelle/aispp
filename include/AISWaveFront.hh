@@ -6,22 +6,15 @@
 
 class AISWaveFront
 {
-private:
-    double (*fAberrationFunction)(const doubleThreeVector&);
-    double (*fAberrationFunctionDerivative)(const doubleThreeVector&);
+public:
     doubleThreeVector fPsrGradient;
     double fLaserPhase;
-public:
-    AISWaveFront(double (*aberrationFunction)(const doubleThreeVector&), 
-                 double (*aberrationFunctionDerivative)(const doubleThreeVector&),
-                 doubleThreeVector psrGradient, double laserPhase);
+
+    AISWaveFront(doubleThreeVector psrGradient, double laserPhase);
     ~AISWaveFront();
 
-    double GetValue(const doubleThreeVector& pos);
+    virtual double GetValue(const doubleThreeVector& pos) = 0;
 };
 
-// define a few aberrationFunctions
-double zeroAberrationFunction(const doubleThreeVector& pos);
-double sineAberrationFunction(const doubleThreeVector& pos, double A, double k);
 
 #endif

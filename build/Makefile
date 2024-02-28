@@ -312,6 +312,33 @@ src/AISDetector.cc.s:
 	$(MAKE) -f CMakeFiles/AISppLib.dir/build.make CMakeFiles/AISppLib.dir/src/AISDetector.cc.s
 .PHONY : src/AISDetector.cc.s
 
+src/AISFlatWaveFront.o: src/AISFlatWaveFront.cc.o
+
+.PHONY : src/AISFlatWaveFront.o
+
+# target to build an object file
+src/AISFlatWaveFront.cc.o:
+	$(MAKE) -f CMakeFiles/AISppLib.dir/build.make CMakeFiles/AISppLib.dir/src/AISFlatWaveFront.cc.o
+.PHONY : src/AISFlatWaveFront.cc.o
+
+src/AISFlatWaveFront.i: src/AISFlatWaveFront.cc.i
+
+.PHONY : src/AISFlatWaveFront.i
+
+# target to preprocess a source file
+src/AISFlatWaveFront.cc.i:
+	$(MAKE) -f CMakeFiles/AISppLib.dir/build.make CMakeFiles/AISppLib.dir/src/AISFlatWaveFront.cc.i
+.PHONY : src/AISFlatWaveFront.cc.i
+
+src/AISFlatWaveFront.s: src/AISFlatWaveFront.cc.s
+
+.PHONY : src/AISFlatWaveFront.s
+
+# target to generate assembly for a file
+src/AISFlatWaveFront.cc.s:
+	$(MAKE) -f CMakeFiles/AISppLib.dir/build.make CMakeFiles/AISppLib.dir/src/AISFlatWaveFront.cc.s
+.PHONY : src/AISFlatWaveFront.cc.s
+
 src/AISFreePropagator.o: src/AISFreePropagator.cc.o
 
 .PHONY : src/AISFreePropagator.o
@@ -528,6 +555,33 @@ src/AISPulsePropagator.cc.s:
 	$(MAKE) -f CMakeFiles/AISppLib.dir/build.make CMakeFiles/AISppLib.dir/src/AISPulsePropagator.cc.s
 .PHONY : src/AISPulsePropagator.cc.s
 
+src/AISSineWaveFront.o: src/AISSineWaveFront.cc.o
+
+.PHONY : src/AISSineWaveFront.o
+
+# target to build an object file
+src/AISSineWaveFront.cc.o:
+	$(MAKE) -f CMakeFiles/AISppLib.dir/build.make CMakeFiles/AISppLib.dir/src/AISSineWaveFront.cc.o
+.PHONY : src/AISSineWaveFront.cc.o
+
+src/AISSineWaveFront.i: src/AISSineWaveFront.cc.i
+
+.PHONY : src/AISSineWaveFront.i
+
+# target to preprocess a source file
+src/AISSineWaveFront.cc.i:
+	$(MAKE) -f CMakeFiles/AISppLib.dir/build.make CMakeFiles/AISppLib.dir/src/AISSineWaveFront.cc.i
+.PHONY : src/AISSineWaveFront.cc.i
+
+src/AISSineWaveFront.s: src/AISSineWaveFront.cc.s
+
+.PHONY : src/AISSineWaveFront.s
+
+# target to generate assembly for a file
+src/AISSineWaveFront.cc.s:
+	$(MAKE) -f CMakeFiles/AISppLib.dir/build.make CMakeFiles/AISppLib.dir/src/AISSineWaveFront.cc.s
+.PHONY : src/AISSineWaveFront.cc.s
+
 src/AISUtilities.o: src/AISUtilities.cc.o
 
 .PHONY : src/AISUtilities.o
@@ -554,6 +608,33 @@ src/AISUtilities.s: src/AISUtilities.cc.s
 src/AISUtilities.cc.s:
 	$(MAKE) -f CMakeFiles/AISppLib.dir/build.make CMakeFiles/AISppLib.dir/src/AISUtilities.cc.s
 .PHONY : src/AISUtilities.cc.s
+
+src/AISWaveFront.o: src/AISWaveFront.cc.o
+
+.PHONY : src/AISWaveFront.o
+
+# target to build an object file
+src/AISWaveFront.cc.o:
+	$(MAKE) -f CMakeFiles/AISppLib.dir/build.make CMakeFiles/AISppLib.dir/src/AISWaveFront.cc.o
+.PHONY : src/AISWaveFront.cc.o
+
+src/AISWaveFront.i: src/AISWaveFront.cc.i
+
+.PHONY : src/AISWaveFront.i
+
+# target to preprocess a source file
+src/AISWaveFront.cc.i:
+	$(MAKE) -f CMakeFiles/AISppLib.dir/build.make CMakeFiles/AISppLib.dir/src/AISWaveFront.cc.i
+.PHONY : src/AISWaveFront.cc.i
+
+src/AISWaveFront.s: src/AISWaveFront.cc.s
+
+.PHONY : src/AISWaveFront.s
+
+# target to generate assembly for a file
+src/AISWaveFront.cc.s:
+	$(MAKE) -f CMakeFiles/AISppLib.dir/build.make CMakeFiles/AISppLib.dir/src/AISWaveFront.cc.s
+.PHONY : src/AISWaveFront.cc.s
 
 src/AISWavePacket.o: src/AISWavePacket.cc.o
 
@@ -609,33 +690,6 @@ src/AIStttPropagator.cc.s:
 	$(MAKE) -f CMakeFiles/AISppLib.dir/build.make CMakeFiles/AISppLib.dir/src/AIStttPropagator.cc.s
 .PHONY : src/AIStttPropagator.cc.s
 
-src/AIWaveFront.o: src/AIWaveFront.cc.o
-
-.PHONY : src/AIWaveFront.o
-
-# target to build an object file
-src/AIWaveFront.cc.o:
-	$(MAKE) -f CMakeFiles/AISppLib.dir/build.make CMakeFiles/AISppLib.dir/src/AIWaveFront.cc.o
-.PHONY : src/AIWaveFront.cc.o
-
-src/AIWaveFront.i: src/AIWaveFront.cc.i
-
-.PHONY : src/AIWaveFront.i
-
-# target to preprocess a source file
-src/AIWaveFront.cc.i:
-	$(MAKE) -f CMakeFiles/AISppLib.dir/build.make CMakeFiles/AISppLib.dir/src/AIWaveFront.cc.i
-.PHONY : src/AIWaveFront.cc.i
-
-src/AIWaveFront.s: src/AIWaveFront.cc.s
-
-.PHONY : src/AIWaveFront.s
-
-# target to generate assembly for a file
-src/AIWaveFront.cc.s:
-	$(MAKE) -f CMakeFiles/AISppLib.dir/build.make CMakeFiles/AISppLib.dir/src/AIWaveFront.cc.s
-.PHONY : src/AIWaveFront.cc.s
-
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -666,6 +720,9 @@ help:
 	@echo "... src/AISDetector.o"
 	@echo "... src/AISDetector.i"
 	@echo "... src/AISDetector.s"
+	@echo "... src/AISFlatWaveFront.o"
+	@echo "... src/AISFlatWaveFront.i"
+	@echo "... src/AISFlatWaveFront.s"
 	@echo "... src/AISFreePropagator.o"
 	@echo "... src/AISFreePropagator.i"
 	@echo "... src/AISFreePropagator.s"
@@ -690,18 +747,21 @@ help:
 	@echo "... src/AISPulsePropagator.o"
 	@echo "... src/AISPulsePropagator.i"
 	@echo "... src/AISPulsePropagator.s"
+	@echo "... src/AISSineWaveFront.o"
+	@echo "... src/AISSineWaveFront.i"
+	@echo "... src/AISSineWaveFront.s"
 	@echo "... src/AISUtilities.o"
 	@echo "... src/AISUtilities.i"
 	@echo "... src/AISUtilities.s"
+	@echo "... src/AISWaveFront.o"
+	@echo "... src/AISWaveFront.i"
+	@echo "... src/AISWaveFront.s"
 	@echo "... src/AISWavePacket.o"
 	@echo "... src/AISWavePacket.i"
 	@echo "... src/AISWavePacket.s"
 	@echo "... src/AIStttPropagator.o"
 	@echo "... src/AIStttPropagator.i"
 	@echo "... src/AIStttPropagator.s"
-	@echo "... src/AIWaveFront.o"
-	@echo "... src/AIWaveFront.i"
-	@echo "... src/AIWaveFront.s"
 .PHONY : help
 
 

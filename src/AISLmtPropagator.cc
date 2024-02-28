@@ -45,7 +45,7 @@ int AISLmtPropagator::GetNpulses()
     return fNpulses;
 }
 
-void AISLmtPropagator::SetWaveFronts(AISWaveFront* upwardWavefront, AISWaveFront* downwardWavefront)
+void AISLmtPropagator::SetWaveFronts(AISSineWaveFront* upwardWavefront, AISSineWaveFront* downwardWavefront)
 {
     fUpwardWavefront = upwardWavefront;
     fDownwardWavefront = downwardWavefront;

@@ -3,6 +3,7 @@
 
 #include "AISIntensityProfile.hh"
 #include "AISWaveFront.hh"
+#include "AISSineWaveFront.hh"
 #include "AISUtilities.hh"
 #include "AISAtomEnsemble.hh"
 #include "AISAtom.hh"
@@ -21,14 +22,14 @@ public:
     double fDeltaTime64;
 
     AISIntensityProfile* fIntensityProfile;
-    AISWaveFront* fWaveFront;
+    AISSineWaveFront* fWaveFront;
 
     __float128 fOmega;
     __float128 fOmega0;
     doubleThreeVector fK;
 
     /* methods */
-    void SetWaveFront(AISWaveFront* waveFront);
+    void SetWaveFront(AISSineWaveFront* waveFront);
     void SetIntensityProfile(AISIntensityProfile* intensityProfile);
 
     doubleThreeVector GetWaveVector();

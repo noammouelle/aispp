@@ -17,7 +17,7 @@ public:
 
     double computeVelocity(const double& vz0, const __float128& t) override;
     void PropagateAtomInPulse(AISAtom* atom, const doubleThreeVector& k, const __float128& omega,
-                              AISWaveFront* waveFront, AISIntensityProfile* intensityProfile) override;
+                              AISSineWaveFront* waveFront, AISIntensityProfile* intensityProfile) override;
     void PropagateAtomFreely(AISAtom* atom) override;
 
 protected:
