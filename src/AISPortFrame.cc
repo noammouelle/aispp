@@ -4,6 +4,17 @@ AISPortFrame::AISPortFrame(AISAtom* anAtom, intTuple adjacentWavepacketIndices)
 {
     // count how many ports are needed
     int numberOfPorts = anAtom->GetNumberOfWavePackets() - adjacentWavepacketIndices[0].size();
+
+    // error if the number of ports is non-positive
+    if(numberOfPorts <= 0)
+    {
+        std::cout << "ERROR: number of ports must be positive" << std::endl;
+        std::cout << "Number of ports: " << numberOfPorts << std::endl;
+        std::cout << "Number of wavepackets: " << anAtom->GetNumberOfWavePackets() << std::endl;
+        std::cout << "Number of adjacent wavepackets: " << adjacentWavepacketIndices[0].size() << std::endl;
+        exit(1);
+    }
+
     // create the port vector
     initializePortVector(numberOfPorts);
     // associate the ports with the wavepackets
