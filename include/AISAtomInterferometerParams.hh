@@ -38,7 +38,7 @@ public:
     double coherenceLength;
 
     /* SIMULATION PARAMS */
-    //double amplitudeThreshold = 0.0;
+    double amplitudeThreshold = 0.0;
 };
 
 #endif

@@ -62,7 +62,7 @@ AISAtomInterferometer::AISAtomInterferometer(AISAtomInterferometerParams params)
     beamSplitterPropagator1->SetIntensityProfile(intensityProfile);
     beamSplitterPropagator1->SetOmega(omega1);
     beamSplitterPropagator1->SetWaveVector(k1);
-    //beamSplitterPropagator1->setAmplitudeThreshold(params.amplitudeThreshold);
+    beamSplitterPropagator1->setAmplitudeThreshold(params.amplitudeThreshold);
 
     // create the mirror pulse
     mirrorPropagator = new AIStttPropagator(pi128 / (params.rabiFrequency));
@@ -70,7 +70,7 @@ AISAtomInterferometer::AISAtomInterferometer(AISAtomInterferometerParams params)
     mirrorPropagator->SetIntensityProfile(intensityProfile);
     mirrorPropagator->SetOmega(omega2);
     mirrorPropagator->SetWaveVector(k2);
-    //mirrorPropagator->setAmplitudeThreshold(params.amplitudeThreshold);
+    mirrorPropagator->setAmplitudeThreshold(params.amplitudeThreshold);
     
     // create the second pi/2 pulse ttt propagator
     beamSplitterPropagator2 = new AIStttPropagator(pi128 / (2 * params.rabiFrequency));
@@ -78,7 +78,7 @@ AISAtomInterferometer::AISAtomInterferometer(AISAtomInterferometerParams params)
     beamSplitterPropagator2->SetIntensityProfile(intensityProfile);
     beamSplitterPropagator2->SetOmega(omega3);
     beamSplitterPropagator2->SetWaveVector(k3);  
-    //beamSplitterPropagator2->setAmplitudeThreshold(params.amplitudeThreshold);
+    beamSplitterPropagator2->setAmplitudeThreshold(params.amplitudeThreshold);
 
     // set the LMT propagator params
     lmtPropagator1 = new AISLmtTttPropagator(params.lmtOrder, vzLmt1, params.lmtDelayTime, params.interogationTime, 0);
@@ -96,10 +96,10 @@ AISAtomInterferometer::AISAtomInterferometer(AISAtomInterferometerParams params)
     lmtPropagator3->SetIntensityProfiles(intensityProfile, intensityProfile);
     lmtPropagator4->SetIntensityProfiles(intensityProfile, intensityProfile);
 
-    //lmtPropagator1->setAmplitudeThreshold(params.amplitudeThreshold);
-    //lmtPropagator2->setAmplitudeThreshold(params.amplitudeThreshold);
-    //lmtPropagator3->setAmplitudeThreshold(params.amplitudeThreshold);
-    //lmtPropagator4->setAmplitudeThreshold(params.amplitudeThreshold);
+    lmtPropagator1->setAmplitudeThreshold(params.amplitudeThreshold);
+    lmtPropagator2->setAmplitudeThreshold(params.amplitudeThreshold);
+    lmtPropagator3->setAmplitudeThreshold(params.amplitudeThreshold);
+    lmtPropagator4->setAmplitudeThreshold(params.amplitudeThreshold);
 
     // set the detector params
     coherenceLength = params.coherenceLength;

@@ -34,5 +34,8 @@ void AISAtom::DeleteWavePackets(){
 };
 
 void AISAtom::AddWavePackets(wavePacketVector* newWavePacketVector){
-    fpWavePacketVector = newWavePacketVector;
+    // if the length of the vector is non-zero, add the wavepackets to the atom
+    if(newWavePacketVector->size() > 0){
+        fpWavePacketVector = newWavePacketVector;
+    }
 };

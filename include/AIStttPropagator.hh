@@ -36,7 +36,7 @@ protected:
                           const std::string& transition);
 
     // amplitude threshold
-    //double amplitudeThreshold = 0.0; // default value is zero
+    double amplitudeThreshold = 0.0; // default value is zero
     
 public:
     AIStttPropagator(__float128 deltaTime);
@@ -46,7 +46,7 @@ public:
 
     void PropagateAtom(AISAtom* atom) override;
 
-    //void setAmplitudeThreshold(double A);
+    void setAmplitudeThreshold(double A);
 };
 
 
