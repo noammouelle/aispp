@@ -303,9 +303,9 @@ void AIStttPropagator::TttPropagateAtom(AISAtom* atom)
         */
         newWavePackets->push_back(wavePacket1);
         newWavePackets->push_back(wavePacket2);
+    }
     // delete the old wavepackets
     atom->DeleteWavePackets();
     // add the new wavepackets to the atom
     atom->AddWavePackets(newWavePackets);
-}
 }
