@@ -1,15 +1,47 @@
 #include "AISPortFrame.hh"
 
-AISPortFrame::AISPortFrame(AISAtom* anAtom, intTuple adjacentWavepacketIndices)
+AISPortFrame::AISPortFrame(AISAtom* anAtom, double coherenceLength)
 {
-    // count how many ports are needed
-    int numberOfPorts = anAtom->GetNumberOfWavePackets() - adjacentWavepacketIndices[0].size();
+    // initialize the port vector
+    fpPortVector = new portVector();
+
+    // for each wavepacket, find the indices of the wavepackets that are close enough to interfere
+    std::vector<std::vector<int>> wavePacketIndexGroups;
+    for(int wavepacketIndex = 0; wavepacketIndex < anAtom->GetNumberOfWavePackets(); wavepacketIndex++)
+    {   
+        std::vector<int> wavepacketIndexGroup = createGroup(anAtom, wavepacketIndex, coherenceLength);
+        wavePacketIndexGroups.push_back(wavepacketIndexGroup);
+    }
+
+    // if two groups are the same, delete one of them
+    std::vector<std::vector<int>> uniqueWavePacketIndexGroups;
+    for(int i = 0; i < wavePacketIndexGroups.size(); i++)
+    {
+        if(std::find(uniqueWavePacketIndexGroups.begin(), uniqueWavePacketIndexGroups.end(), wavePacketIndexGroups[i]) == uniqueWavePacketIndexGroups.end())
+        {
+            uniqueWavePacketIndexGroups.push_back(wavePacketIndexGroups[i]);
+        }
+    }
+
     // create the port vector
-    initializePortVector(numberOfPorts);
-    // associate the ports with the wavepackets
-    associatePortsWithWavePackets(anAtom, adjacentWavepacketIndices);
+    int numberOfPorts = uniqueWavePacketIndexGroups.size();
+    if(numberOfPorts < 1){
+        std::cout << "No ports found for current atom " << std::endl;
+        exit(1);
+    }
+    for(int groupIndex = 0; groupIndex < uniqueWavePacketIndexGroups.size(); groupIndex++)
+    {
+        // create a new port
+        AISPort* newPort = new AISPort();
+        for(int wavepacketIndex : uniqueWavePacketIndexGroups[groupIndex])
+        {
+            newPort->wavePacketIndices.push_back(wavepacketIndex);
+        }
+        fpPortVector->push_back(newPort);
+    }
+
     // set the port parameters
-    setPortParameters(anAtom, adjacentWavepacketIndices);
+    setPortParameters(anAtom);
 }
 
 AISPortFrame::~AISPortFrame()
@@ -19,6 +51,43 @@ AISPortFrame::~AISPortFrame()
         delete port;
     }
     delete fpPortVector;
+}
+
+std::vector<int> AISPortFrame::createGroup(AISAtom* anAtom, int wavePacketIndex, double coherenceLength)
+{
+    // create a list of wavepacket indices for current group
+    std::vector<int> wavepacketIndexGroup;
+
+    // get the current wavepacket
+    wavepacketIndexGroup.push_back(wavePacketIndex);
+
+    // get the position of the current wavepacket
+    AISWavePacket* currentWavePacket = anAtom->GetWavePacket(wavePacketIndex);
+    doubleThreeVector currentPosition = currentWavePacket->GetPosition();
+
+    // loop over all the other wavepackets
+    for(int otherWavepacketIndex = 0; otherWavepacketIndex < anAtom->GetNumberOfWavePackets(); otherWavepacketIndex++)
+    {
+        // get the other wavepacket
+        AISWavePacket* otherWavePacket = anAtom->GetWavePacket(otherWavepacketIndex);
+        // get the position of the other wavepacket
+        doubleThreeVector otherPosition = otherWavePacket->GetPosition();
+        // calculate the distance between the two wavepackets
+        double distance = sqrt(pow(currentPosition[0] - otherPosition[0], 2) + 
+                                pow(currentPosition[1] - otherPosition[1], 2) + 
+                                pow(currentPosition[2] - otherPosition[2], 2));
+        // check if the distance is smaller than the coherence length
+        if(distance < coherenceLength && currentWavePacket->GetState() == otherWavePacket->GetState() && wavePacketIndex != otherWavepacketIndex)
+        {
+            // if so, add the wavepacket indices to the group
+            wavepacketIndexGroup.push_back(otherWavepacketIndex);
+        }
+    }
+
+    // sort before returning
+    std::sort(wavepacketIndexGroup.begin(), wavepacketIndexGroup.end());
+
+    return wavepacketIndexGroup;
 }
 
 void AISPortFrame::initializePortVector(int numberOfPorts)
@@ -32,7 +101,8 @@ void AISPortFrame::initializePortVector(int numberOfPorts)
 
 }
 
-void AISPortFrame::associatePortsWithWavePackets(AISAtom* anAtom, intTuple adjacentWavepacketIndices)
+/*
+void AISPortFrame::associatePortsWithWavePackets(AISAtom* anAtom, std::vector<std::vector<int>> wavepacketIndexGroups)
 {
     int portIndex = 0;
     for(int wavePacketIndex = 0; wavePacketIndex < anAtom->GetNumberOfWavePackets() && portIndex < GetNumberOfPorts(); wavePacketIndex++)
@@ -55,54 +125,20 @@ void AISPortFrame::associatePortsWithWavePackets(AISAtom* anAtom, intTuple adjac
         }
     
     }
-}
+*/
 
-void AISPortFrame::setPortParameters(AISAtom* anAtom, intTuple adjacentWavepacketIndidces)
+void AISPortFrame::setPortParameters(AISAtom* anAtom)
 {
     // loop over ports
     for(int portIndex = 0; portIndex < GetNumberOfPorts(); portIndex++)
     {
         // get the port
         AISPort* port = GetPort(portIndex);
-        // check if two wavepackets interfere
-        if(port->getNumberOfWavePackets() == 2)
-        {
-            // get the wavepackets
-            AISWavePacket* wavePacket1 = anAtom->GetWavePacket(port->wavePacketIndices[0]);
-            AISWavePacket* wavePacket2 = anAtom->GetWavePacket(port->wavePacketIndices[1]);
-
-            int state1 = wavePacket1->GetState();
-            int state2 = wavePacket2->GetState();
-            assert(state1 == state2);
-
-            doubleThreeVector r1 = wavePacket1->GetPosition();
-            doubleThreeVector r2 = wavePacket2->GetPosition();
-            doubleThreeVector v1 = wavePacket1->GetVelocity();
-            doubleThreeVector v2 = wavePacket2->GetVelocity();
-
-            double phi1 = wavePacket1->GetPhaseDouble();
-            double phi2 = wavePacket2->GetPhaseDouble();
-
-            __float128 phi1Quad = wavePacket1->GetPhaseQuad();
-            __float128 phi2Quad = wavePacket2->GetPhaseQuad();
-
-            // calculate the port parameters
-            port->state = state1;
-            port->position = scalarMultiply(matrixAdd(r1, r2), 0.5); // take average
-            port->velocity = scalarMultiply(matrixAdd(v1, v2), 0.5);
-            port->phaseShift = phi1 - phi2 + phi1Quad - phi2Quad;
-
-            doubleThreeVector deltaX = matrixAdd(r2, scalarMultiply(r1, -1.0)); // note the inverted order
-            port->phaseShift += dotProduct(port->velocity, deltaX) / hbar * massSr87;
-
-            // account for interference in probability calculation
-            double A1 = wavePacket1->GetAmplitude();
-            double A2 = wavePacket2->GetAmplitude();
-            double dphi = port->phaseShift;
-            port->probabilityAmplitude = pow(A1,2) + pow(A2,2) + 2*A1*A2*cos(dphi);
-
-        } else if(port->getNumberOfWavePackets() == 1)
-        {
+        // if only one wavepacket is in the port, no interference happens
+        if(port->getNumberOfWavePackets() == 1)
+        {   
+            // set the interfering flag
+            port->interfering = false;
             // get the wavepacket
             AISWavePacket* wavePacket = anAtom->GetWavePacket(port->wavePacketIndices[0]);
             // calculate the port parameters
@@ -114,6 +150,102 @@ void AISPortFrame::setPortParameters(AISAtom* anAtom, intTuple adjacentWavepacke
 
             port->probabilityAmplitude = pow(wavePacket->GetAmplitude(), 2);
         }
+        // otherwise, interference happens
+        else if(port->getNumberOfWavePackets() > 1)
+        {   
+            // set the interfering flag
+            port->interfering = true;
+
+            // check that all the wavepackets are in the same state
+            int state = anAtom->GetWavePacket(port->wavePacketIndices[0])->GetState();
+            for(int wavePacketIndex : port->wavePacketIndices)
+            {
+                if(anAtom->GetWavePacket(wavePacketIndex)->GetState() != state)
+                {
+                    std::cout << "Error: wavepackets in the same port are not in the same state" << std::endl;
+                    exit(1);
+                }
+            }
+
+            // compute the diagonal contribution to the probability amplitude
+            double diagonalContribution = 0.0;
+            for(int wavePacketIndex : port->wavePacketIndices)
+            {
+                diagonalContribution += pow(anAtom->GetWavePacket(wavePacketIndex)->GetAmplitude(), 2);
+            }
+
+            // compute the off-diagonal contribution to the probability amplitude
+            double offDiagonalContribution = 0.0;
+            for(int i = 0; i < port->getNumberOfWavePackets(); i++)
+            {
+                for(int j = i + 1; j < port->getNumberOfWavePackets(); j++)
+                {
+                    AISWavePacket* wavePacket1 = anAtom->GetWavePacket(port->wavePacketIndices[i]);
+                    AISWavePacket* wavePacket2 = anAtom->GetWavePacket(port->wavePacketIndices[j]);
+
+                    double A1 = wavePacket1->GetAmplitude();
+                    double A2 = wavePacket2->GetAmplitude();
+
+                    doubleThreeVector r1 = wavePacket1->GetPosition();
+                    doubleThreeVector r2 = wavePacket2->GetPosition();
+                    doubleThreeVector v1 = wavePacket1->GetVelocity();
+                    doubleThreeVector v2 = wavePacket2->GetVelocity();
+
+                    double phi1 = wavePacket1->GetPhaseDouble();
+                    double phi2 = wavePacket2->GetPhaseDouble();
+
+                    __float128 phi1Quad = wavePacket1->GetPhaseQuad();
+                    __float128 phi2Quad = wavePacket2->GetPhaseQuad();
+
+                    doubleThreeVector deltaX = matrixAdd(r2, scalarMultiply(r1, -1.0)); // note the inverted order
+                    double dphi = phi1 - phi2 + phi1Quad - phi2Quad + dotProduct(v1, deltaX) / hbar * massSr87;
+
+                    offDiagonalContribution += 2*A1*A2*cos(dphi);
+                }
+            }
+
+            // compute the mean velocity and position of the group
+            doubleThreeVector meanVelocity = {0.0, 0.0, 0.0};
+            doubleThreeVector meanPosition = {0.0, 0.0, 0.0};
+            for(int wavePacketIndex : port->wavePacketIndices)
+            {
+                AISWavePacket* wavePacket = anAtom->GetWavePacket(wavePacketIndex);
+                meanVelocity = matrixAdd(meanVelocity, wavePacket->GetVelocity());
+                meanPosition = matrixAdd(meanPosition, wavePacket->GetPosition());
+            }
+            meanVelocity = scalarMultiply(meanVelocity, 1.0/port->getNumberOfWavePackets());
+            meanPosition = scalarMultiply(meanPosition, 1.0/port->getNumberOfWavePackets());
+
+            // calculate the port parameters
+            port->state = state;
+            port->position = meanPosition; // take average
+            port->velocity = meanVelocity; // take average
+            port->probabilityAmplitude = diagonalContribution + offDiagonalContribution;
+
+            // if the number of wavepackets is 2, the phase shift is the difference in the phase of the two wavepackets
+            if(port->getNumberOfWavePackets() == 2)
+            {
+                AISWavePacket* wavePacket1 = anAtom->GetWavePacket(port->wavePacketIndices[0]);
+                AISWavePacket* wavePacket2 = anAtom->GetWavePacket(port->wavePacketIndices[1]);
+                doubleThreeVector r1 = wavePacket1->GetPosition();
+                doubleThreeVector r2 = wavePacket2->GetPosition();
+                doubleThreeVector v1 = wavePacket1->GetVelocity();
+                doubleThreeVector v2 = wavePacket2->GetVelocity();
+                double phi1 = wavePacket1->GetPhaseDouble();
+                double phi2 = wavePacket2->GetPhaseDouble();
+                __float128 phi1Quad = wavePacket1->GetPhaseQuad();
+                __float128 phi2Quad = wavePacket2->GetPhaseQuad();
+
+                doubleThreeVector deltaX = matrixAdd(r2, scalarMultiply(r1, -1.0)); // note the inverted order
+                double dphi = phi1 - phi2 + phi1Quad - phi2Quad + dotProduct(v1, deltaX) / hbar * massSr87;
+                port->phaseShift = dphi;
+
+            } else
+            {
+                port->phaseShift = 0.0;
+            }
+
+        } 
     }
 }
 

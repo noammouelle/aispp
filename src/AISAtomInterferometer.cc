@@ -81,10 +81,11 @@ AISAtomInterferometer::AISAtomInterferometer(AISAtomInterferometerParams params)
     beamSplitterPropagator2->setAmplitudeThreshold(params.amplitudeThreshold);
 
     // set the LMT propagator params
-    lmtPropagator1 = new AISLmtTttPropagator(params.lmtOrder, vzLmt1, params.lmtDelayTime, params.interogationTime, 0);
-    lmtPropagator2 = new AISLmtTttPropagator(params.lmtOrder, vzLmt2, params.lmtDelayTime, params.interogationTime, 1);
-    lmtPropagator3 = new AISLmtTttPropagator(params.lmtOrder, vzLmt3, params.lmtDelayTime, params.interogationTime, 2);
-    lmtPropagator4 = new AISLmtTttPropagator(params.lmtOrder, vzLmt4, params.lmtDelayTime, params.interogationTime, 3);
+    __float128 lmtPulseTime = pi128 / params.rabiFrequency;
+    lmtPropagator1 = new AISLmtTttPropagator(params.lmtOrder, vzLmt1, params.lmtDelayTime, lmtPulseTime, 0, k0);
+    lmtPropagator2 = new AISLmtTttPropagator(params.lmtOrder, vzLmt2, params.lmtDelayTime, lmtPulseTime, 1, k0);
+    lmtPropagator3 = new AISLmtTttPropagator(params.lmtOrder, vzLmt3, params.lmtDelayTime, lmtPulseTime, 2, k0);
+    lmtPropagator4 = new AISLmtTttPropagator(params.lmtOrder, vzLmt4, params.lmtDelayTime, lmtPulseTime, 3, k0);
 
     lmtPropagator1->SetWaveFronts(wavefront, wavefront);
     lmtPropagator2->SetWaveFronts(wavefront, wavefront);
@@ -201,6 +202,7 @@ void AISAtomInterferometer::writeDetectedAtomsInfo(std::string filename)
     std::vector<doubleThreeVector> positions(numSamples);
     std::vector<doubleThreeVector> velocities(numSamples);
     std::vector<int> states(numSamples);
+    std::vector<int> interferingFlag(numSamples);
     std::vector<double> phaseShifts(numSamples);
 
     // loop over the samples to fill in the data
@@ -218,6 +220,7 @@ void AISAtomInterferometer::writeDetectedAtomsInfo(std::string filename)
             doubleThreeVector currentPosition = port->position;
             doubleThreeVector currentVelocity = port->velocity;
             int currentState = port->state;
+            int currentInterferingFlag = static_cast<int>(port->interfering);
             double currentPhaseShift = port->phaseShift;
             // fill in the data
             for(int i = 0; i < 3; ++i)
@@ -226,6 +229,7 @@ void AISAtomInterferometer::writeDetectedAtomsInfo(std::string filename)
                 velocities[sampleIndex][i] = currentVelocity[i];
             }
             states[sampleIndex] = currentState;
+            interferingFlag[sampleIndex] = currentInterferingFlag;
             phaseShifts[sampleIndex] = currentPhaseShift;
 
             sampleIndex++;
@@ -236,21 +240,25 @@ void AISAtomInterferometer::writeDetectedAtomsInfo(std::string filename)
     hsize_t dim_positions[2] = {numSamplesHsize, 3};
     hsize_t dim_velocities[2] = {numSamplesHsize, 3};
     hsize_t dim_states[1] = {numSamplesHsize};
+    hsize_t dim_interferingFlag[1] = {numSamplesHsize};
     hsize_t dim_phaseShifts[1] = {numSamplesHsize};
     // create the dataspace
     H5::DataSpace dataspace_positions(2, dim_positions);
     H5::DataSpace dataspace_velocities(2, dim_velocities);
     H5::DataSpace dataspace_states(1, dim_states);
+    H5::DataSpace dataspace_interferingFlag(1, dim_interferingFlag);
     H5::DataSpace dataspace_phaseShifts(1, dim_phaseShifts);
     // create the datasets
     H5::DataSet dataset_positions = file.createDataSet("positions", H5::PredType::NATIVE_DOUBLE, dataspace_positions);
     H5::DataSet dataset_velocities = file.createDataSet("velocities", H5::PredType::NATIVE_DOUBLE, dataspace_velocities);
     H5::DataSet dataset_states = file.createDataSet("states", H5::PredType::NATIVE_INT, dataspace_states);
+    H5::DataSet dataset_interferingFlag = file.createDataSet("interferingFlag", H5::PredType::NATIVE_INT, dataspace_interferingFlag);
     H5::DataSet dataset_phaseShifts = file.createDataSet("phaseShifts", H5::PredType::NATIVE_DOUBLE, dataspace_phaseShifts);
     // write the data
     dataset_positions.write(positions.data(), H5::PredType::NATIVE_DOUBLE);
     dataset_velocities.write(velocities.data(), H5::PredType::NATIVE_DOUBLE);
     dataset_states.write(states.data(), H5::PredType::NATIVE_INT);
+    dataset_interferingFlag.write(interferingFlag.data(), H5::PredType::NATIVE_INT);
     dataset_phaseShifts.write(phaseShifts.data(), H5::PredType::NATIVE_DOUBLE);
 
     // close the file

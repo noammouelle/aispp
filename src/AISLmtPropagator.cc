@@ -111,6 +111,12 @@ void AISLmtPropagator::computeWaveVectors()
         }
     }
     }
+
+    // invert the sign of all the downward wavevectors
+    for(int waveVectorIndex = 0; waveVectorIndex < fDownwardWaveVectors.size(); ++waveVectorIndex)
+    {
+        fDownwardWaveVectors[waveVectorIndex] = scalarMultiply(fDownwardWaveVectors[waveVectorIndex], - 1.0);
+    }
 }
 
 void AISLmtPropagator::computeOmegas()
