@@ -238,13 +238,13 @@ AISSineWaveFront.hh
 AISConstants.hh
 /home/noammouelle/sim/ais++/src/AISConstants.hh
 
+/home/noammouelle/sim/ais++/src/AISAtomInterferometerParams.cc
+AISAtomInterferometerParams.hh
+/home/noammouelle/sim/ais++/src/AISAtomInterferometerParams.hh
+
 /home/noammouelle/sim/ais++/src/AISLmtTttPropagator.cc
 AISLmtTttPropagator.hh
 /home/noammouelle/sim/ais++/src/AISLmtTttPropagator.hh
-
-/home/noammouelle/sim/ais++/src/AISPulsePropagator.cc
-AISPulsePropagator.hh
-/home/noammouelle/sim/ais++/src/AISPulsePropagator.hh
 
 /home/noammouelle/sim/ais++/src/AIStttPropagator.cc
 AIStttPropagator.hh
