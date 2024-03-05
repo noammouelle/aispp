@@ -43,6 +43,10 @@ AIStttPropagator::~AIStttPropagator()
     delete fFreePropagator;
 }
 
+void AIStttPropagator::setAmplitudeThreshold(double A)
+{
+    amplitudeThreshold = A;
+}
 
 double AIStttPropagator::computeDetuning(const doubleThreeVector& pos, const doubleThreeVector& vel,
                                          const __float128& omega)
@@ -286,9 +290,14 @@ void AIStttPropagator::TttPropagateAtom(AISAtom* atom)
         wavePacket2->SetPhaseDouble(newPhaseDouble2);
         wavePacket2->SetPhaseQuad(newPhaseQuad2);
 
-        // add the new wavepackets to the vector
-        newWavePackets->push_back(wavePacket1);
-        newWavePackets->push_back(wavePacket2);
+        // add the new wavepackets to the vector if the amplitude is above the threshold
+        if(newAmplitude1 > amplitudeThreshold){
+            newWavePackets->push_back(wavePacket1);
+        }
+        if(newAmplitude2 > amplitudeThreshold){
+            newWavePackets->push_back(wavePacket2);
+        }
+        
     }
     // delete the old wavepackets
     atom->DeleteWavePackets();

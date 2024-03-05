@@ -9,10 +9,22 @@ AISDetector::AISDetector(AISAtomEnsemble* pAtomEnsemble, double coherenceLength)
     {
         AISAtom* currentAtom = pAtomEnsemble->GetAtom(atomIndex);
         // get the indices of wavepackets close enough to interfere
-        intTuple adjacentWavepacketIndices = GetAdjacentWavepackets(currentAtom, coherenceLength);
+        //intTuple adjacentWavepacketIndices = GetAdjacentWavepackets(currentAtom, coherenceLength);
         // create the port-frame object
-        AISPortFrame* currentPortFrame = new AISPortFrame(currentAtom, adjacentWavepacketIndices);
+        AISPortFrame* currentPortFrame = new AISPortFrame(currentAtom, coherenceLength);
         fpPortFrameVector->push_back(currentPortFrame);
+    }
+
+    // printout the content and attributes of the port-frame vector
+    for(int portFrameIndex = 0; portFrameIndex < 1; portFrameIndex++)
+    {
+        AISPortFrame* currentPortFrame = fpPortFrameVector->at(portFrameIndex);
+        std::cout << "Port Frame " << portFrameIndex << " has " << currentPortFrame->GetNumberOfPorts() << " ports." << std::endl;
+        for(int portIndex = 0; portIndex < currentPortFrame->GetNumberOfPorts(); portIndex++)
+        {
+            AISPort* currentPort = currentPortFrame->GetPort(portIndex);
+            std::cout << "Port " << portIndex << " has a probability amplitude of " << currentPort->probabilityAmplitude << std::endl;
+        }
     }
 }
 

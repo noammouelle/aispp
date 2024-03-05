@@ -15,12 +15,16 @@ using portVector = std::vector<AISPort*>;
 class AISPortFrame
 {
 public:
-    AISPortFrame(AISAtom* anAtom, intTuple adjacentWavepacketIndices);
+    AISPortFrame(AISAtom* anAtom, double coherenceLength);
     ~AISPortFrame();
+
+    double coherenceLength;
 
     void initializePortVector(int numberOfPorts);
     void associatePortsWithWavePackets(AISAtom* anAtom, intTuple adjacentWavepacketIndices);
-    void setPortParameters(AISAtom* anAtom, intTuple adjacentWavepacketIndices);
+    void setPortParameters(AISAtom* anAtom);
+    
+    std::vector<int> createGroup(AISAtom* anAtom, int wavePacketIndex, double coherenceLength);
 
     portVector* fpPortVector;
 

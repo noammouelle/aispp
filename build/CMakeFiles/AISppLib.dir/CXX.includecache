@@ -74,12 +74,6 @@ AISAtomEnsemble.hh
 AISPortFrame.hh
 ../include/AISPortFrame.hh
 
-../include/AISFlatWaveFront.hh
-AISUtilities.hh
-../include/AISUtilities.hh
-AISWaveFront.hh
-../include/AISWaveFront.hh
-
 ../include/AISFreePropagator.hh
 AISAtomEnsemble.hh
 ../include/AISAtomEnsemble.hh
@@ -244,33 +238,13 @@ AISSineWaveFront.hh
 AISConstants.hh
 /home/noammouelle/sim/ais++/src/AISConstants.hh
 
-/home/noammouelle/sim/ais++/src/AISFlatWaveFront.cc
-AISFlatWaveFront.hh
-/home/noammouelle/sim/ais++/src/AISFlatWaveFront.hh
-
-/home/noammouelle/sim/ais++/src/AISLmtPropagator.cc
-AISLmtPropagator.hh
-/home/noammouelle/sim/ais++/src/AISLmtPropagator.hh
+/home/noammouelle/sim/ais++/src/AISAtomInterferometerParams.cc
+AISAtomInterferometerParams.hh
+/home/noammouelle/sim/ais++/src/AISAtomInterferometerParams.hh
 
 /home/noammouelle/sim/ais++/src/AISLmtTttPropagator.cc
 AISLmtTttPropagator.hh
 /home/noammouelle/sim/ais++/src/AISLmtTttPropagator.hh
-
-/home/noammouelle/sim/ais++/src/AISPulsePropagator.cc
-AISPulsePropagator.hh
-/home/noammouelle/sim/ais++/src/AISPulsePropagator.hh
-
-/home/noammouelle/sim/ais++/src/AISSineWaveFront.cc
-AISSineWaveFront.hh
-/home/noammouelle/sim/ais++/src/AISSineWaveFront.hh
-
-/home/noammouelle/sim/ais++/src/AISWaveFront.cc
-AISWaveFront.hh
-/home/noammouelle/sim/ais++/src/AISWaveFront.hh
-AISUtilities.hh
-/home/noammouelle/sim/ais++/src/AISUtilities.hh
-AISConstants.hh
-/home/noammouelle/sim/ais++/src/AISConstants.hh
 
 /home/noammouelle/sim/ais++/src/AIStttPropagator.cc
 AIStttPropagator.hh

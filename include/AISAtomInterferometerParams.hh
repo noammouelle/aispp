@@ -36,6 +36,9 @@ public:
 
     /* DETECTOR PARAMETERS */
     double coherenceLength;
+
+    /* SIMULATION PARAMS */
+    double amplitudeThreshold = 0.0;
 };
 
 #endif

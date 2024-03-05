@@ -16,6 +16,8 @@ public:
     int state = 0;
     intVector wavePacketIndices;
 
+    bool interfering;
+
     int getNumberOfWavePackets();
 };
 

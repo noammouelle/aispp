@@ -1,9 +1,10 @@
 #include "AISLmtTttPropagator.hh"
 
-AISLmtTttPropagator::AISLmtTttPropagator(int lmtOrder, double vz0, __float128 lmtDelayTime, __float128 lmtPulseTime, int lmtBlockIndex) 
+AISLmtTttPropagator::AISLmtTttPropagator(int lmtOrder, double vz0, __float128 lmtDelayTime, __float128 lmtPulseTime, int lmtBlockIndex, doubleThreeVector k0) 
                                         : AISLmtPropagator(lmtOrder, vz0, lmtDelayTime, lmtPulseTime, lmtBlockIndex), fLinearGravityPropagator(new AISLinearGravityPropagator(lmtDelayTime)), fTttPropagator(new AIStttPropagator(lmtPulseTime))
 {
     fLinearGravityPropagator->SetAddEnergyPhase(true); 
+    fK0 = k0;
 
     // Compute the velocities of the atoms at the beginning of the pulse
     computeVelocities();
@@ -36,4 +37,9 @@ void AISLmtTttPropagator::PropagateAtomInPulse(AISAtom* atom, const doubleThreeV
 void AISLmtTttPropagator::PropagateAtomFreely(AISAtom* atom)
 {
     fLinearGravityPropagator->PropagateAtom(atom);
+}
+
+void AISLmtTttPropagator::setAmplitudeThreshold(double A)
+{
+    fTttPropagator->setAmplitudeThreshold(A);
 }

@@ -34,6 +34,9 @@ protected:
     complexDouble Smatrix(const doubleThreeVector& pos, const doubleThreeVector& vel,
                           const __float128& omega, const double& detuning, 
                           const std::string& transition);
+
+    // amplitude threshold
+    double amplitudeThreshold = 0.0; // default value is zero
     
 public:
     AIStttPropagator(__float128 deltaTime);
@@ -42,6 +45,8 @@ public:
     void TttPropagateAtom(AISAtom* atom);
 
     void PropagateAtom(AISAtom* atom) override;
+
+    void setAmplitudeThreshold(double A);
 };
 
 
