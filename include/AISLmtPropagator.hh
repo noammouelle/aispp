@@ -19,14 +19,14 @@ public:
     int GetLmtBlockIndex();
     int GetNpulses();
 
-    void SetWaveFronts(AISSineWaveFront* upwardWavefront, AISSineWaveFront* downwardWavefront);
+    void SetWaveFronts(AISWaveFront* upwardWavefront, AISWaveFront* downwardWavefront);
     void SetIntensityProfiles(AISIntensityProfile* upwardIntensityProfile, AISIntensityProfile* downwardIntensityProfile);
 
     void PropagateAtom(AISAtom* atom);
 
     virtual double computeVelocity(const double& vz0, const __float128& t) = 0;
     virtual void PropagateAtomInPulse(AISAtom* atom, const doubleThreeVector& k, const __float128& omega,
-                                      AISSineWaveFront* waveFront, AISIntensityProfile* intensityProfile) = 0;
+                                      AISWaveFront* waveFront, AISIntensityProfile* intensityProfile) = 0;
     virtual void PropagateAtomFreely(AISAtom* atom) = 0;
 
 
@@ -37,8 +37,8 @@ public:
     int fLmtBlockIndex;
     double fVz0;
 
-    AISSineWaveFront* fUpwardWavefront;
-    AISSineWaveFront* fDownwardWavefront;
+    AISWaveFront* fUpwardWavefront;
+    AISWaveFront* fDownwardWavefront;
     AISIntensityProfile* fUpwardIntensityProfile;
     AISIntensityProfile* fDownwardIntensityProfile;
     doubleThreeVector fK0;

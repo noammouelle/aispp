@@ -22,14 +22,14 @@ public:
     double fDeltaTime64;
 
     AISIntensityProfile* fIntensityProfile;
-    AISSineWaveFront* fWaveFront;
+    AISWaveFront* fWaveFront;
 
     __float128 fOmega;
     __float128 fOmega0;
     doubleThreeVector fK;
 
     /* methods */
-    void SetWaveFront(AISSineWaveFront* waveFront);
+    void SetWaveFront(AISWaveFront* waveFront);
     void SetIntensityProfile(AISIntensityProfile* intensityProfile);
 
     doubleThreeVector GetWaveVector();
