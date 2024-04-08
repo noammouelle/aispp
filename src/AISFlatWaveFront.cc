@@ -8,7 +8,7 @@ AISFlatWaveFront::~AISFlatWaveFront()
 {
 }
 
-double AISFlatWaveFront::GetValue(const doubleThreeVector& pos)
+double AISFlatWaveFront::GetValue(const doubleThreeVector& pos, const doubleThreeVector& k)
 {
     return dotProduct(fPsrGradient, pos) + fLaserPhase;
 }

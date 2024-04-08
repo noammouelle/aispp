@@ -10,8 +10,6 @@ set(CMAKE_MAKEFILE_DEPENDS
   "../CMakeLists.txt"
   "CMakeFiles/3.20.2/CMakeCXXCompiler.cmake"
   "CMakeFiles/3.20.2/CMakeSystem.cmake"
-  "CMakeFiles/FindOpenMP/OpenMPCheckVersion.cpp"
-  "CMakeFiles/FindOpenMP/OpenMPTryFlag.cpp"
   "CMakeFiles/hdf5/cmake_hdf5_test.cxx"
   "/usr/share/cmake/Modules/CMakeCXXInformation.cmake"
   "/usr/share/cmake/Modules/CMakeCommonLanguageInclude.cmake"

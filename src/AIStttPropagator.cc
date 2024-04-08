@@ -195,7 +195,7 @@ void AIStttPropagator::TttPropagateAtom(AISAtom* atom)
             v = dotProduct(A, wavePacket1->GetPosition());
             term2 = dotProduct(fK, v);
             term3 = dotProduct(fK, Xi);
-            term4 = - fWaveFront->GetValue(wavePacket1->GetPosition());
+            term4 = - fWaveFront->GetValue(wavePacket1->GetPosition(), fK);
             quadTerm = - fOmega * (wavePacket1->GetTime() + fDeltaTime / 2);
             // increment the phase
             newPhaseDouble2 += term1 + term2 + term3 + term4;
@@ -233,7 +233,7 @@ void AIStttPropagator::TttPropagateAtom(AISAtom* atom)
             v = dotProduct(A_, wavePacket1->GetPosition());
             term2 = - dotProduct(fK, v);
             term3 = - dotProduct(fK, Xi_);
-            term4 = fWaveFront->GetValue(wavePacket1->GetPosition());
+            term4 = fWaveFront->GetValue(wavePacket1->GetPosition(), fK);
             quadTerm = fOmega * (wavePacket1->GetTime() - fDeltaTime / 2);
             // increment the phase
             newPhaseDouble2 += term1 + term2 + term3 + term4;

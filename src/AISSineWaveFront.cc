@@ -5,12 +5,12 @@ AISSineWaveFront::AISSineWaveFront(doubleThreeVector psrGradient, double laserPh
     fPsrGradient = psrGradient;
     fLaserPhase = laserPhase;
     faberrationAmplitude = A;
-    faberrationK = k;
+    faberrationK = k; // not the laser wavevector !!!
 }
 
 AISSineWaveFront::~AISSineWaveFront(){}
 
-double AISSineWaveFront::GetValue(const doubleThreeVector& pos) 
+double AISSineWaveFront::GetValue(const doubleThreeVector& pos, const doubleThreeVector& k) 
 {
     double linearPart = dotProduct(fPsrGradient, pos) + fLaserPhase;
     double aberration =  faberrationAmplitude * sin(dotProduct(faberrationK, pos));

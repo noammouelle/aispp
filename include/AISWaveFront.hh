@@ -13,7 +13,7 @@ public:
     AISWaveFront(doubleThreeVector psrGradient, double laserPhase);
     ~AISWaveFront();
 
-    virtual double GetValue(const doubleThreeVector& pos) = 0;
+    virtual double GetValue(const doubleThreeVector& pos, const doubleThreeVector& k) = 0;
 };
 
 

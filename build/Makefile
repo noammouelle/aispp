@@ -345,6 +345,30 @@ src/AISFreePropagator.cc.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/AISppLib.dir/build.make CMakeFiles/AISppLib.dir/src/AISFreePropagator.cc.s
 .PHONY : src/AISFreePropagator.cc.s
 
+src/AISGaussianWaveFront.o: src/AISGaussianWaveFront.cc.o
+.PHONY : src/AISGaussianWaveFront.o
+
+# target to build an object file
+src/AISGaussianWaveFront.cc.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/AISppLib.dir/build.make CMakeFiles/AISppLib.dir/src/AISGaussianWaveFront.cc.o
+.PHONY : src/AISGaussianWaveFront.cc.o
+
+src/AISGaussianWaveFront.i: src/AISGaussianWaveFront.cc.i
+.PHONY : src/AISGaussianWaveFront.i
+
+# target to preprocess a source file
+src/AISGaussianWaveFront.cc.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/AISppLib.dir/build.make CMakeFiles/AISppLib.dir/src/AISGaussianWaveFront.cc.i
+.PHONY : src/AISGaussianWaveFront.cc.i
+
+src/AISGaussianWaveFront.s: src/AISGaussianWaveFront.cc.s
+.PHONY : src/AISGaussianWaveFront.s
+
+# target to generate assembly for a file
+src/AISGaussianWaveFront.cc.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/AISppLib.dir/build.make CMakeFiles/AISppLib.dir/src/AISGaussianWaveFront.cc.s
+.PHONY : src/AISGaussianWaveFront.cc.s
+
 src/AISIntensityProfile.o: src/AISIntensityProfile.cc.o
 .PHONY : src/AISIntensityProfile.o
 
@@ -669,6 +693,9 @@ help:
 	@echo "... src/AISFreePropagator.o"
 	@echo "... src/AISFreePropagator.i"
 	@echo "... src/AISFreePropagator.s"
+	@echo "... src/AISGaussianWaveFront.o"
+	@echo "... src/AISGaussianWaveFront.i"
+	@echo "... src/AISGaussianWaveFront.s"
 	@echo "... src/AISIntensityProfile.o"
 	@echo "... src/AISIntensityProfile.i"
 	@echo "... src/AISIntensityProfile.s"

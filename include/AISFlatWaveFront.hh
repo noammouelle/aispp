@@ -10,7 +10,7 @@ public:
     AISFlatWaveFront(doubleThreeVector psrGradient, double laserPhase);
     ~AISFlatWaveFront();
 
-    double GetValue(const doubleThreeVector& pos) override;
+    double GetValue(const doubleThreeVector& pos, const doubleThreeVector& k) override;
 };
 
 #endif

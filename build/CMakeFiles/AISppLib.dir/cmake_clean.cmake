@@ -17,6 +17,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/AISppLib.dir/src/AISFlatWaveFront.cc.o.d"
   "CMakeFiles/AISppLib.dir/src/AISFreePropagator.cc.o"
   "CMakeFiles/AISppLib.dir/src/AISFreePropagator.cc.o.d"
+  "CMakeFiles/AISppLib.dir/src/AISGaussianWaveFront.cc.o"
+  "CMakeFiles/AISppLib.dir/src/AISGaussianWaveFront.cc.o.d"
   "CMakeFiles/AISppLib.dir/src/AISIntensityProfile.cc.o"
   "CMakeFiles/AISppLib.dir/src/AISIntensityProfile.cc.o.d"
   "CMakeFiles/AISppLib.dir/src/AISLinearGravityPropagator.cc.o"
