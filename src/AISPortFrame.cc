@@ -198,7 +198,9 @@ void AISPortFrame::setPortParameters(AISAtom* anAtom)
                     __float128 phi2Quad = wavePacket2->GetPhaseQuad();
 
                     doubleThreeVector deltaX = matrixAdd(r2, scalarMultiply(r1, -1.0)); // note the inverted order
-                    double dphi = phi1 - phi2 + phi1Quad - phi2Quad + dotProduct(v1, deltaX) / hbar * massSr87;
+                    doubleThreeVector meanV  = matrixAdd(v1, v2);
+                    meanV = scalarMultiply(meanV, 0.5);
+                    double dphi = phi1 - phi2 + phi1Quad - phi2Quad + dotProduct(meanV, deltaX) / hbar * massSr87;
 
                     offDiagonalContribution += 2*A1*A2*cos(dphi);
                 }
@@ -237,7 +239,9 @@ void AISPortFrame::setPortParameters(AISAtom* anAtom)
                 __float128 phi2Quad = wavePacket2->GetPhaseQuad();
 
                 doubleThreeVector deltaX = matrixAdd(r2, scalarMultiply(r1, -1.0)); // note the inverted order
-                double dphi = phi1 - phi2 + phi1Quad - phi2Quad + dotProduct(v1, deltaX) / hbar * massSr87;
+                doubleThreeVector meanV  = matrixAdd(v1, v2);
+                meanV = scalarMultiply(meanV, 0.5);
+                double dphi = phi1 - phi2 + phi1Quad - phi2Quad + dotProduct(meanV, deltaX) / hbar * massSr87;
                 port->phaseShift = dphi;
 
             } else

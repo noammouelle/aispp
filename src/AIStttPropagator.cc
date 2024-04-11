@@ -239,10 +239,6 @@ void AIStttPropagator::TttPropagateAtom(AISAtom* atom)
             newPhaseDouble2 += term1 + term2 + term3 + term4;
             newPhaseQuad2 = wavePacket1->GetPhaseQuad() + quadTerm;
 
-            long double quadTermLd = static_cast<long double>(quadTerm);
-            char quadTermLdStr[50];  // Adjust the buffer size as needed
-            snprintf(quadTermLdStr, sizeof(quadTermLdStr), "%.34Le", quadTermLd);
-
             /* excited -> excited transition */
             // propagate the kinematics
             dx = matrixAdd(scalarMultiply(dotProduct(transpose(B_), fK), hbar/massSr87),
