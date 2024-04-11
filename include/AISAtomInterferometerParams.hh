@@ -31,6 +31,8 @@ public:
 
     AISIntensityProfile* intensityProfile;
 
+    bool autoDetune;
+
     /* SEQUENCE PARAMETERS */
     __float128 initialPropagationTime;
     __float128 finalPropagationTime;
