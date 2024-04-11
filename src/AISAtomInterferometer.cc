@@ -55,20 +55,11 @@ AISAtomInterferometer::AISAtomInterferometer(AISAtomInterferometerParams params)
     long double omega3_ld = static_cast<long double>(omega3);
     long double omegaSr87_ld = static_cast<long double>(omegaSr87);
 
-    std::cout << "omega1 = " << std::fixed << omega1_ld << std::endl;
-    std::cout << "omega2 = " << std::fixed << omega2_ld << std::endl;
-    std::cout << "omega3 = " << std::fixed << omega3_ld << std::endl;
-    std::cout << "omegaSr87 = " << std::fixed << omegaSr87_ld << std::endl;
-
     // compute the detuned wavevectors
     doubleThreeVector k0 = {0., 0., convertScalarToDouble(omegaSr87 / c)};
     doubleThreeVector k1 = computeDetunedWaveVector(k0, vzBeamSplitter1);
     doubleThreeVector k2 = computeDetunedWaveVector(k0, vzMirror);
     doubleThreeVector k3 = computeDetunedWaveVector(k0, vzBeamSplitter2);
-
-    std::cout << "k1 = " << k1[2] << std::endl;
-    std::cout << "k2 = " << k2[2] << std::endl;
-    std::cout << "k3 = " << k3[2] << std::endl;
     
     // create the first pi/2 pulse ttt propagator
     beamSplitterPropagator1 = new AIStttPropagator(pi128 / (2 * params.rabiFrequency));

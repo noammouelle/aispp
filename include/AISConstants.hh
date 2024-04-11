@@ -19,7 +19,8 @@ const __float128 frequencySr87 = 429228004229873.0q;
 const __float128 omegaSr87 = 2.0q * pi128 * frequencySr87;
 const __float128 lambdaSr87_quad = c * 1.0q / frequencySr87;
 
-const double massSr87    = 1.44e-25;
+const double au          = 1.660539066e-27;
+const double massSr87    = 86.90888 * au;
 const double lambdaSr87  = static_cast<double>(lambdaSr87_quad);
 
 const double massEarth   = 5.97e24;
