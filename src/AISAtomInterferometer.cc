@@ -31,43 +31,30 @@ AISAtomInterferometer::AISAtomInterferometer(AISAtomInterferometerParams params)
     // create the wavefront
     AISWaveFront* wavefront    = params.wavefront;
     AISWaveFront* wavefrontPsr = params.wavefrontPsr;
+    
+    // compute the vertical velocities at each pulse
+    double vzBeamSplitter1 = params.initialVelocity[2] - 1 * g * params.initialPropagationTime; 
 
-    if(params.autoDetune){
-        // compute the vertical velocities at each pulse
-        double vzBeamSplitter1 = params.initialVelocity[2] - 1 * g * params.initialPropagationTime; 
+    double vzLmt1 = vzBeamSplitter1 - g * params.lmtDelayTime; 
+    double vzLmt2 = vzLmt1 - g * ((params.lmtOrder - 1) / 2 * params.lmtDelayTime + params.interogationTime);
 
-        double vzLmt1 = vzBeamSplitter1 - g * params.lmtDelayTime; 
-        double vzLmt2 = vzLmt1 - g * ((params.lmtOrder - 1) / 2 * params.lmtDelayTime + params.interogationTime);
+    double vzMirror = vzLmt2 - g * (params.lmtOrder - 1) / 2 * params.lmtDelayTime; 
 
-        double vzMirror = vzLmt2 - g * (params.lmtOrder - 1) / 2 * params.lmtDelayTime; 
+    double vzLmt3 = vzMirror - g * params.lmtDelayTime; 
+    double vzLmt4 = vzLmt3 - g * ((params.lmtOrder - 1) / 2 * params.lmtDelayTime + params.interogationTime); 
 
-        double vzLmt3 = vzMirror - g * params.lmtDelayTime; 
-        double vzLmt4 = vzLmt3 - g * ((params.lmtOrder - 1) / 2 * params.lmtDelayTime + params.interogationTime); 
+    double vzBeamSplitter2 = vzLmt4 - g * (params.lmtOrder - 1) / 2 * params.lmtDelayTime;; 
+                                       
+    // compute the detuned frequency
+    __float128 omega1 = computeDetunedOmega(omegaSr87, vzBeamSplitter1);
+    __float128 omega2 = computeDetunedOmega(omegaSr87, vzMirror);
+    __float128 omega3 = computeDetunedOmega(omegaSr87, vzBeamSplitter2);
 
-        double vzBeamSplitter2 = vzLmt4 - g * (params.lmtOrder - 1) / 2 * params.lmtDelayTime;; 
-                                        
-        // compute the detuned frequency
-        __float128 omega1 = computeDetunedOmega(omegaSr87, vzBeamSplitter1);
-        __float128 omega2 = computeDetunedOmega(omegaSr87, vzMirror);
-        __float128 omega3 = computeDetunedOmega(omegaSr87, vzBeamSplitter2);
-
-        // compute the detuned wavevectors
-        doubleThreeVector k0 = {0., 0., convertScalarToDouble(omegaSr87 / c)};
-        doubleThreeVector k1 = computeDetunedWaveVector(k0, vzBeamSplitter1);
-        doubleThreeVector k2 = computeDetunedWaveVector(k0, vzMirror);
-        doubleThreeVector k3 = computeDetunedWaveVector(k0, vzBeamSplitter2);
-    }
-    else
-    {
-        __float128 omega1 = omegaSr87;
-        __float128 omega2 = omegaSr87;
-        __float128 omega3 = omegaSr87;
-
-        doubleThreeVector k0 = {0., 0., convertScalarToDouble(omegaSr87 / c)};
-        doubleThreeVector k1 = k0;
-        doubleThreeVector k2 = k0;
-        doubleThreeVector k3 = k0;
-    }
+    // compute the detuned wavevectors
+    doubleThreeVector k0 = {0., 0., convertScalarToDouble(omegaSr87 / c)};
+    doubleThreeVector k1 = computeDetunedWaveVector(k0, vzBeamSplitter1);
+    doubleThreeVector k2 = computeDetunedWaveVector(k0, vzMirror);
+    doubleThreeVector k3 = computeDetunedWaveVector(k0, vzBeamSplitter2);
     
     // create the first pi/2 pulse ttt propagator
     beamSplitterPropagator1 = new AIStttPropagator(pi128 / (2 * params.rabiFrequency));
