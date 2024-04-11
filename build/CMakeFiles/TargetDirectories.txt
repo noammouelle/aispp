@@ -1,3 +1,0 @@
-/usera/ndm33/AION_MAGIS/sim/aispp/build/CMakeFiles/rebuild_cache.dir
-/usera/ndm33/AION_MAGIS/sim/aispp/build/CMakeFiles/edit_cache.dir
-/usera/ndm33/AION_MAGIS/sim/aispp/build/CMakeFiles/AISppLib.dir
