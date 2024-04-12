@@ -50,11 +50,6 @@ AISAtomInterferometer::AISAtomInterferometer(AISAtomInterferometerParams params)
     __float128 omega2 = computeDetunedOmega(omegaSr87, vzMirror);
     __float128 omega3 = computeDetunedOmega(omegaSr87, vzBeamSplitter2);
 
-    long double omega1_ld = static_cast<long double>(omega1);
-    long double omega2_ld = static_cast<long double>(omega2);
-    long double omega3_ld = static_cast<long double>(omega3);
-    long double omegaSr87_ld = static_cast<long double>(omegaSr87);
-
     // compute the detuned wavevectors
     doubleThreeVector k0 = {0., 0., convertScalarToDouble(omegaSr87 / c)};
     doubleThreeVector k1 = computeDetunedWaveVector(k0, vzBeamSplitter1);
