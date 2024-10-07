@@ -1,3 +1,0 @@
-/home/noammouelle/sim/ais++/build/CMakeFiles/rebuild_cache.dir
-/home/noammouelle/sim/ais++/build/CMakeFiles/edit_cache.dir
-/home/noammouelle/sim/ais++/build/CMakeFiles/AISppLib.dir
