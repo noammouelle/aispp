@@ -3,9 +3,9 @@
 AISLinearGravityPropagator::AISLinearGravityPropagator()
 {
     // define here the gravity gradient tensor
-    double3x3Matrix GGtensor = {{g / radiusEarth, 0.0, 0.0},
+    GGtensor = {{{g / radiusEarth, 0.0, 0.0},
                                 {0.0, g / radiusEarth, 0.0},
-                                {0.0, 0.0, - 2.0 * g / radiusEarth}};
+                                {0.0, 0.0, - 2.0 * g / radiusEarth}}};
 }
 
 AISLinearGravityPropagator::~AISLinearGravityPropagator()
@@ -13,7 +13,7 @@ AISLinearGravityPropagator::~AISLinearGravityPropagator()
 
 double AISLinearGravityPropagator::get_U(const doubleThreeVector& pos, const doubleThreeVector& vel)
 {
-    return massSr87 * g * pos[2] + 0.5 * massSr87 * (pos, dotProduct(GGtensor, pos));
+    return massSr87 * g * pos[2] + 0.5 * massSr87 * dotProduct(dotProduct(GGtensor, pos), pos);
 }
 
 doubleThreeVector AISLinearGravityPropagator::get_dUdx(const doubleThreeVector& pos, const doubleThreeVector& vel)

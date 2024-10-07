@@ -12,6 +12,8 @@
 #include <sstream>
 //#include <quadmath.h>
 #include <iomanip>
+#include <iomanip>
+#include <fstream>
 
 /* Custom variable types*/
 using doubleThreeVector = std::array<double, 3>;

@@ -3,6 +3,8 @@
 
 #include <vector>
 
+#include "AISConstants.hh"
+#include "AISUtilities.hh"
 #include "AISAtom.hh"
 
 using atomVector = std::vector<AISAtom*>;

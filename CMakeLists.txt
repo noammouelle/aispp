@@ -5,9 +5,11 @@ project(AISppLib VERSION 0.1 LANGUAGES CXX)
 # Find the required libraries
 find_package(HDF5 REQUIRED COMPONENTS CXX)
 find_package(OpenMP REQUIRED)
+find_package(GSL REQUIRED)
 
 # Set the include directories
 include_directories(${HDF5_INCLUDE_DIRS}) # libraries
+include_directories(${GSL_INCLUDE_DIRS})
 
 #include_directories(${CMAKE_SOURCE_DIR}/include)
 #include_directories(${CMAKE_SOURCE_DIR}/src)
@@ -21,13 +23,13 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
 
 # Collect the source files
 file(GLOB SOURCES ${PROJECT_SOURCE_DIR}/src/*.cc) # all source files
-#file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh) # all header files
+file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh) # all header files
 
 # create a library
 add_library(AISppLib ${SOURCES})
 
 # Link the libraries
-target_link_libraries(AISppLib PRIVATE ${HDF5_LIBRARIES} OpenMP::OpenMP_CXX)
+target_link_libraries(AISppLib PRIVATE ${HDF5_LIBRARIES} OpenMP::OpenMP_CXX ${GSL_LIBRARIES})
 
 # Set the include directories
 target_include_directories(AISppLib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)

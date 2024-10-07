@@ -18,7 +18,7 @@ void AISKinematicPropagator::PropagateEnsemble(AISAtomEnsemble* atomEnsemble, __
     for(int i_atom = 0; i_atom < atomEnsemble->GetNumberOfAtoms(); ++i_atom)
     {
         AISAtom* currentAtom = atomEnsemble->GetAtom(i_atom);
-        PropagateAtom(currentAtom, __float128 t1);
+        PropagateAtom(currentAtom, t1);
     }
 }
 
@@ -27,7 +27,7 @@ void AISKinematicPropagator::PropagateAtom(AISAtom* atom, __float128 t1)
     for(int i_wavePacket = 0; i_wavePacket < atom->GetNumberOfWavePackets(); ++i_wavePacket)
     {
         AISWavePacket* currentWavePacket = atom->GetWavePacket(i_wavePacket);
-        PropagateWavePacket(currentWavePacket, __float128 t1);
+        PropagateWavePacket(currentWavePacket, t1);
     }
 }
 
@@ -40,9 +40,9 @@ void AISKinematicPropagator::PropagateWavePacket(AISWavePacket* wavePacket, __fl
 
     __float128 t0 = wavePacket->GetTime();
 
-    // convert t0 and t1 to double
-    double t0_double = t0.convert_to<double>();
-    double t1_double = t1.convert_to<double>();
+    // convert t0 and t1 to double (static cast)
+    double t0_double = (double)t0;
+    double t1_double = (double)t1;
 
     // compute new phase space coordinates
     std::array<doubleThreeVector, 2> newPosVel = CalculateNewPhaseSpaceCoords(t0_double, t1_double, currentPos, currentPos, currentVel, currentVel);
@@ -51,15 +51,17 @@ void AISKinematicPropagator::PropagateWavePacket(AISWavePacket* wavePacket, __fl
 
     wavePacket->SetPosition(newPos);
     wavePacket->SetVelocity(newVel);
-    wavePacket->SetPhaseDouble(CalculateNewPhaseDouble(currentPhaseDouble, 
-                                                        currentPos, wavePacket->GetPosition(), 
-                                                        currentVel, wavePacket->GetVelocity()));
+
+    std::array<double,2> phaseDoubleRes = CalculateNewPhaseDouble(currentPhaseDouble, currentPos, currentVel, t0_double, t1_double);
+    double newPhaseDouble = phaseDoubleRes[0];
+
+    wavePacket->SetPhaseDouble(newPhaseDouble);
     if(fAddEnergyPhase && wavePacket->GetState() == 1)
     {
-        wavePacket->SetPhaseQuad(CalculateNewPhaseQuad(wavePacket->GetPhaseQuad()));
+        wavePacket->SetPhaseQuad(CalculateNewPhaseQuad(wavePacket->GetPhaseQuad(), t0, t1));
     };
     
-    wavePacket->SetTime(currentTime + deltaTime);
+    wavePacket->SetTime(t1);
 }
 
 std::array<doubleThreeVector, 2> AISKinematicPropagator::CalculateNewPhaseSpaceCoords(const double& t0, const double& t1, 
@@ -67,7 +69,7 @@ std::array<doubleThreeVector, 2> AISKinematicPropagator::CalculateNewPhaseSpaceC
                                                                                   const doubleThreeVector& vel0, const doubleThreeVector& vel1)
 {
     // define the ode system
-    gsl_odeiv2_system sys = {func, nullptr, 6, nullptr};
+    gsl_odeiv2_system sys = {func, nullptr, 6, this};
     // setup the driver
     double reltol = 0.0;
     double abstol = 1e-6;
@@ -76,7 +78,9 @@ std::array<doubleThreeVector, 2> AISKinematicPropagator::CalculateNewPhaseSpaceC
     gsl_odeiv2_driver_alloc_y_new (&sys, gsl_odeiv2_step_rk8pd,
                                   hstart, abstol, reltol);
     double y[6] = {pos0[0], pos0[1], pos0[2], vel0[0], vel0[1], vel0[2]};
-    int status = gsl_odeiv2_driver_apply(d, &t0, t1, y);
+    
+    double t_start = t0;
+    int status = gsl_odeiv2_driver_apply(d, &t_start, t1, y);
     if (status != GSL_SUCCESS)
     {
         printf("error, return value=%d\n", status);
@@ -96,12 +100,13 @@ int AISKinematicPropagator::func(double t, const double y[], double f[], void *p
 
     (void)(t); /* avoid unused parameter warning */
     //(void)(params); /* avoid unused parameter warning */
+    AISKinematicPropagator* propagator = static_cast<AISKinematicPropagator*>(params);
 
     // start by computing dU/dx and dU/dp
     doubleThreeVector pos = {y[0], y[1], y[2]};
     doubleThreeVector vel = {y[3], y[4], y[5]};
-    doubleThreeVector dUdx = get_dUdx(pos, vel);
-    doubleThreeVector dUdp = get_dUdp(pos, vel);
+    doubleThreeVector dUdx = propagator->get_dUdx(pos, vel);
+    doubleThreeVector dUdp = propagator->get_dUdp(pos, vel);
 
     // define the f vector
     f[0] = vel[0] + dUdp[0];
@@ -131,6 +136,13 @@ double AISKinematicPropagator::get_L(const double& t, void *params)
     return T - U;
 }
 
+double AISKinematicPropagator::get_L_wrapper(double t, void *params)
+{
+    LagrangianParams *lagrangianParams = static_cast<LagrangianParams*>(params);
+    AISKinematicPropagator* propagator = lagrangianParams->propagator;
+    return propagator->get_L(t,params);
+}
+
 std::array<double,2> AISKinematicPropagator::get_Scl(const double& t0, const double& t1, const doubleThreeVector& pos0, const doubleThreeVector& vel0)
 {
     // compute the action by integrating the Lagrangian between t0 and t1
@@ -140,8 +152,8 @@ std::array<double,2> AISKinematicPropagator::get_Scl(const double& t0, const dou
     double result, error;
 
     gsl_function integrand;
-    integrand.function = &get_L;
-    integrand.params = new LagrangianParams{t0, pos0, vel0};
+    integrand.function = &get_L_wrapper;
+    integrand.params = new LagrangianParams{t0, pos0, vel0, this};
 
     double epsabs = 1e-6;
     double epsrel = 0.0;
@@ -155,7 +167,7 @@ std::array<double,2> AISKinematicPropagator::get_Scl(const double& t0, const dou
     return {result, error};
 }
 
-std::array<double,2> AISKinematicGravityPropagator::CalculateNewPhaseDouble(const double& phase0, const doubleThreeVector& pos0, const doubleThreeVector& vel0,
+std::array<double,2> AISKinematicPropagator::CalculateNewPhaseDouble(const double& phase0, const doubleThreeVector& pos0, const doubleThreeVector& vel0,
                                                                           const double t0, const double t1)
 {
     std::array<double,2> scl = get_Scl(t0, t1, pos0, vel0); // action and error
@@ -167,4 +179,9 @@ std::array<double,2> AISKinematicGravityPropagator::CalculateNewPhaseDouble(cons
      double dphaseError = error / hbar;
 
     return {phase0 + dphase, dphaseError};
+}
+
+__float128 AISKinematicPropagator::CalculateNewPhaseQuad(const __float128& phase0, const __float128& t0, const __float128 t1)
+{
+    return phase0 - omegaSr87 * (t1 - t0);
 }
