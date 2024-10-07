@@ -393,6 +393,33 @@ src/AISIntensityProfile.cc.s:
 	$(MAKE) -f CMakeFiles/AISppLib.dir/build.make CMakeFiles/AISppLib.dir/src/AISIntensityProfile.cc.s
 .PHONY : src/AISIntensityProfile.cc.s
 
+src/AISKinematicPropagator.o: src/AISKinematicPropagator.cc.o
+
+.PHONY : src/AISKinematicPropagator.o
+
+# target to build an object file
+src/AISKinematicPropagator.cc.o:
+	$(MAKE) -f CMakeFiles/AISppLib.dir/build.make CMakeFiles/AISppLib.dir/src/AISKinematicPropagator.cc.o
+.PHONY : src/AISKinematicPropagator.cc.o
+
+src/AISKinematicPropagator.i: src/AISKinematicPropagator.cc.i
+
+.PHONY : src/AISKinematicPropagator.i
+
+# target to preprocess a source file
+src/AISKinematicPropagator.cc.i:
+	$(MAKE) -f CMakeFiles/AISppLib.dir/build.make CMakeFiles/AISppLib.dir/src/AISKinematicPropagator.cc.i
+.PHONY : src/AISKinematicPropagator.cc.i
+
+src/AISKinematicPropagator.s: src/AISKinematicPropagator.cc.s
+
+.PHONY : src/AISKinematicPropagator.s
+
+# target to generate assembly for a file
+src/AISKinematicPropagator.cc.s:
+	$(MAKE) -f CMakeFiles/AISppLib.dir/build.make CMakeFiles/AISppLib.dir/src/AISKinematicPropagator.cc.s
+.PHONY : src/AISKinematicPropagator.cc.s
+
 src/AISLinearGravityPropagator.o: src/AISLinearGravityPropagator.cc.o
 
 .PHONY : src/AISLinearGravityPropagator.o
@@ -729,6 +756,9 @@ help:
 	@echo "... src/AISIntensityProfile.o"
 	@echo "... src/AISIntensityProfile.i"
 	@echo "... src/AISIntensityProfile.s"
+	@echo "... src/AISKinematicPropagator.o"
+	@echo "... src/AISKinematicPropagator.i"
+	@echo "... src/AISKinematicPropagator.s"
 	@echo "... src/AISLinearGravityPropagator.o"
 	@echo "... src/AISLinearGravityPropagator.i"
 	@echo "... src/AISLinearGravityPropagator.s"

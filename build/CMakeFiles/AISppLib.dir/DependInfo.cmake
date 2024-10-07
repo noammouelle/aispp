@@ -14,6 +14,7 @@ set(CMAKE_DEPENDS_CHECK_CXX
   "/home/noammouelle/sim/ais++/src/AISFlatWaveFront.cc" "/home/noammouelle/sim/ais++/build/CMakeFiles/AISppLib.dir/src/AISFlatWaveFront.cc.o"
   "/home/noammouelle/sim/ais++/src/AISFreePropagator.cc" "/home/noammouelle/sim/ais++/build/CMakeFiles/AISppLib.dir/src/AISFreePropagator.cc.o"
   "/home/noammouelle/sim/ais++/src/AISIntensityProfile.cc" "/home/noammouelle/sim/ais++/build/CMakeFiles/AISppLib.dir/src/AISIntensityProfile.cc.o"
+  "/home/noammouelle/sim/ais++/src/AISKinematicPropagator.cc" "/home/noammouelle/sim/ais++/build/CMakeFiles/AISppLib.dir/src/AISKinematicPropagator.cc.o"
   "/home/noammouelle/sim/ais++/src/AISLinearGravityPropagator.cc" "/home/noammouelle/sim/ais++/build/CMakeFiles/AISppLib.dir/src/AISLinearGravityPropagator.cc.o"
   "/home/noammouelle/sim/ais++/src/AISLmtPropagator.cc" "/home/noammouelle/sim/ais++/build/CMakeFiles/AISppLib.dir/src/AISLmtPropagator.cc.o"
   "/home/noammouelle/sim/ais++/src/AISLmtTttPropagator.cc" "/home/noammouelle/sim/ais++/build/CMakeFiles/AISppLib.dir/src/AISLmtTttPropagator.cc.o"

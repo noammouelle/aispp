@@ -1,0 +1,112 @@
+[
+{
+  "directory": "/home/noammouelle/sim/ais++/build",
+  "command": "/usr/bin/g++   -I/usr/include/hdf5/serial -I/home/noammouelle/sim/ais++/include   -fopenmp -O3 -march=native -g -g   -fopenmp -o CMakeFiles/AISppLib.dir/src/AISAbcdPropagator.cc.o -c /home/noammouelle/sim/ais++/src/AISAbcdPropagator.cc",
+  "file": "/home/noammouelle/sim/ais++/src/AISAbcdPropagator.cc"
+},
+{
+  "directory": "/home/noammouelle/sim/ais++/build",
+  "command": "/usr/bin/g++   -I/usr/include/hdf5/serial -I/home/noammouelle/sim/ais++/include   -fopenmp -O3 -march=native -g -g   -fopenmp -o CMakeFiles/AISppLib.dir/src/AISAbcdUtilities.cc.o -c /home/noammouelle/sim/ais++/src/AISAbcdUtilities.cc",
+  "file": "/home/noammouelle/sim/ais++/src/AISAbcdUtilities.cc"
+},
+{
+  "directory": "/home/noammouelle/sim/ais++/build",
+  "command": "/usr/bin/g++   -I/usr/include/hdf5/serial -I/home/noammouelle/sim/ais++/include   -fopenmp -O3 -march=native -g -g   -fopenmp -o CMakeFiles/AISppLib.dir/src/AISAtom.cc.o -c /home/noammouelle/sim/ais++/src/AISAtom.cc",
+  "file": "/home/noammouelle/sim/ais++/src/AISAtom.cc"
+},
+{
+  "directory": "/home/noammouelle/sim/ais++/build",
+  "command": "/usr/bin/g++   -I/usr/include/hdf5/serial -I/home/noammouelle/sim/ais++/include   -fopenmp -O3 -march=native -g -g   -fopenmp -o CMakeFiles/AISppLib.dir/src/AISAtomEnsemble.cc.o -c /home/noammouelle/sim/ais++/src/AISAtomEnsemble.cc",
+  "file": "/home/noammouelle/sim/ais++/src/AISAtomEnsemble.cc"
+},
+{
+  "directory": "/home/noammouelle/sim/ais++/build",
+  "command": "/usr/bin/g++   -I/usr/include/hdf5/serial -I/home/noammouelle/sim/ais++/include   -fopenmp -O3 -march=native -g -g   -fopenmp -o CMakeFiles/AISppLib.dir/src/AISAtomInterferometer.cc.o -c /home/noammouelle/sim/ais++/src/AISAtomInterferometer.cc",
+  "file": "/home/noammouelle/sim/ais++/src/AISAtomInterferometer.cc"
+},
+{
+  "directory": "/home/noammouelle/sim/ais++/build",
+  "command": "/usr/bin/g++   -I/usr/include/hdf5/serial -I/home/noammouelle/sim/ais++/include   -fopenmp -O3 -march=native -g -g   -fopenmp -o CMakeFiles/AISppLib.dir/src/AISAtomInterferometerParams.cc.o -c /home/noammouelle/sim/ais++/src/AISAtomInterferometerParams.cc",
+  "file": "/home/noammouelle/sim/ais++/src/AISAtomInterferometerParams.cc"
+},
+{
+  "directory": "/home/noammouelle/sim/ais++/build",
+  "command": "/usr/bin/g++   -I/usr/include/hdf5/serial -I/home/noammouelle/sim/ais++/include   -fopenmp -O3 -march=native -g -g   -fopenmp -o CMakeFiles/AISppLib.dir/src/AISDetector.cc.o -c /home/noammouelle/sim/ais++/src/AISDetector.cc",
+  "file": "/home/noammouelle/sim/ais++/src/AISDetector.cc"
+},
+{
+  "directory": "/home/noammouelle/sim/ais++/build",
+  "command": "/usr/bin/g++   -I/usr/include/hdf5/serial -I/home/noammouelle/sim/ais++/include   -fopenmp -O3 -march=native -g -g   -fopenmp -o CMakeFiles/AISppLib.dir/src/AISFlatWaveFront.cc.o -c /home/noammouelle/sim/ais++/src/AISFlatWaveFront.cc",
+  "file": "/home/noammouelle/sim/ais++/src/AISFlatWaveFront.cc"
+},
+{
+  "directory": "/home/noammouelle/sim/ais++/build",
+  "command": "/usr/bin/g++   -I/usr/include/hdf5/serial -I/home/noammouelle/sim/ais++/include   -fopenmp -O3 -march=native -g -g   -fopenmp -o CMakeFiles/AISppLib.dir/src/AISFreePropagator.cc.o -c /home/noammouelle/sim/ais++/src/AISFreePropagator.cc",
+  "file": "/home/noammouelle/sim/ais++/src/AISFreePropagator.cc"
+},
+{
+  "directory": "/home/noammouelle/sim/ais++/build",
+  "command": "/usr/bin/g++   -I/usr/include/hdf5/serial -I/home/noammouelle/sim/ais++/include   -fopenmp -O3 -march=native -g -g   -fopenmp -o CMakeFiles/AISppLib.dir/src/AISIntensityProfile.cc.o -c /home/noammouelle/sim/ais++/src/AISIntensityProfile.cc",
+  "file": "/home/noammouelle/sim/ais++/src/AISIntensityProfile.cc"
+},
+{
+  "directory": "/home/noammouelle/sim/ais++/build",
+  "command": "/usr/bin/g++   -I/usr/include/hdf5/serial -I/home/noammouelle/sim/ais++/include   -fopenmp -O3 -march=native -g -g   -fopenmp -o CMakeFiles/AISppLib.dir/src/AISKinematicPropagator.cc.o -c /home/noammouelle/sim/ais++/src/AISKinematicPropagator.cc",
+  "file": "/home/noammouelle/sim/ais++/src/AISKinematicPropagator.cc"
+},
+{
+  "directory": "/home/noammouelle/sim/ais++/build",
+  "command": "/usr/bin/g++   -I/usr/include/hdf5/serial -I/home/noammouelle/sim/ais++/include   -fopenmp -O3 -march=native -g -g   -fopenmp -o CMakeFiles/AISppLib.dir/src/AISLinearGravityPropagator.cc.o -c /home/noammouelle/sim/ais++/src/AISLinearGravityPropagator.cc",
+  "file": "/home/noammouelle/sim/ais++/src/AISLinearGravityPropagator.cc"
+},
+{
+  "directory": "/home/noammouelle/sim/ais++/build",
+  "command": "/usr/bin/g++   -I/usr/include/hdf5/serial -I/home/noammouelle/sim/ais++/include   -fopenmp -O3 -march=native -g -g   -fopenmp -o CMakeFiles/AISppLib.dir/src/AISLmtPropagator.cc.o -c /home/noammouelle/sim/ais++/src/AISLmtPropagator.cc",
+  "file": "/home/noammouelle/sim/ais++/src/AISLmtPropagator.cc"
+},
+{
+  "directory": "/home/noammouelle/sim/ais++/build",
+  "command": "/usr/bin/g++   -I/usr/include/hdf5/serial -I/home/noammouelle/sim/ais++/include   -fopenmp -O3 -march=native -g -g   -fopenmp -o CMakeFiles/AISppLib.dir/src/AISLmtTttPropagator.cc.o -c /home/noammouelle/sim/ais++/src/AISLmtTttPropagator.cc",
+  "file": "/home/noammouelle/sim/ais++/src/AISLmtTttPropagator.cc"
+},
+{
+  "directory": "/home/noammouelle/sim/ais++/build",
+  "command": "/usr/bin/g++   -I/usr/include/hdf5/serial -I/home/noammouelle/sim/ais++/include   -fopenmp -O3 -march=native -g -g   -fopenmp -o CMakeFiles/AISppLib.dir/src/AISPort.cc.o -c /home/noammouelle/sim/ais++/src/AISPort.cc",
+  "file": "/home/noammouelle/sim/ais++/src/AISPort.cc"
+},
+{
+  "directory": "/home/noammouelle/sim/ais++/build",
+  "command": "/usr/bin/g++   -I/usr/include/hdf5/serial -I/home/noammouelle/sim/ais++/include   -fopenmp -O3 -march=native -g -g   -fopenmp -o CMakeFiles/AISppLib.dir/src/AISPortFrame.cc.o -c /home/noammouelle/sim/ais++/src/AISPortFrame.cc",
+  "file": "/home/noammouelle/sim/ais++/src/AISPortFrame.cc"
+},
+{
+  "directory": "/home/noammouelle/sim/ais++/build",
+  "command": "/usr/bin/g++   -I/usr/include/hdf5/serial -I/home/noammouelle/sim/ais++/include   -fopenmp -O3 -march=native -g -g   -fopenmp -o CMakeFiles/AISppLib.dir/src/AISPulsePropagator.cc.o -c /home/noammouelle/sim/ais++/src/AISPulsePropagator.cc",
+  "file": "/home/noammouelle/sim/ais++/src/AISPulsePropagator.cc"
+},
+{
+  "directory": "/home/noammouelle/sim/ais++/build",
+  "command": "/usr/bin/g++   -I/usr/include/hdf5/serial -I/home/noammouelle/sim/ais++/include   -fopenmp -O3 -march=native -g -g   -fopenmp -o CMakeFiles/AISppLib.dir/src/AISSineWaveFront.cc.o -c /home/noammouelle/sim/ais++/src/AISSineWaveFront.cc",
+  "file": "/home/noammouelle/sim/ais++/src/AISSineWaveFront.cc"
+},
+{
+  "directory": "/home/noammouelle/sim/ais++/build",
+  "command": "/usr/bin/g++   -I/usr/include/hdf5/serial -I/home/noammouelle/sim/ais++/include   -fopenmp -O3 -march=native -g -g   -fopenmp -o CMakeFiles/AISppLib.dir/src/AISUtilities.cc.o -c /home/noammouelle/sim/ais++/src/AISUtilities.cc",
+  "file": "/home/noammouelle/sim/ais++/src/AISUtilities.cc"
+},
+{
+  "directory": "/home/noammouelle/sim/ais++/build",
+  "command": "/usr/bin/g++   -I/usr/include/hdf5/serial -I/home/noammouelle/sim/ais++/include   -fopenmp -O3 -march=native -g -g   -fopenmp -o CMakeFiles/AISppLib.dir/src/AISWaveFront.cc.o -c /home/noammouelle/sim/ais++/src/AISWaveFront.cc",
+  "file": "/home/noammouelle/sim/ais++/src/AISWaveFront.cc"
+},
+{
+  "directory": "/home/noammouelle/sim/ais++/build",
+  "command": "/usr/bin/g++   -I/usr/include/hdf5/serial -I/home/noammouelle/sim/ais++/include   -fopenmp -O3 -march=native -g -g   -fopenmp -o CMakeFiles/AISppLib.dir/src/AISWavePacket.cc.o -c /home/noammouelle/sim/ais++/src/AISWavePacket.cc",
+  "file": "/home/noammouelle/sim/ais++/src/AISWavePacket.cc"
+},
+{
+  "directory": "/home/noammouelle/sim/ais++/build",
+  "command": "/usr/bin/g++   -I/usr/include/hdf5/serial -I/home/noammouelle/sim/ais++/include   -fopenmp -O3 -march=native -g -g   -fopenmp -o CMakeFiles/AISppLib.dir/src/AIStttPropagator.cc.o -c /home/noammouelle/sim/ais++/src/AIStttPropagator.cc",
+  "file": "/home/noammouelle/sim/ais++/src/AIStttPropagator.cc"
+}
+]
