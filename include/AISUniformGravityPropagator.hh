@@ -1,7 +1,7 @@
-#ifndef AISLINEARGRAVITYPROPAGATOR_HH
-#define AISLINEARGRAVITYPROPAGATOR_HH
+#ifndef AISUNIFORMGRAVITYPROPAGATOR_HH
+#define AISUNIFORMGRAVITYPROPAGATOR_HH
 
-#include "AISFreePropagator.hh"
+#include "AISKinematicPropagator.hh"
 #include "AISConstants.hh"
 
 class AISUniformGravityPropagator : public AISKinematicPropagator

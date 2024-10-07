@@ -1,13 +1,14 @@
 #ifndef AISLINEARGRAVITYPROPAGATOR_HH
 #define AISLINEARGRAVITYPROPAGATOR_HH
 
-#include "AISAbcdPropagator.hh"
+#include "AISKinematicPropagator.hh"
 #include "AISConstants.hh"
+#include "AISUtilities.hh"
 
-class AISLinearGravityPropagator : public AISAbcdPropagator 
+class AISLinearGravityPropagator : public AISKinematicPropagator
 {
 public :
-    AISLinearGravityPropagator(__float128 dt);
+    AISLinearGravityPropagator();
     ~AISLinearGravityPropagator();
 };
 
