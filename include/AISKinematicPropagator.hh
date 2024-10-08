@@ -18,7 +18,7 @@
 class AISKinematicPropagator
 {
 protected:
-    std::array<double,2> CalculateNewPhaseDouble(const double& phase0, const doubleThreeVector& pos0, const doubleThreeVector& vel0,
+    std::array<double,2> CalculateNewPhaseDouble(const double& phase0, const double& phaseErr, const doubleThreeVector& pos0, const doubleThreeVector& vel0,
                                                          const double t0, const double t1);
     __float128 CalculateNewPhaseQuad(const __float128& phase0, const __float128& t0, const __float128 t1);
 
@@ -39,6 +39,7 @@ protected:
 
     bool fAddEnergyPhase = false;
 
+public: 
     AISKinematicPropagator();
     ~AISKinematicPropagator();
 

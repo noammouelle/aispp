@@ -8,7 +8,7 @@ void writeAtomEnsembleToFile(std::string fName, AISAtomEnsemble* atomEnsemble)
     outFile << std::fixed; // Use fixed-point notation
     outFile << std::setprecision(15);
 
-    outFile << "State, Amplitude, X, Y, Z, VX, VY, VZ, Phase, PhaseQuad" << std::endl;
+    outFile << "State, Amplitude, X, Y, Z, VX, VY, VZ, Phase, PhaseErr, PhaseQuad" << std::endl;
     for(int i = 0; i < atomEnsemble->GetNumberOfAtoms(); ++i)
     {
         AISAtom* currentAtom   = atomEnsemble->GetAtom(i);
@@ -20,6 +20,7 @@ void writeAtomEnsembleToFile(std::string fName, AISAtomEnsemble* atomEnsemble)
             doubleThreeVector currentPos = currentWavePacket->GetPosition();
             doubleThreeVector currentVel = currentWavePacket->GetVelocity();
             double currentPhaseDouble = currentWavePacket->GetPhaseDouble();
+            double currentPhaseDoubleErr = currentWavePacket->GetPhaseDoubleError();
             __float128 currentPhaseQuad = currentWavePacket->GetPhaseQuad();
 
             long double currentPhaseQuadAsLongDouble = static_cast<long double>(currentPhaseQuad);
@@ -29,7 +30,7 @@ void writeAtomEnsembleToFile(std::string fName, AISAtomEnsemble* atomEnsemble)
 
             outFile << currentState << "," << currentAmplitude << "," << currentPos[0] << "," << currentPos[1] << "," << currentPos[2] << "," 
                     << currentVel[0] << "," << currentVel[1] << "," << currentVel[2] << ","
-                    << currentPhaseDouble << "," << currentPhaseQuadStr << std::endl;
+                    << currentPhaseDouble << "," << currentPhaseDoubleErr << "," << currentPhaseQuadStr << std::endl;
         }
     }
 
