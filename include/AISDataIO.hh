@@ -1,5 +1,5 @@
-#ifndef AISIO_HH
-#define AISIO_HH
+#ifndef AISDATAIO_HH
+#define AISDATAIO_HH
 
 #include <iostream>
 #include <array>
