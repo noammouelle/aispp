@@ -13,6 +13,7 @@ protected:
     doubleThreeVector get_dUdp(const doubleThreeVector& pos, const doubleThreeVector& vel) override;
 
     double3x3Matrix GGtensor;
+    
 public :
     AISLinearGravityPropagator();
     ~AISLinearGravityPropagator();
