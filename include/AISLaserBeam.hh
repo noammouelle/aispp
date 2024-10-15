@@ -6,12 +6,15 @@
 
 class AISLaserBeam
 {
-private:
-    doubleThreeVector k;
-    __float128 omega;
-
 public:
-    AISLaserBeam(doubleThreeVector k, __float128 omega);
+    using wavefrontFunctionType = double(*)(doubleThreeVector);
+    using delWavefrontFunctionType = doubleThreeVector(*)(doubleThreeVector);
+    using rabifreqFunctionType  = double(*)(doubleThreeVector, __float128);
+
+    AISLaserBeam(doubleThreeVector k, __float128 omega,
+                 wavefrontFunctionType wavefrontFunction,
+                 delWavefrontFunctionType delWavefrontFunction,
+                 rabifreqFunctionType rabiFreqFunction);
     ~AISLaserBeam();
 
     // At the moment I suppose that I can somehow pass a function as arguments
@@ -25,6 +28,14 @@ public:
 
     __float128 GetOmega();
     void SetOmega(__float128 omega);
+
+private:
+    doubleThreeVector k;
+    __float128 omega;
+
+    wavefrontFunctionType wavefrontFunction;
+    delWavefrontFunctionType delWavefrontFunction;
+    rabifreqFunctionType rabifreqFunction;
 };
 
 

@@ -1,9 +1,16 @@
-#include "AISLaserBeam.cc"
+#include "AISLaserBeam.hh"
 
-AISLaserBeam::AISLaserBeam(doubleThreeVector k, __float128 omega)
+AISLaserBeam::AISLaserBeam(doubleThreeVector k, __float128 omega,
+                           wavefrontFunctionType wavefrontFunction,
+                           delWavefrontFunctionType delWavefrontFunction,
+                           rabifreqFunctionType rabiFreqFunction)
 {
-    this->k = k
-    this->omega = omega
+    this->k = k;
+    this->omega = omega;
+    this->wavefrontFunction = wavefrontFunction;
+    this->delWavefrontFunction = delWavefrontFunction;
+    this->rabifreqFunction = rabiFreqFunction;
+
 }
 
 AISLaserBeam::~AISLaserBeam()
@@ -31,15 +38,15 @@ void AISLaserBeam::SetOmega(__float128 omega)
 
 double AISLaserBeam::GetPhi(doubleThreeVector pos)
 {
-    return 0;
+    return wavefrontFunction(pos);
 }
 
 doubleThreeVector AISLaserBeam::GetDelPhi(doubleThreeVector pos)
 {
-    return {0., 0., 0.};
+    return delWavefrontFunction(pos);
 }
 
 double AISLaserBeam::GetRabiFreq(doubleThreeVector pos, __float128 t)
 {
-    return 1e6;
+    return rabifreqFunction(pos, t);
 }

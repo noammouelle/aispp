@@ -26,7 +26,7 @@ protected:
     void ApplyU1(AISWavePacket* wavepacket, __float128 t0, __float128 t1);
     void ApplyU2(AISWavePacket* wavepacket, __float128 t0, __float128 t1);
     void ApplyU2Dagger(AISWavePacket* wavepacket, __float128 t0, __float128 t1);
-    wavePacketVector ApplyU3(AISWavePacket* wavepacket, __float128 t0, __float128 t1);
+    void ApplyU3(AISWavePacket* wavepacket0, AISWavePacket* wavepacket1, __float128 t0, __float128 t1);
 
 public: 
     AISPulsePropagator(AISLaserBeam* beam, __float128 t0, __float128 t1);
