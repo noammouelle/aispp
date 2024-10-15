@@ -9,7 +9,8 @@ AISUniformGravityPropagator::~AISUniformGravityPropagator()
 
 double AISUniformGravityPropagator::get_U(const doubleThreeVector& pos, const doubleThreeVector& vel)
 {
-    return massSr87 * g * pos[2];
+    //return massSr87 * g * pos[2];
+    return g * pos[2];
 }
 
 doubleThreeVector AISUniformGravityPropagator::get_dUdx(const doubleThreeVector& pos, const doubleThreeVector& vel)

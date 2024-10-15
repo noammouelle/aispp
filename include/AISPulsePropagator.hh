@@ -1,5 +1,5 @@
-#ifndef AISKINEMATICPROPAGATOR_HH
-#define AISKINEMATICPROPAGATOR_HH
+#ifndef AISPULSEPROPAGATOR_HH
+#define AISPULSEPROPAGATOR_HH
 
 #include "AISAtomEnsemble.hh"
 #include "AISAtom.hh"
@@ -15,7 +15,7 @@
 #include <gsl/gsl_odeiv2.h>
 #include <gsl/gsl_integration.h>
 
-class AISKinematicPropagator
+class AISPulsePropagator
 {
 protected:
     std::array<double,2> CalculateNewPhaseDouble(const double& phase0, const double& phaseErr, const doubleThreeVector& pos0, const doubleThreeVector& vel0,
@@ -43,23 +43,16 @@ protected:
 
     bool fAddEnergyPhase = false;
 
+    void ApplyU1(AISWavePacket* wavepacket, __float128 t0, __float128 t1);
+    void ApplyU2(AISWavePacket* wavepacket, __float128 t0, __float128 t1);
+
 public: 
-    AISKinematicPropagator();
-    ~AISKinematicPropagator();
+    AISPulsePropagator(doubleThreeVector k, __float128 t0, __float128 t1);
+    ~AISPulsePropagator();
 
     void PropagateEnsemble(AISAtomEnsemble* atomEnsemble, __float128 t1);
     void PropagateAtom(AISAtom* atom, __float128 t1);
     void PropagateWavePacket(AISWavePacket* wavePacket, __float128 t1);
-
-    void SetAddEnergyPhase(bool addEnergyPhase);
-};
-
-// struct for the Lagrangian parameters
-struct LagrangianParams {
-    double t0;
-    doubleThreeVector pos0;
-    doubleThreeVector vel0;
-    AISKinematicPropagator* propagator;
 };
 
 #endif

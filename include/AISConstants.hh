@@ -22,4 +22,6 @@ const __float128 omegaSr87 = 2.0q * pi128 * c / lambdaSr87;
 const double massEarth   = 5.97e24;
 const double radiusEarth = 6.37e6;
 
+const double massSr87overHbar = massSr87 / hbar;
+
 #endif

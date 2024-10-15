@@ -136,7 +136,7 @@ double AISKinematicPropagator::get_L(const double& t, void *params)
     doubleThreeVector newPos = newPosVel[0];
     doubleThreeVector newVel = newPosVel[1];
     double U = get_U(newPos, newVel);
-    double T = 0.5 * massSr87 * (newVel[0] * newVel[0] + newVel[1] * newVel[1] + newVel[2] * newVel[2]);
+    double T = 0.5 * (newVel[0] * newVel[0] + newVel[1] * newVel[1] + newVel[2] * newVel[2]); // * massSr87;
     return T - U;
 }
 
@@ -159,7 +159,7 @@ std::array<double,2> AISKinematicPropagator::get_Scl(const double& t0, const dou
     integrand.function = &get_L_wrapper;
     integrand.params = new LagrangianParams{t0, pos0, vel0, this};
 
-    double epsabs = 1e-9;
+    double epsabs = 1e-12;
     double epsrel = 0.0;
     int key = 1;
 
@@ -179,8 +179,8 @@ std::array<double,2> AISKinematicPropagator::CalculateNewPhaseDouble(const doubl
     double error = scl[1];
 
      // divide the action by hbar to get the phase and return result
-     double dphase = action / hbar;
-     double dphaseError = error / hbar;
+     double dphase = action * massSr87overHbar;/// hbar;
+     double dphaseError = error * massSr87overHbar; // / hbar;
 
     return {phase0 + dphase, sqrt(dphaseError * dphaseError + phaseErr * phaseErr)};
 }

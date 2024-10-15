@@ -13,7 +13,8 @@ AISLinearGravityPropagator::~AISLinearGravityPropagator()
 
 double AISLinearGravityPropagator::get_U(const doubleThreeVector& pos, const doubleThreeVector& vel)
 {
-    return massSr87 * g * pos[2] + 0.5 * massSr87 * dotProduct(dotProduct(GGtensor, pos), pos);
+    //return massSr87 * g * pos[2] + 0.5 * massSr87 * dotProduct(dotProduct(GGtensor, pos), pos);
+    return g * pos[2] + 0.5 * dotProduct(dotProduct(GGtensor, pos), pos);
 }
 
 doubleThreeVector AISLinearGravityPropagator::get_dUdx(const doubleThreeVector& pos, const doubleThreeVector& vel)
