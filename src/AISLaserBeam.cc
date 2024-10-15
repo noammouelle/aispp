@@ -28,3 +28,18 @@ void AISLaserBeam::SetOmega(__float128 omega)
 {
     this->omega=omega;
 }
+
+double AISLaserBeam::GetPhi(doubleThreeVector pos)
+{
+    return 0;
+}
+
+doubleThreeVector AISLaserBeam::GetDelPhi(doubleThreeVector pos)
+{
+    return {0., 0., 0.};
+}
+
+double AISLaserBeam::GetRabiFreq(doubleThreeVector pos, __float128 t)
+{
+    return 1e6;
+}

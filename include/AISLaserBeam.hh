@@ -10,16 +10,14 @@ private:
     doubleThreeVector k;
     __float128 omega;
 
-    AISIntensityProfile* intensityProfile;
-    AISWavefront* wavefront;
-
 public:
-    AISLaserBeam(doubleThreeVector k, __float128 omega, 
-                 AISIntensityProfile* intensityProfile,
-                 AISWavefront* wavefront);
+    AISLaserBeam(doubleThreeVector k, __float128 omega);
     ~AISLaserBeam();
 
-    double GetPhase(doubleThreeVector pos); 
+    // At the moment I suppose that I can somehow pass a function as arguments
+    // of the constructor to get the phases etc. Need to check on WiFi
+    double GetPhi(doubleThreeVector pos); 
+    doubleThreeVector GetDelPhi(doubleThreeVector pos);
     double GetRabiFreq(doubleThreeVector pos, __float128 t);
     
     doubleThreeVector GetK();
