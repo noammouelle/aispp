@@ -1,11 +1,30 @@
 #include "AISKinematicPropagator.hh"
 
-AISKinematicPropagator::AISKinematicPropagator()
+AISKinematicPropagator::AISKinematicPropagator(potentialFunctionType U, gradPotentialFunctionType dUdx,
+                                               gradPotentialFunctionType dUdp)
 {
+    this->U = U;
+    this->dUdx = dUdx;
+    this->dUdp = dUdp;
 }
 
 AISKinematicPropagator::~AISKinematicPropagator()
 {}
+
+double AISKinematicPropagator::get_U(const doubleThreeVector& pos, const doubleThreeVector& vel)
+{
+    return U(pos, vel);
+}
+
+doubleThreeVector AISKinematicPropagator::get_dUdx(const doubleThreeVector& pos, const doubleThreeVector& vel)
+{
+    return dUdx(pos,vel);
+}
+
+doubleThreeVector AISKinematicPropagator::get_dUdp(const doubleThreeVector& pos, const doubleThreeVector& vel)
+{
+    return dUdp(pos, vel);
+}
 
 void AISKinematicPropagator::SetAddEnergyPhase(bool addEnergyPhase)
 {

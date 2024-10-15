@@ -17,6 +17,19 @@
 
 class AISKinematicPropagator
 {
+public: 
+    using potentialFunctionType = double(*)(const doubleThreeVector&, const doubleThreeVector&);
+    using gradPotentialFunctionType = doubleThreeVector(*)(const doubleThreeVector&, const doubleThreeVector&);
+
+    AISKinematicPropagator(potentialFunctionType U, gradPotentialFunctionType dUdx,
+                           gradPotentialFunctionType dUdp);
+    ~AISKinematicPropagator();
+
+    void PropagateEnsemble(AISAtomEnsemble* atomEnsemble, __float128 t1);
+    void PropagateAtom(AISAtom* atom, __float128 t1);
+    void PropagateWavePacket(AISWavePacket* wavePacket, __float128 t1);
+
+    void SetAddEnergyPhase(bool addEnergyPhase);
 protected:
     std::array<double,2> CalculateNewPhaseDouble(const double& phase0, const double& phaseErr, const doubleThreeVector& pos0, const doubleThreeVector& vel0,
                                                          const double t0, const double t1);
@@ -33,25 +46,17 @@ protected:
 
     static int func(double t, const double y[], double f[], void *params);
 
-    virtual doubleThreeVector get_dUdx(const doubleThreeVector& pos, const doubleThreeVector& vel) = 0;
-    virtual doubleThreeVector get_dUdp(const doubleThreeVector& pos, const doubleThreeVector& vel) = 0;
-
-    // This function returns the potential energy divided by m
-    virtual double get_U(const doubleThreeVector& pos, const doubleThreeVector& vel) = 0;
+    doubleThreeVector get_dUdx(const doubleThreeVector& pos, const doubleThreeVector& vel);
+    doubleThreeVector get_dUdp(const doubleThreeVector& pos, const doubleThreeVector& vel);
+    // Careful! This function returns the potential energy divided by m
+    double get_U(const doubleThreeVector& pos, const doubleThreeVector& vel);
 
     __float128 deltaTime = 0.0q;
 
     bool fAddEnergyPhase = false;
 
-public: 
-    AISKinematicPropagator();
-    ~AISKinematicPropagator();
-
-    void PropagateEnsemble(AISAtomEnsemble* atomEnsemble, __float128 t1);
-    void PropagateAtom(AISAtom* atom, __float128 t1);
-    void PropagateWavePacket(AISWavePacket* wavePacket, __float128 t1);
-
-    void SetAddEnergyPhase(bool addEnergyPhase);
+    potentialFunctionType U;
+    gradPotentialFunctionType dUdx, dUdp;
 };
 
 // struct for the Lagrangian parameters
