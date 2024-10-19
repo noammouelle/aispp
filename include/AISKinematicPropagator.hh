@@ -86,8 +86,8 @@ struct LagrangianParams {
 };
 
 struct FuncLinearizedParams {
-    doubleThreeVector posStar; // phase space coordinates around which the Hamiltonian is expanded
-    doubleThreeVector velStar;
+    doubleThreeVector pos0; // phase space coordinates around which the Hamiltonian is expanded
+    doubleThreeVector vel0;
     AISKinematicPropagator* propagator;
 };
 
