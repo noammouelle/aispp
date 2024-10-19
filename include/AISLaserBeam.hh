@@ -9,7 +9,7 @@ class AISLaserBeam
 public:
     using wavefrontFunctionType = double(*)(doubleThreeVector);
     using delWavefrontFunctionType = doubleThreeVector(*)(doubleThreeVector);
-    using rabifreqFunctionType  = double(*)(doubleThreeVector, __float128);
+    using rabifreqFunctionType  = double(*)(doubleThreeVector, __float128, __float128);
 
     AISLaserBeam(doubleThreeVector k, __float128 omega,
                  wavefrontFunctionType wavefrontFunction,

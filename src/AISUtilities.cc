@@ -115,7 +115,7 @@ double3x3Matrix dotProduct(const double3x3Matrix& A, const double3x3Matrix& B){
     return result;
 }
 
-doubleSixVector dotProduct(const double6x6Matrix& A, const doubleThreeVector& b){
+doubleSixVector dotProduct(const double6x6Matrix& A, const doubleSixVector& b){
 
     doubleSixVector result = {};
 

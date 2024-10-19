@@ -33,6 +33,10 @@ public:
     void PropagateAtom(AISAtom* atom, __float128 t1);
     void PropagateWavePacket(AISWavePacket* wavePacket, __float128 t1);
 
+    void PropagateEnsembleLinearized(AISAtomEnsemble* atomEnsemble, __float128 t1);
+    void PropagateAtomLinearized(AISAtom* atom, __float128 t1);
+    void PropagateWavePacketLinearized(AISWavePacket* wavePacket, __float128 t1);
+
     void SetAddEnergyPhase(bool addEnergyPhase);
 
     std::array<double,2> CalculateNewPhaseDouble(const double& phase0, const double& phaseErr, const doubleThreeVector& pos0, const doubleThreeVector& vel0,
@@ -85,6 +89,6 @@ struct FuncLinearizedParams {
     doubleThreeVector posStar; // phase space coordinates around which the Hamiltonian is expanded
     doubleThreeVector velStar;
     AISKinematicPropagator* propagator;
-}
+};
 
 #endif

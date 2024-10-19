@@ -2,12 +2,16 @@
 
 AISKinematicPropagator::AISKinematicPropagator(potentialFunctionType U, gradPotentialFunctionType dUdx,
                                                gradPotentialFunctionType dUdp,
-                                               hessianPotentialFunctionType H_U)
+                                               hessianPotentialFunctionType d2Udxdx,
+                                               hessianPotentialFunctionType d2Udxdp,
+                                               hessianPotentialFunctionType d2Udpdp)
 {
     this->U = U;
     this->dUdx = dUdx;
     this->dUdp = dUdp;
-    this->H_U = H_U;
+    this->d2Udxdx = d2Udxdx;
+    this->d2Udxdp = d2Udxdp;
+    this->d2Udpdp = d2Udpdp;
 }
 
 AISKinematicPropagator::~AISKinematicPropagator()
@@ -28,9 +32,19 @@ doubleThreeVector AISKinematicPropagator::get_dUdp(const doubleThreeVector& pos,
     return dUdp(pos, vel);
 }
 
-double6x6Matrix AISKinematicPropagator::get_HessianU(const doubleThreeVector& pos, const doubleThreeVector& vel)
+double3x3Matrix AISKinematicPropagator::get_d2Udxdx(const doubleThreeVector& pos, const doubleThreeVector& vel)
 {
-    return H_U(pos, vel);
+    return d2Udxdx(pos, vel);
+}
+
+double3x3Matrix AISKinematicPropagator::get_d2Udxdp(const doubleThreeVector& pos, const doubleThreeVector& vel)
+{
+    return d2Udxdp(pos, vel);
+}
+
+double3x3Matrix AISKinematicPropagator::get_d2Udpdp(const doubleThreeVector& pos, const doubleThreeVector& vel)
+{
+    return d2Udpdp(pos, vel);
 }
 
 void AISKinematicPropagator::SetAddEnergyPhase(bool addEnergyPhase)
@@ -72,7 +86,7 @@ void AISKinematicPropagator::PropagateWavePacket(AISWavePacket* wavePacket, __fl
     double t1_double = (double)t1;
 
     // compute new phase space coordinates
-    std::array<doubleThreeVector, 2> newPosVel = CalculateNewPhaseSpaceCoords(t0_double, t1_double, currentPos, currentPos, currentVel, currentVel);
+    std::array<doubleThreeVector, 2> newPosVel = CalculateNewPhaseSpaceCoords(t0_double, t1_double, currentPos, currentVel);
     doubleThreeVector newPos = newPosVel[0];
     doubleThreeVector newVel = newPosVel[1];
 
@@ -91,6 +105,48 @@ void AISKinematicPropagator::PropagateWavePacket(AISWavePacket* wavePacket, __fl
         wavePacket->SetPhaseQuad(CalculateNewPhaseQuad(wavePacket->GetPhaseQuad(), t0, t1));
     };
     
+    wavePacket->SetTime(t1);
+}
+
+void AISKinematicPropagator::PropagateEnsembleLinearized(AISAtomEnsemble* atomEnsemble, __float128 t1)
+{
+    #pragma omp parallel for
+    for(int i_atom = 0; i_atom < atomEnsemble->GetNumberOfAtoms(); ++i_atom)
+    {
+        AISAtom* currentAtom = atomEnsemble->GetAtom(i_atom);
+        PropagateAtomLinearized(currentAtom, t1);
+    }
+}
+
+void AISKinematicPropagator::PropagateAtomLinearized(AISAtom* atom, __float128 t1)
+{
+    for(int i_wavePacket = 0; i_wavePacket < atom->GetNumberOfWavePackets(); ++i_wavePacket)
+    {
+        AISWavePacket* currentWavePacket = atom->GetWavePacket(i_wavePacket);
+        PropagateWavePacketLinearized(currentWavePacket, t1);
+    }
+}
+
+void AISKinematicPropagator::PropagateWavePacketLinearized(AISWavePacket* wavePacket, __float128 t1)
+{
+    // only propagate kinematics, not the phase
+    doubleThreeVector currentPos  = wavePacket->GetPosition();
+    doubleThreeVector currentVel  = wavePacket->GetVelocity();
+
+    __float128 t0 = wavePacket->GetTime();
+
+    // convert t0 and t1 to double (static cast)
+    double t0_double = (double)t0;
+    double t1_double = (double)t1;
+
+    // compute new phase space coordinates
+    std::array<doubleThreeVector, 2> newPosVel = CalculateNewPhaseSpaceCoordsLinearized(t0_double, t1_double, currentPos, currentVel);
+    doubleThreeVector newPos = newPosVel[0];
+    doubleThreeVector newVel = newPosVel[1];
+
+    wavePacket->SetPosition(newPos);
+    wavePacket->SetVelocity(newVel);
+
     wavePacket->SetTime(t1);
 }
 
@@ -202,9 +258,9 @@ std::array<doubleThreeVector,2> AISKinematicPropagator::get_dotPhaseSpaceCoordsL
     doubleThreeVector term4 = dotProduct(transpose(d2Udxdp),matrixAdd(pos,scalarMultiply(pos0,-1)));
     doubleThreeVector dotPos = matrixAdd(term1,matrixAdd(term2,matrixAdd(term3,term4)));
 
-    doubleThreeVector term1 = scalarMultiply(dUdx,-1/massSr87);
-    doubleThreeVector term2 = scalarMultiply(dotProduct(d2Udxdx,matrixAdd(pos,scalarMultiply(pos0,-1))),-1/massSr87);
-    doubleThreeVector term3 = scalarMultiply(dotProduct(d2Udxdp,matrixAdd(vel,scalarMultiply(vel0,-1))),-1);
+    term1 = scalarMultiply(dUdx,-1/massSr87);
+    term2 = scalarMultiply(dotProduct(d2Udxdx,matrixAdd(pos,scalarMultiply(pos0,-1))),-1/massSr87);
+    term3 = scalarMultiply(dotProduct(d2Udxdp,matrixAdd(vel,scalarMultiply(vel0,-1))),-1);
     doubleThreeVector dotVel = matrixAdd(term1,matrixAdd(term2,term3));
 
     return {dotPos,dotVel};
@@ -245,7 +301,7 @@ double AISKinematicPropagator::get_L(const double& t, void *params)
     doubleThreeVector vel0 = p->vel0;
 
     // compute the Lagrangian
-    std::array<doubleThreeVector, 2> newPosVel = CalculateNewPhaseSpaceCoords(t0, t, pos0, pos0, vel0, vel0);
+    std::array<doubleThreeVector, 2> newPosVel = CalculateNewPhaseSpaceCoords(t0, t, pos0, vel0);
     doubleThreeVector newPos = newPosVel[0];
     doubleThreeVector newVel = newPosVel[1];
     double U = get_U(newPos, newVel);

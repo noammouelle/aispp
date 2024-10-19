@@ -40,6 +40,7 @@ void AISPulsePropagator::PropagateAtom(AISAtom* atom)
         // Apply U1(t_0,t_0) transformation (do nothing)
         // Apply U2(t_0,t_0) transformation
         ApplyU2(wavepacket0, t0);
+
         // Apply U3(t_0,t)
         ApplyU3(wavepacket0, wavepacket1, t0, t1);
         
@@ -106,7 +107,7 @@ void AISPulsePropagator::ApplyU2Dagger(AISWavePacket* wavepacket, __float128 t0,
         double phi = laserBeam->GetPhi(pos);
         doubleThreeVector gradPhi = laserBeam->GetDelPhi(pos);
 
-        std::array<doubleThreeVector,2> newCoordsLinearized = kinematicPropagator->CalculateNewPhaseSpaceCoordsLinearized(t0,t1,pos,pos,vel,vel);
+        std::array<doubleThreeVector,2> newCoordsLinearized = kinematicPropagator->CalculateNewPhaseSpaceCoordsLinearized(t0,t1,pos,vel);
         doubleThreeVector posLin = newCoordsLinearized[0];
         doubleThreeVector velLin = newCoordsLinearized[1];
 
@@ -183,14 +184,14 @@ int AISPulsePropagator::funcU3(double t, const double y[], double f[], void *par
 void AISPulsePropagator::ApplyU3(AISWavePacket* wavepacket0, AISWavePacket* wavepacket1, __float128 t0, __float128 t1)
 {
     // define the params
-    U3Params* params = new U3Params{t0, wavepacket0->GetPosition(), wavepacket0->GetVelocity(), laserBeam, this};
+    double t0Double = static_cast<double>(t0);
+    double t1Double = static_cast<double>(t1);
+    U3Params* params = new U3Params{t0Double, wavepacket0->GetPosition(), wavepacket0->GetVelocity(), laserBeam, this};
     // define the ode system
     gsl_odeiv2_system sys = {funcU3, nullptr, 4, params};
     // setup the driver
     double reltol = 0.0;
     double abstol = 1e-9;
-    double t0Double = static_cast<double>(t0);
-    double t1Double = static_cast<double>(t1);
     double hstart = (t0Double - t1Double) / 1000.0;
     gsl_odeiv2_driver * d =
     gsl_odeiv2_driver_alloc_y_new (&sys, gsl_odeiv2_step_rk8pd,

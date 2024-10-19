@@ -46,7 +46,7 @@ doubleThreeVector AISLaserBeam::GetDelPhi(doubleThreeVector pos)
     return delWavefrontFunction(pos);
 }
 
-double AISLaserBeam::GetRabiFreq(doubleThreeVector pos, __float128 t)
+double AISLaserBeam::GetRabiFreq(doubleThreeVector pos, __float128 t0, __float128 t)
 {
-    return rabifreqFunction(pos, t);
+    return rabifreqFunction(pos, t0, t);
 }
