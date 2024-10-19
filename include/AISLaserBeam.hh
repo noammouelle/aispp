@@ -21,7 +21,7 @@ public:
     // of the constructor to get the phases etc. Need to check on WiFi
     double GetPhi(doubleThreeVector pos); 
     doubleThreeVector GetDelPhi(doubleThreeVector pos);
-    double GetRabiFreq(doubleThreeVector pos, __float128 t);
+    double GetRabiFreq(doubleThreeVector pos, __float128 t0, __float128 t);
     
     doubleThreeVector GetK();
     void SetK(doubleThreeVector k);

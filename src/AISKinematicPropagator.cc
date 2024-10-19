@@ -1,11 +1,13 @@
 #include "AISKinematicPropagator.hh"
 
 AISKinematicPropagator::AISKinematicPropagator(potentialFunctionType U, gradPotentialFunctionType dUdx,
-                                               gradPotentialFunctionType dUdp)
+                                               gradPotentialFunctionType dUdp,
+                                               hessianPotentialFunctionType H_U)
 {
     this->U = U;
     this->dUdx = dUdx;
     this->dUdp = dUdp;
+    this->H_U = H_U;
 }
 
 AISKinematicPropagator::~AISKinematicPropagator()
@@ -24,6 +26,11 @@ doubleThreeVector AISKinematicPropagator::get_dUdx(const doubleThreeVector& pos,
 doubleThreeVector AISKinematicPropagator::get_dUdp(const doubleThreeVector& pos, const doubleThreeVector& vel)
 {
     return dUdp(pos, vel);
+}
+
+double6x6Matrix AISKinematicPropagator::get_HessianU(const doubleThreeVector& pos, const doubleThreeVector& vel)
+{
+    return H_U(pos, vel);
 }
 
 void AISKinematicPropagator::SetAddEnergyPhase(bool addEnergyPhase)
@@ -88,8 +95,7 @@ void AISKinematicPropagator::PropagateWavePacket(AISWavePacket* wavePacket, __fl
 }
 
 std::array<doubleThreeVector, 2> AISKinematicPropagator::CalculateNewPhaseSpaceCoords(const double& t0, const double& t1, 
-                                                                                  const doubleThreeVector& pos0, const doubleThreeVector& pos1, 
-                                                                                  const doubleThreeVector& vel0, const doubleThreeVector& vel1)
+                                                                                  const doubleThreeVector& pos0, const doubleThreeVector& vel0)
 {
     // define the ode system
     gsl_odeiv2_system sys = {func, nullptr, 6, this};
@@ -115,6 +121,94 @@ std::array<doubleThreeVector, 2> AISKinematicPropagator::CalculateNewPhaseSpaceC
 
     return {newPos, newVel};
 }
+
+std::array<doubleThreeVector, 2> AISKinematicPropagator::CalculateNewPhaseSpaceCoordsLinearized(const double& t0, const double& t1, 
+                                                                                  const doubleThreeVector& pos0, const doubleThreeVector& vel0)
+{
+    // Known analytical solution
+    doubleThreeVector dUdx = get_dUdx(pos0,vel0);
+    doubleThreeVector dUdp = get_dUdp(pos0,vel0);
+    double3x3Matrix d2Udxdp = get_d2Udpdp(pos0,vel0);
+    double3x3Matrix d2Udpdx = d2Udxdp;
+    double3x3Matrix d2Udxdx = get_d2Udxdx(pos0,vel0);
+    double3x3Matrix d2Udpdp = get_d2Udpdp(pos0,vel0);
+
+    doubleSixVector y0 = {pos0[0],pos0[1],pos0[2],vel0[0],vel0[1],vel0[2]};
+
+    doubleSixVector u = {dUdp[0],dUdp[1],dUdp[2],-dUdx[0], -dUdx[1], -dUdx[2]};
+
+    double6x6Matrix M = {{
+    { d2Udpdx[0][0], d2Udpdx[0][1], d2Udpdx[0][2], d2Udpdp[0][0], d2Udpdp[0][1], d2Udpdp[0][2] },
+    { d2Udpdx[1][0], d2Udpdx[1][1], d2Udpdx[1][2], d2Udpdp[1][0], d2Udpdp[1][1], d2Udpdp[1][2] },
+    { d2Udpdx[2][0], d2Udpdx[2][1], d2Udpdx[2][2], d2Udpdp[2][0], d2Udpdp[2][1], d2Udpdp[2][2] },
+    { -d2Udxdx[0][0], -d2Udxdx[0][1], -d2Udxdx[0][2], -d2Udxdp[0][0], -d2Udxdp[0][1], -d2Udxdp[0][2] },
+    { -d2Udxdx[1][0], -d2Udxdx[1][1], -d2Udxdx[1][2], -d2Udxdp[1][0], -d2Udxdp[1][1], -d2Udxdp[1][2] },
+    { -d2Udxdx[2][0], -d2Udxdx[2][1], -d2Udxdx[2][2], -d2Udxdp[2][0], -d2Udxdp[2][1], -d2Udxdp[2][2] }
+    }};
+
+    double6x6Matrix I = {{
+        {1.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+        {0.0, 1.0, 0.0, 0.0, 0.0, 0.0},
+        {0.0, 0.0, 1.0, 0.0, 0.0, 0.0},
+        {0.0, 0.0, 0.0, 1.0, 0.0, 0.0},
+        {0.0, 0.0, 0.0, 0.0, 1.0, 0.0},
+        {0.0, 0.0, 0.0, 0.0, 0.0, 1.0},
+    }};
+
+    double t0_double = static_cast<double>(t0);
+    double t1_double = static_cast<double>(t1);
+
+    double6x6Matrix Mdt = scalarMultiply(M,t1_double-t0_double);
+    double6x6Matrix invM = invertMatrix(M);
+
+    // compute the matrix exponential
+    double6x6Matrix expMdt = expMatrix(Mdt);
+
+    double6x6Matrix expMMinusI = matrixAdd(expMdt,scalarMultiply(I,-1.0));
+
+    // compute the solution
+    doubleSixVector invMDotU = dotProduct(invM,u);
+    doubleSixVector xi = dotProduct(expMMinusI,invMDotU);
+    doubleSixVector y  = matrixAdd(y0,xi);
+
+    doubleThreeVector newPos = {y[0],y[1],y[2]};
+    doubleThreeVector newVel = {y[3],y[4],y[5]};
+
+    return {newPos,newVel};    
+}
+
+std::array<doubleThreeVector,2> AISKinematicPropagator::get_dotPhaseSpaceCoordsLinearized(const double& t0, const double& t1, 
+                                                                                  const doubleThreeVector& pos0, const doubleThreeVector& vel0)
+{
+    // get the solutions to the linearized Hamilton's equations
+    std::array<doubleThreeVector, 2> newCoords = CalculateNewPhaseSpaceCoordsLinearized(t0, t1, pos0, vel0);
+    doubleThreeVector pos = newCoords[0];
+    doubleThreeVector vel = newCoords[1];
+    // get the gradients and hessians
+    doubleThreeVector dUdx = get_dUdx(pos0,vel0);
+    doubleThreeVector dUdp = get_dUdp(pos0,vel0);
+    double3x3Matrix d2Udxdx = get_d2Udxdx(pos0,vel0);
+    double3x3Matrix d2Udxdp = get_d2Udxdp(pos0,vel0);
+    double3x3Matrix d2Udpdp = get_d2Udpdp(pos0,vel0);
+    double3x3Matrix I = {{
+        {1.0, 0.0, 0.0},
+        {0.0, 1.0, 0.0},
+        {0.0, 0.0, 1.0}
+    }};
+    // compute the time derivatives (given by the linearized Hamilton's equations)
+    doubleThreeVector term1 = matrixAdd(vel0,dUdp);
+    doubleThreeVector term2 = dotProduct(I,matrixAdd(scalarMultiply(vel,1/massSr87),scalarMultiply(vel0,-1/massSr87)));
+    doubleThreeVector term3 = dotProduct(d2Udpdp,matrixAdd(scalarMultiply(vel,1/massSr87),scalarMultiply(vel0,-1/massSr87)));
+    doubleThreeVector term4 = dotProduct(transpose(d2Udxdp),matrixAdd(pos,scalarMultiply(pos0,-1)));
+    doubleThreeVector dotPos = matrixAdd(term1,matrixAdd(term2,matrixAdd(term3,term4)));
+
+    doubleThreeVector term1 = scalarMultiply(dUdx,-1/massSr87);
+    doubleThreeVector term2 = scalarMultiply(dotProduct(d2Udxdx,matrixAdd(pos,scalarMultiply(pos0,-1))),-1/massSr87);
+    doubleThreeVector term3 = scalarMultiply(dotProduct(d2Udxdp,matrixAdd(vel,scalarMultiply(vel0,-1))),-1);
+    doubleThreeVector dotVel = matrixAdd(term1,matrixAdd(term2,term3));
+
+    return {dotPos,dotVel};
+}                                                                                  
 
 int AISKinematicPropagator::func(double t, const double y[], double f[], void *params)
 {

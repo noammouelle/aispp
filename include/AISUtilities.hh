@@ -14,10 +14,15 @@
 #include <iomanip>
 #include <iomanip>
 #include <fstream>
+#include <gsl/gsl_matrix.h>
+#include <gsl/gsl_linalg.h>
 
 /* Custom variable types*/
 using doubleThreeVector = std::array<double, 3>;
 using double3x3Matrix = std::array<std::array<double, 3>, 3>;
+
+using doubleSixVector = std::array<double,6>;
+using double6x6Matrix = std::array<std::array<double,6>,6>;
 
 using quadThreeVector = std::array<__float128, 3>;
 using quad3x3Matrix = std::array<std::array<__float128, 3>, 3>;
@@ -52,13 +57,17 @@ void printQuadVariable(__float128 value);
 
 // Double precision - multiplication
 double3x3Matrix   dotProduct(const double3x3Matrix& A, const double3x3Matrix& B);
+doubleSixVector   dotProduct(const double6x6Matrix& A, const doubleSixVector& b);
 doubleThreeVector dotProduct(const doubleThreeVector& A, const double3x3Matrix& B);
 doubleThreeVector dotProduct(const double3x3Matrix& A, const doubleThreeVector& B);
 double            dotProduct(const doubleThreeVector& A, const doubleThreeVector& B);
 double3x3Matrix   scalarMultiply(const double3x3Matrix& A, const double& B);
+double6x6Matrix   scalarMultiply(const double6x6Matrix& A, const double& B);
 doubleThreeVector scalarMultiply(const doubleThreeVector& A, const double& B);
 // Double precision - addition
 double3x3Matrix   matrixAdd(const double3x3Matrix& A, const double3x3Matrix& B);
+double6x6Matrix   matrixAdd(const double6x6Matrix& A, const double6x6Matrix& B);
+doubleSixVector   matrixAdd(const doubleSixVector& A, const doubleSixVector& B);
 doubleThreeVector matrixAdd(const doubleThreeVector& A, const doubleThreeVector& B);
 // Double precision - transposition
 double3x3Matrix transpose(const double3x3Matrix& A);
@@ -71,5 +80,12 @@ double3x3Matrix convert3x3MatrixToDouble(quad3x3Matrix A);
 /* Detuning functions */
 doubleThreeVector computeDetunedWaveVector(const doubleThreeVector& k0, const double& vz);
 __float128 computeDetunedOmega(const __float128& omega0, const double& vz);
+
+/*Linalg and conversion routines*/
+void arrayToGslMatrix(const double6x6Matrix& src, gsl_matrix* dst);
+void gslMatrixToArray(const gsl_matrix* src, double6x6Matrix& dst);
+double6x6Matrix invertMatrix(const double6x6Matrix& M);
+double6x6Matrix expMatrix(const double6x6Matrix& M);
+
 
 #endif

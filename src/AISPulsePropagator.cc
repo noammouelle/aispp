@@ -1,8 +1,10 @@
 #include "AISPulsePropagator.hh"
 
-AISPulsePropagator::AISPulsePropagator(AISLaserBeam* beam, __float128 t0, __float128 t1)
+AISPulsePropagator::AISPulsePropagator(AISLaserBeam* beam, __float128 t0, __float128 t1,
+                                        AISKinematicPropagator* kinematicPropagator)
 {
     this->laserBeam=beam;
+    this->kinematicPropagator=kinematicPropagator;
     this->t0=t0;
     this->t1=t1;
 }
@@ -10,6 +12,7 @@ AISPulsePropagator::AISPulsePropagator(AISLaserBeam* beam, __float128 t0, __floa
 AISPulsePropagator::~AISPulsePropagator()
 {
     delete this->laserBeam;
+    delete this->kinematicPropagator;
 }
 
 void AISPulsePropagator::PropagateEnsemble(AISAtomEnsemble* atomEnsemble)
@@ -36,7 +39,7 @@ void AISPulsePropagator::PropagateAtom(AISAtom* atom)
 
         // Apply U1(t_0,t_0) transformation (do nothing)
         // Apply U2(t_0,t_0) transformation
-        ApplyU2(wavepacket0, t0, t0);
+        ApplyU2(wavepacket0, t0);
         // Apply U3(t_0,t)
         ApplyU3(wavepacket0, wavepacket1, t0, t1);
         
@@ -56,11 +59,210 @@ void AISPulsePropagator::PropagateAtom(AISAtom* atom)
         AISWavePacket* currentWavepacket = atom->GetWavePacket(wavePacketIndex);
         ApplyU2Dagger(currentWavepacket, t0, t1);
         ApplyU1(currentWavepacket, t1, t0);
+        // make sure the wavepacket time is correct
+        currentWavepacket->SetTime(t1);
     }
 }
 
 void AISPulsePropagator::ApplyU1(AISWavePacket* wavepacket, __float128 t0, __float128 t1)
 {
     // U1 is just kinematic propagation from t1 to t0 (note the reverse time order)
+    wavepacket->SetTime(t1); // TODO: there must be a better way of doing this
+    this->kinematicPropagator->PropagateWavePacket(wavepacket, t0);
+}
+
+void AISPulsePropagator::ApplyU2(AISWavePacket* wavepacket, __float128 t0)
+{
+    if(wavepacket->GetState() == 1)
+    {
+        double currentPhaseDouble = wavepacket->GetPhaseDouble();
+        __float128 currentPhaseQuad = wavepacket->GetPhaseQuad();
+        
+        doubleThreeVector pos = wavepacket->GetPosition();
+        doubleThreeVector k = laserBeam->GetK();
+        __float128 omega = laserBeam->GetOmega();
+        double phi = laserBeam->GetPhi(pos);
+        doubleThreeVector gradPhi = laserBeam->GetDelPhi(pos);
+
+        double dPhaseDouble = - dotProduct(matrixAdd(k,gradPhi),pos) - phi;
+        __float128 dPhaseQuad = omega * t0;
+
+        wavepacket->SetPhaseDouble(currentPhaseDouble + dPhaseDouble);
+        wavepacket->SetPhaseQuad(currentPhaseQuad + dPhaseQuad);
+    }
+}
+
+void AISPulsePropagator::ApplyU2Dagger(AISWavePacket* wavepacket, __float128 t0, __float128 t1)
+{
+    if(wavepacket->GetState() == 1)
+    {
+        double currentPhaseDouble = wavepacket->GetPhaseDouble();
+        __float128 currentPhaseQuad = wavepacket->GetPhaseQuad();
+        
+        doubleThreeVector pos = wavepacket->GetPosition();
+        doubleThreeVector vel = wavepacket->GetVelocity();
+        doubleThreeVector k = laserBeam->GetK();
+        __float128 omega = laserBeam->GetOmega();
+        double phi = laserBeam->GetPhi(pos);
+        doubleThreeVector gradPhi = laserBeam->GetDelPhi(pos);
+
+        std::array<doubleThreeVector,2> newCoordsLinearized = kinematicPropagator->CalculateNewPhaseSpaceCoordsLinearized(t0,t1,pos,pos,vel,vel);
+        doubleThreeVector posLin = newCoordsLinearized[0];
+        doubleThreeVector velLin = newCoordsLinearized[1];
+
+        double dPhaseDouble = phi + dotProduct(matrixAdd(k,gradPhi),posLin);
+        __float128 dPhaseQuad = - (omega - omegaSr87) * t1 - omegaSr87*t0;
+
+        wavepacket->SetPhaseDouble(currentPhaseDouble + dPhaseDouble);
+        wavepacket->SetPhaseQuad(currentPhaseQuad + dPhaseQuad);
+
+        // shift the central momentum
+        wavepacket->SetVelocity(matrixAdd(vel,scalarMultiply(matrixAdd(k,gradPhi),hbar/massSr87)));
+    }
+}
+
+double AISPulsePropagator::getDelta(doubleThreeVector pos0, doubleThreeVector vel0, double t0, double t1, AISLaserBeam* laserBeam)
+{
+    // get the effective wavevector
+    doubleThreeVector k = laserBeam->GetK();
+    doubleThreeVector gradPhi = laserBeam->GetDelPhi(pos0);
+    doubleThreeVector kPrime = matrixAdd(k,gradPhi);
+
+    // get the detuning
+    __float128 omega = laserBeam->GetOmega();
+    __float128 dOmega = omega - omegaSr87;
+    double dOmegaDouble = static_cast<double>(dOmega);
+
+    // compute the recoil term
+    double recoilTerm = dotProduct(kPrime,kPrime) * hbar / (2 * massSr87);
+
+    // compute the time derivative of R hat '
+    std::array<doubleThreeVector,2> dotCoordsPrime = kinematicPropagator->get_dotPhaseSpaceCoordsLinearized(t0,t1,pos0,vel0);
+    doubleThreeVector posDotPrime = dotCoordsPrime[0];
+
+    // compute the detuning
+    double delta = dotProduct(kPrime,posDotPrime) - dOmegaDouble + recoilTerm;
+
+    return delta;
+}
+
+int AISPulsePropagator::funcU3(double t, const double y[], double f[], void *params)
+{
+    // extract the params
+    params = (U3Params*) params;
+    doubleThreeVector pos,vel;
+    AISLaserBeam* laserBeam;
+    pos = ((U3Params*) params)->pos;
+    vel = ((U3Params*) params)->vel;
+    laserBeam = ((U3Params*) params)->laserBeam;
+    AISPulsePropagator* pulsePropagator = ((U3Params*) params)->pulsePropagator;
+    double t0 = ((U3Params*) params)->t0;
+
+    // compute the detuning 
+    double delta = pulsePropagator->getDelta(pos,vel,t0,t,laserBeam);
+
+    // compute the Rabi frequency
+    double RabiFreq = laserBeam->GetRabiFreq(pos,t0,t);
+
+     // start by computing dU/dx and dU/dp
+    double reComplexAmplitdueGround = y[0];
+    double reComplexAmplitdueExcited = y[1];
+    double imComplexAmplitdueGround = y[2];
+    double imComplexAmplitdueExcited = y[3];
+
+    // define the f vector
+    f[0] = delta * imComplexAmplitdueExcited + RabiFreq * imComplexAmplitdueGround;
+    f[1] = RabiFreq * imComplexAmplitdueExcited;
+    f[2] = -delta * reComplexAmplitdueExcited - RabiFreq * reComplexAmplitdueGround;
+    f[3] = -RabiFreq * reComplexAmplitdueExcited;
+
+    return GSL_SUCCESS;
+
+}
+
+void AISPulsePropagator::ApplyU3(AISWavePacket* wavepacket0, AISWavePacket* wavepacket1, __float128 t0, __float128 t1)
+{
+    // define the params
+    U3Params* params = new U3Params{t0, wavepacket0->GetPosition(), wavepacket0->GetVelocity(), laserBeam, this};
+    // define the ode system
+    gsl_odeiv2_system sys = {funcU3, nullptr, 4, params};
+    // setup the driver
+    double reltol = 0.0;
+    double abstol = 1e-9;
+    double t0Double = static_cast<double>(t0);
+    double t1Double = static_cast<double>(t1);
+    double hstart = (t0Double - t1Double) / 1000.0;
+    gsl_odeiv2_driver * d =
+    gsl_odeiv2_driver_alloc_y_new (&sys, gsl_odeiv2_step_rk8pd,
+                                  hstart, abstol, reltol);
+
+    double y[4];
+    if(wavepacket0->GetState()==0)
+    {
+        double amplitudeGround = wavepacket0->GetAmplitude();
+        double y[4] = {amplitudeGround, 0.0, 0.0, 0.0};
+        int status = gsl_odeiv2_driver_apply(d, &t0Double, t1Double, y);
+        if (status != GSL_SUCCESS)
+        {
+            printf("error, return value=%d\n", status);
+        }
+    }
+    else
+    {
+        double amplitudeExcited = wavepacket0->GetAmplitude();
+        double y[4] = {0.0, amplitudeExcited, 0.0, 0.0};
+        int status = gsl_odeiv2_driver_apply(d, &t0Double, t1Double, y);
+        if (status != GSL_SUCCESS)
+        {
+            printf("error, return value=%d\n", status);
+        }
+    }
     
+    gsl_odeiv2_driver_free(d);
+
+    // get the amplitudes 
+    double reComplexAmplitdueGround = y[0];
+    double reComplexAmplitdueExcited = y[1];
+    double imComplexAmplitdueGround = y[2];
+    double imComplexAmplitdueExcited = y[3];
+
+    // separate into amplitude and phase
+    double amplitudeGround = sqrt(reComplexAmplitdueGround * reComplexAmplitdueGround + imComplexAmplitdueGround * imComplexAmplitdueGround);
+    double amplitudeExcited = sqrt(reComplexAmplitdueExcited * reComplexAmplitdueExcited + imComplexAmplitdueExcited * imComplexAmplitdueExcited);
+    double phaseGround = atan2(imComplexAmplitdueGround,reComplexAmplitdueGround);
+    double phaseExcited = atan2(imComplexAmplitdueExcited,reComplexAmplitdueExcited);
+
+    // set the amplitudes and phases of the wavepackets
+    if(wavepacket0->GetState()==0)
+    {
+        double currentPhaseDouble = wavepacket0->GetPhaseDouble();
+        __float128 currentPhaseQuad = wavepacket0->GetPhaseQuad();
+        doubleThreeVector pos = wavepacket0->GetPosition();
+        doubleThreeVector vel = wavepacket0->GetVelocity();
+        wavepacket0->SetAmplitude(amplitudeGround);
+        wavepacket0->SetPhaseDouble(currentPhaseDouble+phaseGround);
+  
+        wavepacket1->SetAmplitude(amplitudeExcited);
+        wavepacket1->SetPhaseDouble(currentPhaseDouble+phaseExcited);
+        wavepacket1->SetPhaseQuad(currentPhaseQuad);
+        wavepacket1->SetState(1);
+        wavepacket1->SetPosition(pos);
+        wavepacket1->SetVelocity(vel);
+    }
+    else
+    {
+        double currentPhaseDouble = wavepacket0->GetPhaseDouble();
+        __float128 currentPhaseQuad = wavepacket0->GetPhaseQuad();
+        doubleThreeVector pos = wavepacket0->GetPosition();
+        doubleThreeVector vel = wavepacket0->GetVelocity();
+        wavepacket0->SetAmplitude(amplitudeExcited);
+        wavepacket0->SetPhaseDouble(currentPhaseDouble+phaseExcited);
+
+        wavepacket1->SetAmplitude(amplitudeGround);
+        wavepacket1->SetPhaseDouble(currentPhaseDouble+phaseGround);
+        wavepacket1->SetPhaseQuad(currentPhaseQuad);
+        wavepacket1->SetState(0);
+        wavepacket1->SetPosition(pos);
+        wavepacket1->SetVelocity(vel);
+    }
 }
