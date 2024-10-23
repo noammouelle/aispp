@@ -180,17 +180,20 @@ std::array<doubleThreeVector, 2> AISKinematicPropagator::CalculateNewPhaseSpaceC
 
 std::array<doubleThreeVector, 2> AISKinematicPropagator::CalculateNewPhaseSpaceCoordsLinearized(const double& t0, const double& t1, 
                                                                                   const doubleThreeVector& pos0, const doubleThreeVector& vel0)
-{
+{   // check if t0 == t1 (can happen here)
+    if(t0==t1)
+    {
+        return {pos0, vel0};
+    }
+    else
+    {
     // define the ode system
     FuncLinearizedParams* linearizedParams = new FuncLinearizedParams{pos0, vel0, this};
     gsl_odeiv2_system sys = {funcLinearized, nullptr, 6, linearizedParams};
     // setup the driver
     double reltol = 0.0;
     double abstol = 1e-9;
-    double hstart = (t1 - t0) / 1000.0;
-    std::cout << "t0 = " << t0 << std::endl;
-    std::cout << "t1 = " << t1 << std::endl;
-    std::cout << "hstart = " << hstart << std::endl;    
+    double hstart = (t1 - t0) / 1000.0;   
     gsl_odeiv2_driver * d =
     gsl_odeiv2_driver_alloc_y_new (&sys, gsl_odeiv2_step_rk8pd,
                                   hstart, abstol, reltol);
@@ -208,14 +211,13 @@ std::array<doubleThreeVector, 2> AISKinematicPropagator::CalculateNewPhaseSpaceC
     doubleThreeVector newVel = {y[3], y[4], y[5]};
 
     return {newPos, newVel};
+    }
 }
 
 std::array<doubleThreeVector,2> AISKinematicPropagator::get_dotPhaseSpaceCoordsLinearized(const double& t0, const double& t1, 
                                                                                   const doubleThreeVector& pos0, const doubleThreeVector& vel0)
 {
     // get the solutions to the linearized Hamilton's equations
-    std::cout<<"IN GET_DOTPHASESPACECOORDSLINEARIZED"<<std::endl;
-    std::cout<<"t0 = "<<t0<<" t1 = "<<t1<<std::endl;
     std::array<doubleThreeVector, 2> newCoords = CalculateNewPhaseSpaceCoordsLinearized(t0, t1, pos0, vel0);
     doubleThreeVector pos = newCoords[0];
     doubleThreeVector vel = newCoords[1];

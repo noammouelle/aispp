@@ -142,8 +142,6 @@ double AISPulsePropagator::getDelta(doubleThreeVector pos0, doubleThreeVector ve
     double recoilTerm = dotProduct(kPrime,kPrime) * hbar / (2 * massSr87);
 
     // compute the time derivative of R hat '
-    std::cout<<"IN GETDELTA"<<std::endl;
-    std::cout<<"t0 = "<<t0<<" t1 = "<<t1<<std::endl;
     std::array<doubleThreeVector,2> dotCoordsPrime = kinematicPropagator->get_dotPhaseSpaceCoordsLinearized(t0,t1,pos0,vel0);
     doubleThreeVector posDotPrime = dotCoordsPrime[0];
 
@@ -164,9 +162,6 @@ int AISPulsePropagator::funcU3(double t, const double y[], double f[], void *par
     laserBeam = ((U3Params*) params)->laserBeam;
     AISPulsePropagator* pulsePropagator = ((U3Params*) params)->pulsePropagator;
     double t0 = ((U3Params*) params)->t0;
-
-    std::cout<<"IN FUNCU3"<<std::endl;
-    std::cout<<"t0 = "<<t0<<" t = "<<t<<std::endl;
 
     // compute the detuning 
     double delta = pulsePropagator->getDelta(pos,vel,t0,t,laserBeam);
@@ -209,7 +204,6 @@ void AISPulsePropagator::ApplyU3(AISWavePacket* wavepacket0, AISWavePacket* wave
     double y[4];
     if(wavepacket0->GetState()==0)
     {
-        std::cout<<"Ground state"<<std::endl;
         double amplitudeGround = wavepacket0->GetAmplitude();
         y[0] = amplitudeGround;
         y[1] = 0.0;
@@ -218,15 +212,12 @@ void AISPulsePropagator::ApplyU3(AISWavePacket* wavepacket0, AISWavePacket* wave
     }
     else
     {
-        std::cout<<"Excited state"<<std::endl;
         double amplitudeExcited = wavepacket0->GetAmplitude();
         y[0] = 0.0;
         y[1] = amplitudeExcited;
         y[2] = 0.0;
         y[3] = 0.0;
     }
-    std::cout<<"IN APPLYU3"<<std::endl;
-    std::cout<<"t0Double = "<<t0Double<<" t1Double = "<<t1Double<<std::endl;
     int status = gsl_odeiv2_driver_apply(d, &t0Double, t1Double, y);
 
     if (status != GSL_SUCCESS)
