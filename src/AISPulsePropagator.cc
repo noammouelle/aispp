@@ -5,8 +5,10 @@ AISPulsePropagator::AISPulsePropagator(AISLaserBeam* beam, __float128 t0, __floa
 {
     this->laserBeam=beam;
     this->kinematicPropagator=kinematicPropagator;
-    this->t0=t0;
-    this->t1=t1;
+    this->initTime=t0;
+    this->finalTime=t1;
+    this->initTimeDouble = static_cast<double>(t0);
+    this->finalTimeDouble = static_cast<double>(t1);
 }
 
 AISPulsePropagator::~AISPulsePropagator()
@@ -17,7 +19,7 @@ AISPulsePropagator::~AISPulsePropagator()
 
 void AISPulsePropagator::PropagateEnsemble(AISAtomEnsemble* atomEnsemble)
 {
-    #pragma omp parallel for
+    //#pragma omp parallel for
     for(int i_atom = 0; i_atom < atomEnsemble->GetNumberOfAtoms(); ++i_atom)
     {
         AISAtom* currentAtom = atomEnsemble->GetAtom(i_atom);
@@ -39,10 +41,10 @@ void AISPulsePropagator::PropagateAtom(AISAtom* atom)
 
         // Apply U1(t_0,t_0) transformation (do nothing)
         // Apply U2(t_0,t_0) transformation
-        ApplyU2(wavepacket0, t0);
+        ApplyU2(wavepacket0, this->initTime);
 
         // Apply U3(t_0,t)
-        ApplyU3(wavepacket0, wavepacket1, t0, t1);
+        ApplyU3(wavepacket0, wavepacket1, this->initTime, this->finalTime);
         
         // add the wavepackets to the vector
         newWavePackets->push_back(wavepacket0);
@@ -58,10 +60,10 @@ void AISPulsePropagator::PropagateAtom(AISAtom* atom)
     for(int wavePacketIndex = 0; wavePacketIndex < atom->GetNumberOfWavePackets(); ++wavePacketIndex)
     {
         AISWavePacket* currentWavepacket = atom->GetWavePacket(wavePacketIndex);
-        ApplyU2Dagger(currentWavepacket, t0, t1);
-        ApplyU1(currentWavepacket, t1, t0);
+        ApplyU2Dagger(currentWavepacket, this->initTime, this->finalTime);
+        ApplyU1(currentWavepacket, this->initTime, this->finalTime);
         // make sure the wavepacket time is correct
-        currentWavepacket->SetTime(t1);
+        currentWavepacket->SetTime(this->finalTime);
     }
 }
 
@@ -107,7 +109,9 @@ void AISPulsePropagator::ApplyU2Dagger(AISWavePacket* wavepacket, __float128 t0,
         double phi = laserBeam->GetPhi(pos);
         doubleThreeVector gradPhi = laserBeam->GetDelPhi(pos);
 
-        std::array<doubleThreeVector,2> newCoordsLinearized = kinematicPropagator->CalculateNewPhaseSpaceCoordsLinearized(t0,t1,pos,vel);
+        double t0Double = static_cast<double>(t0);
+        double t1Double = static_cast<double>(t1);
+        std::array<doubleThreeVector,2> newCoordsLinearized = kinematicPropagator->CalculateNewPhaseSpaceCoordsLinearized(t0Double,t1Double,pos,vel);
         doubleThreeVector posLin = newCoordsLinearized[0];
         doubleThreeVector velLin = newCoordsLinearized[1];
 
@@ -138,6 +142,8 @@ double AISPulsePropagator::getDelta(doubleThreeVector pos0, doubleThreeVector ve
     double recoilTerm = dotProduct(kPrime,kPrime) * hbar / (2 * massSr87);
 
     // compute the time derivative of R hat '
+    std::cout<<"IN GETDELTA"<<std::endl;
+    std::cout<<"t0 = "<<t0<<" t1 = "<<t1<<std::endl;
     std::array<doubleThreeVector,2> dotCoordsPrime = kinematicPropagator->get_dotPhaseSpaceCoordsLinearized(t0,t1,pos0,vel0);
     doubleThreeVector posDotPrime = dotCoordsPrime[0];
 
@@ -158,6 +164,9 @@ int AISPulsePropagator::funcU3(double t, const double y[], double f[], void *par
     laserBeam = ((U3Params*) params)->laserBeam;
     AISPulsePropagator* pulsePropagator = ((U3Params*) params)->pulsePropagator;
     double t0 = ((U3Params*) params)->t0;
+
+    std::cout<<"IN FUNCU3"<<std::endl;
+    std::cout<<"t0 = "<<t0<<" t = "<<t<<std::endl;
 
     // compute the detuning 
     double delta = pulsePropagator->getDelta(pos,vel,t0,t,laserBeam);
@@ -192,7 +201,7 @@ void AISPulsePropagator::ApplyU3(AISWavePacket* wavepacket0, AISWavePacket* wave
     // setup the driver
     double reltol = 0.0;
     double abstol = 1e-9;
-    double hstart = (t0Double - t1Double) / 1000.0;
+    double hstart = (t1Double - t0Double) / 1000.0;
     gsl_odeiv2_driver * d =
     gsl_odeiv2_driver_alloc_y_new (&sys, gsl_odeiv2_step_rk8pd,
                                   hstart, abstol, reltol);
@@ -200,23 +209,29 @@ void AISPulsePropagator::ApplyU3(AISWavePacket* wavepacket0, AISWavePacket* wave
     double y[4];
     if(wavepacket0->GetState()==0)
     {
+        std::cout<<"Ground state"<<std::endl;
         double amplitudeGround = wavepacket0->GetAmplitude();
-        double y[4] = {amplitudeGround, 0.0, 0.0, 0.0};
-        int status = gsl_odeiv2_driver_apply(d, &t0Double, t1Double, y);
-        if (status != GSL_SUCCESS)
-        {
-            printf("error, return value=%d\n", status);
-        }
+        y[0] = amplitudeGround;
+        y[1] = 0.0;
+        y[2] = 0.0;
+        y[3] = 0.0;
     }
     else
     {
+        std::cout<<"Excited state"<<std::endl;
         double amplitudeExcited = wavepacket0->GetAmplitude();
-        double y[4] = {0.0, amplitudeExcited, 0.0, 0.0};
-        int status = gsl_odeiv2_driver_apply(d, &t0Double, t1Double, y);
-        if (status != GSL_SUCCESS)
-        {
-            printf("error, return value=%d\n", status);
-        }
+        y[0] = 0.0;
+        y[1] = amplitudeExcited;
+        y[2] = 0.0;
+        y[3] = 0.0;
+    }
+    std::cout<<"IN APPLYU3"<<std::endl;
+    std::cout<<"t0Double = "<<t0Double<<" t1Double = "<<t1Double<<std::endl;
+    int status = gsl_odeiv2_driver_apply(d, &t0Double, t1Double, y);
+
+    if (status != GSL_SUCCESS)
+    {
+        printf("error, return value=%d\n", status);
     }
     
     gsl_odeiv2_driver_free(d);

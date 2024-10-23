@@ -22,7 +22,8 @@ class AISPulsePropagator
 private:
     AISLaserBeam* laserBeam;
     AISKinematicPropagator* kinematicPropagator;
-    __float128 t0, t1;
+    __float128 initTime, finalTime;
+    double initTimeDouble, finalTimeDouble;
 
 protected:
     void ApplyU1(AISWavePacket* wavepacket, __float128 t0, __float128 t1);
