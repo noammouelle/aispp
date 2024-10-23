@@ -13,8 +13,6 @@ AISPulsePropagator::AISPulsePropagator(AISLaserBeam* beam, __float128 t0, __floa
 
 AISPulsePropagator::~AISPulsePropagator()
 {
-    delete this->laserBeam;
-    delete this->kinematicPropagator;
 }
 
 void AISPulsePropagator::PropagateEnsemble(AISAtomEnsemble* atomEnsemble)
