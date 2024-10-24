@@ -152,14 +152,14 @@ double AISPulsePropagator::getDelta(doubleThreeVector pos0, doubleThreeVector ve
 int AISPulsePropagator::funcU3(double t, const double y[], double f[], void *params)
 {
     // extract the params
-    params = (U3Params*) params;
+    U3Params* u3Params = static_cast<U3Params*>(params);
     doubleThreeVector pos,vel;
     AISLaserBeam* laserBeam;
-    pos = ((U3Params*) params)->pos;
-    vel = ((U3Params*) params)->vel;
-    laserBeam = ((U3Params*) params)->laserBeam;
-    AISPulsePropagator* pulsePropagator = ((U3Params*) params)->pulsePropagator;
-    double t0 = ((U3Params*) params)->t0;
+    pos = u3Params->pos;
+    vel = u3Params->vel;
+    laserBeam = u3Params->laserBeam;
+    AISPulsePropagator* pulsePropagator = u3Params->pulsePropagator;
+    double t0 = u3Params->t0;
 
     // compute the detuning 
     double delta = pulsePropagator->getDelta(pos,vel,t0,t,laserBeam);
@@ -174,10 +174,10 @@ int AISPulsePropagator::funcU3(double t, const double y[], double f[], void *par
     double imComplexAmplitdueExcited = y[3];
 
     // define the f vector
-    f[0] = delta * imComplexAmplitdueExcited + RabiFreq * imComplexAmplitdueGround;
-    f[1] = RabiFreq * imComplexAmplitdueExcited;
-    f[2] = -delta * reComplexAmplitdueExcited - RabiFreq * reComplexAmplitdueGround;
-    f[3] = -RabiFreq * reComplexAmplitdueExcited;
+    f[0] =   RabiFreq / 2 * imComplexAmplitdueExcited;
+    f[1] =   delta * imComplexAmplitdueExcited + RabiFreq / 2 * imComplexAmplitdueGround;
+    f[2] = - RabiFreq / 2 * reComplexAmplitdueExcited;
+    f[3] = - delta * reComplexAmplitdueExcited - RabiFreq / 2 * reComplexAmplitdueGround;
 
     return GSL_SUCCESS;
 
