@@ -59,7 +59,7 @@ void AISPulsePropagator::PropagateAtom(AISAtom* atom)
     {
         AISWavePacket* currentWavepacket = atom->GetWavePacket(wavePacketIndex);
         ApplyU2Dagger(currentWavepacket, this->initTime, this->finalTime);
-        ApplyU1(currentWavepacket, this->initTime, this->finalTime);
+        ApplyU1(currentWavepacket, this->finalTime, this->initTime); // note the reverse time order
         // make sure the wavepacket time is correct
         currentWavepacket->SetTime(this->finalTime);
     }
