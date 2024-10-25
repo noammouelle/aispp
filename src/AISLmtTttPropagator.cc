@@ -24,7 +24,7 @@ double AISLmtTttPropagator::computeVelocity(const double& vz0, const __float128&
 }
 
 void AISLmtTttPropagator::PropagateAtomInPulse(AISAtom* atom, const doubleThreeVector& k, const __float128& omega,
-                                               AISSineWaveFront* waveFront, AISIntensityProfile* intensityProfile)
+                                               AISWaveFront* waveFront, AISIntensityProfile* intensityProfile)
 {
     fTttPropagator->SetWaveVector(k);
     fTttPropagator->SetOmega(omega);

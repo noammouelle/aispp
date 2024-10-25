@@ -14,7 +14,7 @@ AISPulsePropagator::~AISPulsePropagator()
     //delete fWaveFront;
 }
 
-void AISPulsePropagator::SetWaveFront(AISSineWaveFront* waveFront)
+void AISPulsePropagator::SetWaveFront(AISWaveFront* waveFront)
 {
     fWaveFront = waveFront;
 }

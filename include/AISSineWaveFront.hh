@@ -13,7 +13,7 @@ public:
     AISSineWaveFront(doubleThreeVector psrGradient, double laserPhase, double A, doubleThreeVector k);
     ~AISSineWaveFront();
 
-    double GetValue(const doubleThreeVector& pos) override;
+    double GetValue(const doubleThreeVector& pos, const doubleThreeVector& k) override;
 };
 
 #endif

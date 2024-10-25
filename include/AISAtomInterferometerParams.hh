@@ -2,6 +2,8 @@
 #define AISATOMINTERFEROMETERPARAMS_HH
 
 #include "AISUtilities.hh"
+#include "AISWaveFront.hh"
+#include "AISIntensityProfile.hh"
 
 class AISAtomInterferometerParams
 {
@@ -23,6 +25,11 @@ public:
     doubleThreeVector psrGradient;
     doubleThreeVector aberrationK;
     double aberrationAmplitude;
+
+    AISWaveFront* wavefront;
+    AISWaveFront* wavefrontPsr;
+
+    AISIntensityProfile* intensityProfile;
 
     /* SEQUENCE PARAMETERS */
     __float128 initialPropagationTime;

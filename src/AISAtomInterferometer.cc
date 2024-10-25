@@ -27,11 +27,11 @@ AISAtomInterferometer::AISAtomInterferometer(AISAtomInterferometerParams params)
     interrogationTimePropagator->SetAddEnergyPhase(true);
     
     // create the intensity profile
-    AISIntensityProfile* intensityProfile = new AISIntensityProfile(params.beamRadius, params.rabiFrequency);
+    AISIntensityProfile* intensityProfile = params.intensityProfile;
     // create the wavefront
-    AISSineWaveFront* wavefront    = new AISSineWaveFront({0.0, 0.0, 0.0}, 0.0, params.aberrationAmplitude, params.aberrationK);
-    AISSineWaveFront* wavefrontPsr = new AISSineWaveFront(params.psrGradient, params.laserPhase, params.aberrationAmplitude, params.aberrationK);
-
+    AISWaveFront* wavefront    = params.wavefront;
+    AISWaveFront* wavefrontPsr = params.wavefrontPsr;
+    
     // compute the vertical velocities at each pulse
     double vzBeamSplitter1 = params.initialVelocity[2] - 1 * g * params.initialPropagationTime; 
 
@@ -44,7 +44,7 @@ AISAtomInterferometer::AISAtomInterferometer(AISAtomInterferometerParams params)
     double vzLmt4 = vzLmt3 - g * ((params.lmtOrder - 1) / 2 * params.lmtDelayTime + params.interogationTime); 
 
     double vzBeamSplitter2 = vzLmt4 - g * (params.lmtOrder - 1) / 2 * params.lmtDelayTime;; 
-                                                
+                                       
     // compute the detuned frequency
     __float128 omega1 = computeDetunedOmega(omegaSr87, vzBeamSplitter1);
     __float128 omega2 = computeDetunedOmega(omegaSr87, vzMirror);
