@@ -1,6 +1,6 @@
-# AIS++
+# AIS++ v1.0.0
 
-Atom Interferometry Simulator in C++ (AIS++) is a C++ library enabling the simulation of atom clouds undergoing atom interferometry sequences. Individual atoms are modelled as point-like wavepackets evolved using the ABCD method [1] and the _ttt_-scheme [2].
+Atom Interferometry Simulator in C++ (AIS++) is a C++ library enabling the simulation of atom clouds undergoing atom interferometry sequences. In the this version (v1.0.0), individual atoms are modelled as point-like wavepackets evolved using the ABCD method [1] and the _ttt_-scheme [2].
 
 ## Table of Contents
 
