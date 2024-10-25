@@ -1,6 +1,6 @@
 #include "AISLaserBeam.hh"
 
-AISLaserBeam::AISLaserBeam(doubleThreeVector k, __float128 omega,
+AISLaserBeam::AISLaserBeam(doubleThreeVector k, __float128 omega, double rabiFreq,
                            wavefrontFunctionType wavefrontFunction,
                            delWavefrontFunctionType delWavefrontFunction,
                            rabifreqFunctionType rabiFreqFunction)
@@ -48,5 +48,5 @@ doubleThreeVector AISLaserBeam::GetDelPhi(doubleThreeVector pos)
 
 double AISLaserBeam::GetRabiFreq(doubleThreeVector pos, __float128 t0, __float128 t)
 {
-    return rabifreqFunction(pos, t0, t);
+    return this->rabiFreq * rabifreqFunction(pos, t0, t); // central rabi freq times envelope
 }

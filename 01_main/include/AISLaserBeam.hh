@@ -11,7 +11,7 @@ public:
     using delWavefrontFunctionType = doubleThreeVector(*)(doubleThreeVector);
     using rabifreqFunctionType  = double(*)(doubleThreeVector, __float128, __float128);
 
-    AISLaserBeam(doubleThreeVector k, __float128 omega,
+    AISLaserBeam(doubleThreeVector k, __float128 omega, double rabiFreq,
                  wavefrontFunctionType wavefrontFunction,
                  delWavefrontFunctionType delWavefrontFunction,
                  rabifreqFunctionType rabiFreqFunction);
@@ -30,6 +30,8 @@ public:
     void SetOmega(__float128 omega);
 
 private:
+    double rabiFreq; // central rabi frequency
+
     doubleThreeVector k;
     __float128 omega;
 
