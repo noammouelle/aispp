@@ -1,7 +1,6 @@
 #include <cmath>
 #include <random>
 
-#include "AISConstants.hh"
 #include "AISAtomEnsemble.hh"
 
 AISAtomEnsemble::AISAtomEnsemble(int nAtoms, double temperature, double width,

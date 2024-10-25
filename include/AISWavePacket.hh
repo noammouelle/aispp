@@ -24,6 +24,9 @@ public:
     // Phase components which do not require quad precision
     double GetPhaseDouble();
     void SetPhaseDouble(double phase);
+    // Setter and getter for the phase error (double)
+    double GetPhaseDoubleError();
+    void SetPhaseDoubleError(double err);
 
     double GetAmplitude();
     void SetAmplitude(double amplitude);
@@ -41,6 +44,7 @@ private:
     doubleThreeVector fVelocity = {0.,0.,0.};
     __float128 fPhaseQuad = 0.0q;
     double fPhaseDouble = 0.0;
+    double fPhaseDoubleError = 0.0;
     double fAmplitude = 1.0;
     int fState = 0;
     int fWavePacketID = 0;

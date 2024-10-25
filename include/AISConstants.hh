@@ -26,4 +26,6 @@ const double lambdaSr87  = static_cast<double>(lambdaSr87_quad);
 const double massEarth   = 5.97e24;
 const double radiusEarth = 6.37e6;
 
+const double massSr87overHbar = massSr87 / hbar;
+
 #endif

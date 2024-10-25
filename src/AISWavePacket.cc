@@ -42,6 +42,13 @@ void AISWavePacket::SetPhaseDouble(double phase){
     fPhaseDouble = phase;
 }
 
+double AISWavePacket::GetPhaseDoubleError(){
+    return fPhaseDoubleError;
+};
+void AISWavePacket::SetPhaseDoubleError(double err){
+    fPhaseDoubleError = err;
+}
+
 double AISWavePacket::GetAmplitude(){
     return fAmplitude;
 };

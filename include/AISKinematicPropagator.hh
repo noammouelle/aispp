@@ -1,0 +1,94 @@
+#ifndef AISKINEMATICPROPAGATOR_HH
+#define AISKINEMATICPROPAGATOR_HH
+
+#include "AISAtomEnsemble.hh"
+#include "AISAtom.hh"
+#include "AISWavePacket.hh"
+
+#include "AISConstants.hh"
+
+#include <stdio.h>
+#include <math.h>
+
+#include <gsl/gsl_errno.h>
+#include <gsl/gsl_matrix.h>
+#include <gsl/gsl_odeiv2.h>
+#include <gsl/gsl_integration.h>
+
+class AISKinematicPropagator
+{
+public: 
+    using potentialFunctionType = double(*)(const doubleThreeVector&, const doubleThreeVector&);
+    using gradPotentialFunctionType = doubleThreeVector(*)(const doubleThreeVector&, const doubleThreeVector&);
+    using hessianPotentialFunctionType = double3x3Matrix(*)(const doubleThreeVector&, const doubleThreeVector&);
+
+    AISKinematicPropagator(potentialFunctionType U, gradPotentialFunctionType dUdx,
+                           gradPotentialFunctionType dUdp,
+                           hessianPotentialFunctionType d2Udxdx,
+                           hessianPotentialFunctionType d2Udxdp,
+                           hessianPotentialFunctionType d2Udpdp);
+    ~AISKinematicPropagator();
+
+    void PropagateEnsemble(AISAtomEnsemble* atomEnsemble, __float128 t1);
+    void PropagateAtom(AISAtom* atom, __float128 t1);
+    void PropagateWavePacket(AISWavePacket* wavePacket, __float128 t1);
+
+    void PropagateEnsembleLinearized(AISAtomEnsemble* atomEnsemble, __float128 t1);
+    void PropagateAtomLinearized(AISAtom* atom, __float128 t1);
+    void PropagateWavePacketLinearized(AISWavePacket* wavePacket, __float128 t1);
+
+    void SetAddEnergyPhase(bool addEnergyPhase);
+
+    std::array<double,2> CalculateNewPhaseDouble(const double& phase0, const double& phaseErr, const doubleThreeVector& pos0, const doubleThreeVector& vel0,
+                                                         const double t0, const double t1);
+    __float128 CalculateNewPhaseQuad(const __float128& phase0, const __float128& t0, const __float128 t1);
+
+    std::array<doubleThreeVector, 2> CalculateNewPhaseSpaceCoords(const double& t0, const double& t1, 
+                                                                  const doubleThreeVector& pos0, const doubleThreeVector& vel0);
+
+    std::array<doubleThreeVector, 2> CalculateNewPhaseSpaceCoordsLinearized(const double& t0, const double& t1, 
+                                                                            const doubleThreeVector& pos0, const doubleThreeVector& vel0); 
+    std::array<doubleThreeVector, 2> get_dotPhaseSpaceCoordsLinearized(const double& t0, const double& t1, 
+                                                                            const doubleThreeVector& pos0, const doubleThreeVector& vel0);
+    
+    // These member functions return the Lagrangian and the action divided by m/hbar
+    static double get_L_wrapper(double t, void *params); 
+    double get_L(const double& t, void *params);
+    std::array<double,2> get_Scl(const double& t0, const double& t1, const doubleThreeVector& pos0, const doubleThreeVector& vel0);
+
+    static int func(double t, const double y[], double f[], void *params);
+    static int funcLinearized(double t, const double y[], double f[], void *params);
+
+    doubleThreeVector get_dUdx(const doubleThreeVector& pos, const doubleThreeVector& vel);
+    doubleThreeVector get_dUdp(const doubleThreeVector& pos, const doubleThreeVector& vel);
+    double3x3Matrix get_d2Udxdx(const doubleThreeVector& pos, const doubleThreeVector& vel);
+    double3x3Matrix get_d2Udxdp(const doubleThreeVector& pos, const doubleThreeVector& vel);
+    double3x3Matrix get_d2Udpdp(const doubleThreeVector& pos, const doubleThreeVector& vel);
+
+    // Careful! This function returns the potential energy divided by m
+    double get_U(const doubleThreeVector& pos, const doubleThreeVector& vel);
+
+    __float128 deltaTime = 0.0q;
+
+    bool fAddEnergyPhase = false;
+
+    potentialFunctionType U;
+    gradPotentialFunctionType dUdx, dUdp;
+    hessianPotentialFunctionType d2Udxdx, d2Udxdp, d2Udpdp;
+};
+
+// struct for the Lagrangian parameters
+struct LagrangianParams {
+    double t0;
+    doubleThreeVector pos0;
+    doubleThreeVector vel0;
+    AISKinematicPropagator* propagator;
+};
+
+struct FuncLinearizedParams {
+    doubleThreeVector pos0; // phase space coordinates around which the Hamiltonian is expanded
+    doubleThreeVector vel0;
+    AISKinematicPropagator* propagator;
+};
+
+#endif

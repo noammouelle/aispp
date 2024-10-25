@@ -4,6 +4,7 @@
 #include "AISConstants.hh"
 #include <vector>
 #include "AISWavePacket.hh"
+#include "AISUtilities.hh"
 
 using wavePacketVector = std::vector<AISWavePacket*>;
 

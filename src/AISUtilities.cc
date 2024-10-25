@@ -115,6 +115,18 @@ double3x3Matrix dotProduct(const double3x3Matrix& A, const double3x3Matrix& B){
     return result;
 }
 
+doubleSixVector dotProduct(const double6x6Matrix& A, const doubleSixVector& b){
+
+    doubleSixVector result = {};
+
+    for (int i = 0; i < 6; ++i) {
+        for (int k = 0; k < 6; ++k) {
+            result[i] += A[i][k] * b[k];
+        }
+    }
+    return result;
+}
+
 doubleThreeVector dotProduct(const double3x3Matrix& A, const doubleThreeVector& B){
 
     doubleThreeVector result = {};
@@ -161,6 +173,18 @@ double3x3Matrix scalarMultiply(const double3x3Matrix& A, const double& B){
     return result;
 }
 
+double6x6Matrix scalarMultiply(const double6x6Matrix& A, const double& B){
+    
+    double6x6Matrix result = {};
+
+    for(int i = 0; i < 6; ++i){
+        for(int j = 0; j < 6; ++j){ 
+            result[i][j] = A[i][j] * B;
+        }
+    }
+    return result;
+}
+
 doubleThreeVector scalarMultiply(const doubleThreeVector& A, const double& B){
     
     doubleThreeVector result = {};
@@ -179,6 +203,28 @@ double3x3Matrix matrixAdd(const double3x3Matrix& A, const double3x3Matrix& B){
         for(int j = 0; j < 3; ++j){
             result[i][j] = A[i][j] + B[i][j];
         }
+    }
+    return result;
+}
+
+double6x6Matrix matrixAdd(const double6x6Matrix& A, const double6x6Matrix& B){
+    
+    double6x6Matrix result = {};
+
+    for(int i = 0; i < 6; ++i){
+        for(int j = 0; j < 6; ++j){
+            result[i][j] = A[i][j] + B[i][j];
+        }
+    }
+    return result;
+}
+
+doubleSixVector matrixAdd(const doubleSixVector& A, const doubleSixVector& B){
+    
+    doubleSixVector result = {};
+
+    for(int i = 0; i < 6; ++i){
+        result[i] = A[i] + B[i];
     }
     return result;
 }
@@ -245,4 +291,76 @@ doubleThreeVector computeDetunedWaveVector(const doubleThreeVector& k0, const do
 
 __float128 computeDetunedOmega(const __float128& omega0, const double& vz){
     return omega0 / (1 - vz / c);
+}
+
+// Function to convert std::array to GSL matrix
+void arrayToGslMatrix(const double6x6Matrix& src, gsl_matrix* dst) {
+    for (size_t i = 0; i < 6; ++i) {
+        for (size_t j = 0; j < 6; ++j) {
+            gsl_matrix_set(dst, i, j, src[i][j]);
+        }
+    }
+}
+
+// Function to convert GSL matrix back to std::array
+void gslMatrixToArray(const gsl_matrix* src, double6x6Matrix& dst) {
+    for (size_t i = 0; i < 6; ++i) {
+        for (size_t j = 0; j < 6; ++j) {
+            dst[i][j] = gsl_matrix_get(src, i, j);
+        }
+    }
+}
+
+// Function to compute the inverse of a 6x6 matrix
+double6x6Matrix invertMatrix(const double6x6Matrix& M) {
+    double6x6Matrix inverseMatrix;
+
+    // Create GSL matrices for the original and inverse
+    gsl_matrix* gslM = gsl_matrix_alloc(6, 6);
+    gsl_matrix* gslInverse = gsl_matrix_alloc(6, 6);
+    gsl_permutation* perm = gsl_permutation_alloc(6);
+    int signum;
+
+    // Copy data from M to the GSL matrix
+    arrayToGslMatrix(M, gslM);
+
+    // Perform LU decomposition
+    gsl_linalg_LU_decomp(gslM, perm, &signum);
+
+    // Compute the inverse
+    gsl_linalg_LU_invert(gslM, perm, gslInverse);
+
+    // Copy the result back to the std::array
+    gslMatrixToArray(gslInverse, inverseMatrix);
+
+    // Free GSL resources
+    gsl_matrix_free(gslM);
+    gsl_matrix_free(gslInverse);
+    gsl_permutation_free(perm);
+
+    return inverseMatrix;
+}
+
+// Function to matrix exponential of a 6x6 matrix
+double6x6Matrix expMatrix(const double6x6Matrix& M) {
+    double6x6Matrix expM;
+
+    // Create GSL matrices for the original and inverse
+    gsl_matrix* gslM = gsl_matrix_alloc(6, 6);
+    gsl_matrix* gslExpM = gsl_matrix_alloc(6, 6);
+
+    // Copy data from M to the GSL matrix
+    arrayToGslMatrix(M, gslM);
+
+    // Compute the exponential
+    gsl_linalg_exponential_ss(gslM, gslExpM, GSL_PREC_DOUBLE);
+
+    // Copy the result back to the std::array
+    gslMatrixToArray(gslExpM, expM);
+
+    // Free GSL resources
+    gsl_matrix_free(gslM);
+    gsl_matrix_free(gslExpM);
+
+    return expM;
 }
