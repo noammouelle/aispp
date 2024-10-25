@@ -1,6 +1,8 @@
-# AIS++
+# AIS++ v2.0.0
 
-Atom Interferometry Simulator in C++ (AIS++) is a C++ library enabling the simulation of atom clouds undergoing atom interferometry sequences. Individual atoms are modelled as point-like wavepackets evolved using the ABCD method [1] and the _ttt_-scheme [2].
+Atom Interferometry Simulator in C++ (AIS++) is a C++ library enabling the simulation of atom clouds undergoing atom interferometry sequences. 
+
+In v2.0.0, a new scheme is used to model the propagation of the atoms in laser beams. Also, the code relies on numerical ODE solvers and numerical integration to propagate the atoms and compute classical actions along the atoms trajectories. This version also intends to be more modular, general, and to make calculations more tractable. Potentials, and sequence parameters are now defined externally by the user in a .aisi configuration file, avoiding the need to recompile the code for different configurations.
 
 ## Table of Contents
 
@@ -25,8 +27,6 @@ Atom Interferometry Simulator in C++ (AIS++) is a C++ library enabling the simul
 Email: ndm33@cam.ac.uk
 
 ## References
-[1] Ch. Antoine and Ch.J. Bordé, "Exact phase shifts for atom interferometry," *Physics Letters A*, vol. 306, no. 5–6, pp. 277–284, Jan. 2003. [DOI: 10.1016/S0375-9601(02)01625-0](http://dx.doi.org/10.1016/S0375-9601(02)01625-0)
 
-[2] C. Antoine, "Matter wave beam splitters in gravito-inertial and trapping potentials: generalized ttt scheme for atom interferometry," *Appl. Phys. B*, vol. 84, pp. 585–597, 2006. [DOI: 10.1007/s00340-006-2378-8](https://doi.org/10.1007/s00340-006-2378-8)
 
 ## Licence
