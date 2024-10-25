@@ -20,7 +20,7 @@ public:
     doubleThreeVector initialVelocity = {0.0, 0.0, 0.0};
 
     // Potential parameters
-    std::string potentialFile;
+    std::string potentialType;
 
     // Laser parameters
     std::vector<double> rabiFrequencies;
@@ -30,7 +30,7 @@ public:
     std::vector<double> kYVector;
     std::vector<double> kZVector;
     std::vector<__float128> omegaVector;
-    std::vector<std::string> wavefrontFileVector;
+    std::vector<std::string> wavefrontTypeVector;
 };
 
 

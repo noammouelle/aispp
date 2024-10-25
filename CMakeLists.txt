@@ -41,12 +41,6 @@ file(GLOB HEADERS ${PROJECT_SOURCE_DIR}/include/*.hh) # all header files
 add_library(AISppLib ${SOURCES})
 
 # Link the libraries
-<<<<<<< HEAD
-target_link_libraries(AISppLib PRIVATE ${HDF5_LIBRARIES} ${HDF5_CXX_LIBRARIES}  OpenMP::OpenMP_CXX)
-
-# Set the include directories
-target_include_directories(AISppLib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-=======
 target_link_libraries(AISppLib PRIVATE ${HDF5_LIBRARIES} OpenMP::OpenMP_CXX ${GSL_LIBRARIES})
 
 # Set the include directories for the library
@@ -56,4 +50,3 @@ target_include_directories(AISppLib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     target_compile_definitions(AISppLib PRIVATE GSL_DEBUG)
 endif()
->>>>>>> numerical_ode_solver

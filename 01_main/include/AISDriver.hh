@@ -9,6 +9,10 @@
 #include "AISKinematicPropagator.hh"
 #include "AISLaserBeam.hh"
 
+#include "02_aispotentials/AISPotentials.hh"
+#include "03_aisbeams/AISBeams.hh"
+#include "03_aisbeams/AISEnvelopes.hh"
+
 class AISDriver
 {
 public:

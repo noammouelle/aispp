@@ -62,10 +62,10 @@ AISParams readParamsFromFile(std::string fName)
     std::set<std::string> IntParamsKeys = {"nAtoms"};
     std::set<std::string> DoubleParamsKeys = {"sigma", "temp"};
     std::set<std::string> QuadParamsKeys = {};
-    std::set<std::string> StrParamsKeys = {"ufile"};
+    std::set<std::string> StrParamsKeys = {"utype"};
     std::set<std::string> DoubleArrayParamsKeys = {"x0", "v0", "kx", "ky", "kz","rabifreq"};
     std::set<std::string> QuadArrayParamsKeys = {"t0", "t1", "omega"};
-    std::set<std::string> StrArrayParamsKeys = {"wfile"};
+    std::set<std::string> StrArrayParamsKeys = {"wtype"};
 
     std::string line;
 
@@ -129,7 +129,7 @@ AISParams readParamsFromFile(std::string fName)
     params.nAtoms           = IntParams["nAtoms"];
     params.cloudRadius      = DoubleParams["sigma"];
     params.cloudTemperature = DoubleParams["temp"];
-    params.potentialFile    = StrParams["ufile"];
+    params.potentialType    = StrParams["utype"];
     params.initialPosition  = {DoubleArrayParams["x0"][0], DoubleArrayParams["x0"][1], DoubleArrayParams["x0"][2]};
     params.initialVelocity  = {DoubleArrayParams["v0"][0], DoubleArrayParams["v0"][1], DoubleArrayParams["v0"][2]};
     params.initialPulseTimes = QuadArrayParams["t0"];
@@ -139,7 +139,7 @@ AISParams readParamsFromFile(std::string fName)
     params.kZVector = DoubleArrayParams["kz"];
     params.rabiFrequencies = DoubleArrayParams["rabifreq"];
     params.omegaVector = QuadArrayParams["omega"];
-    params.wavefrontFileVector = StrArrayParams["wfile"];
+    params.wavefrontTypeVector = StrArrayParams["wtype"];
 
     return params;
 }

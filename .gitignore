@@ -1,17 +1,5 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
-# build directory
-build/
-=======
-=======
->>>>>>> numerical_ode_solver
 # ignore build directory
 /build/
 
 # ignore .vscode directory
-<<<<<<< HEAD
 /.vscode/
->>>>>>> 254d808efce7384cd8ad09404af6bca240262949
-=======
-/.vscode/
->>>>>>> numerical_ode_solver

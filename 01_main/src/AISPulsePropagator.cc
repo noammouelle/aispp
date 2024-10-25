@@ -15,11 +15,7 @@ AISPulsePropagator::~AISPulsePropagator()
 {
 }
 
-<<<<<<< HEAD
-void AISPulsePropagator::SetWaveFront(AISWaveFront* waveFront)
-=======
 void AISPulsePropagator::PropagateEnsemble(AISAtomEnsemble* atomEnsemble)
->>>>>>> numerical_ode_solver
 {
     //#pragma omp parallel for
     for(int i_atom = 0; i_atom < atomEnsemble->GetNumberOfAtoms(); ++i_atom)
