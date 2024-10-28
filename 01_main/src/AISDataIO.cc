@@ -59,11 +59,11 @@ AISParams readParamsFromFile(std::string fName)
     std::map<std::string, std::vector<std::string>> StrArrayParams;
 
     // Define the possible parameter keys using sets
-    std::set<std::string> IntParamsKeys = {"nAtoms"};
+    std::set<std::string> IntParamsKeys = {"natoms"};
     std::set<std::string> DoubleParamsKeys = {"sigma", "temp"};
-    std::set<std::string> QuadParamsKeys = {};
+    std::set<std::string> QuadParamsKeys = {"finalproptime"};
     std::set<std::string> StrParamsKeys = {"utype"};
-    std::set<std::string> DoubleArrayParamsKeys = {"x0", "v0", "kx", "ky", "kz","rabifreq"};
+    std::set<std::string> DoubleArrayParamsKeys = {"x0", "v0", "kx", "ky", "kz","rabifreq", "phi0"};
     std::set<std::string> QuadArrayParamsKeys = {"t0", "t1", "omega"};
     std::set<std::string> StrArrayParamsKeys = {"wtype"};
 
@@ -121,12 +121,16 @@ AISParams readParamsFromFile(std::string fName)
             }
             StrArrayParams[key] = values;
         }
+        else {
+            std::cerr << "Unknown key: " << key << " Aborting." << std::endl;
+            exit(1);
+        }
     }
 
     file.close();
 
     AISParams params;
-    params.nAtoms           = IntParams["nAtoms"];
+    params.nAtoms           = IntParams["natoms"];
     params.cloudRadius      = DoubleParams["sigma"];
     params.cloudTemperature = DoubleParams["temp"];
     params.potentialType    = StrParams["utype"];
@@ -138,8 +142,11 @@ AISParams readParamsFromFile(std::string fName)
     params.kYVector = DoubleArrayParams["ky"];
     params.kZVector = DoubleArrayParams["kz"];
     params.rabiFrequencies = DoubleArrayParams["rabifreq"];
+    params.phi0 = DoubleArrayParams["phi0"];
     params.omegaVector = QuadArrayParams["omega"];
     params.wavefrontTypeVector = StrArrayParams["wtype"];
+
+    params.finalPropagationTime = QuadParams["finalproptime"];
 
     return params;
 }

@@ -9,7 +9,8 @@ AISDetector::AISDetector(AISAtomEnsemble* pAtomEnsemble, double coherenceLength)
     {
         AISAtom* currentAtom = pAtomEnsemble->GetAtom(atomIndex);
         // get the indices of wavepackets close enough to interfere
-        //intTuple adjacentWavepacketIndices = GetAdjacentWavepackets(currentAtom, coherenceLength);
+        intTuple adjacentWavepacketIndices = GetAdjacentWavepackets(currentAtom, coherenceLength);
+
         // create the port-frame object
         AISPortFrame* currentPortFrame = new AISPortFrame(currentAtom, coherenceLength);
         fpPortFrameVector->push_back(currentPortFrame);

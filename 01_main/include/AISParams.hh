@@ -24,6 +24,7 @@ public:
 
     // Laser parameters
     std::vector<double> rabiFrequencies;
+    std::vector<double> phi0;
     std::vector<__float128> initialPulseTimes;
     std::vector<__float128> finalPulseTimes;
     std::vector<double> kXVector;
@@ -31,6 +32,9 @@ public:
     std::vector<double> kZVector;
     std::vector<__float128> omegaVector;
     std::vector<std::string> wavefrontTypeVector;
+
+    // Kinematic parameters
+    __float128 finalPropagationTime;
 };
 
 
