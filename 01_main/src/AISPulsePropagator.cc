@@ -30,6 +30,8 @@ void AISPulsePropagator::PropagateAtom(AISAtom* atom)
     // create a new wavepacket vector
     wavePacketVector* newWavePackets = new wavePacketVector;
 
+    std::cout << "Propagating atom with " << atom->GetNumberOfWavePackets() << " wavepackets." << std::endl;
+
     // Step 1: Û3 * Û2 * Û1 (forward transformations)
     for(int wavePacketIndex = 0; wavePacketIndex < atom->GetNumberOfWavePackets(); ++wavePacketIndex)
     {
@@ -50,19 +52,29 @@ void AISPulsePropagator::PropagateAtom(AISAtom* atom)
     }
 
     // Step 2: update the wavepacket vector
-    atom->DeleteWavePackets();
-    atom->AddWavePackets(newWavePackets);
+    //atom->DeleteWavePackets();
+    //atom->AddWavePackets(newWavePackets);
 
     // Step 3: perform the inverse transformations
     // Û1^dagger * Û_2^dagger
-    for(int wavePacketIndex = 0; wavePacketIndex < atom->GetNumberOfWavePackets(); ++wavePacketIndex)
+    //for(int wavePacketIndex = 0; wavePacketIndex < atom->GetNumberOfWavePackets(); ++wavePacketIndex)
+    for(int wavePacketIndex = 0; wavePacketIndex < newWavePackets->size(); ++wavePacketIndex)
     {
-        AISWavePacket* currentWavepacket = atom->GetWavePacket(wavePacketIndex);
+        //AISWavePacket* currentWavepacket = atom->GetWavePacket(wavePacketIndex);
+        //ApplyU2Dagger(currentWavepacket, this->initTime, this->finalTime);
+        //ApplyU1(currentWavepacket, this->finalTime, this->initTime); // note the reverse time order
+        // make sure the wavepacket time is correct
+        //currentWavepacket->SetTime(this->finalTime);
+        AISWavePacket* currentWavepacket = newWavePackets->at(wavePacketIndex);
         ApplyU2Dagger(currentWavepacket, this->initTime, this->finalTime);
         ApplyU1(currentWavepacket, this->finalTime, this->initTime); // note the reverse time order
         // make sure the wavepacket time is correct
         currentWavepacket->SetTime(this->finalTime);
     }
+
+    // Step 4: update the wavepacket vector
+    atom->DeleteWavePackets();
+    atom->AddWavePackets(newWavePackets);
 }
 
 void AISPulsePropagator::ApplyU1(AISWavePacket* wavepacket, __float128 t0, __float128 t1)
@@ -270,4 +282,7 @@ void AISPulsePropagator::ApplyU3(AISWavePacket* wavepacket0, AISWavePacket* wave
         wavepacket1->SetPosition(pos);
         wavepacket1->SetVelocity(vel);
     }
+
+    // free the params
+    delete params;
 }

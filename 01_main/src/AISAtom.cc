@@ -29,6 +29,7 @@ AISWavePacket* AISAtom::GetWavePacket(int wavePacketIndex)
 
 void AISAtom::DeleteWavePackets(){
     for(int i = 0; i < fpWavePacketVector->size(); ++i){
+        std::cout << "Deleting wavepacket " << i << std::endl;
         delete (*fpWavePacketVector)[i];
     }
 };
