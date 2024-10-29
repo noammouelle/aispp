@@ -12,7 +12,8 @@ AISAtom::~AISAtom(){
     // delete all the wavepackets
     for(int wavePacketIndex = 0; wavePacketIndex < fpWavePacketVector->size(); wavePacketIndex++)
     {
-        delete (*fpWavePacketVector)[wavePacketIndex];
+        //delete (*fpWavePacketVector)[wavePacketIndex];
+        delete fpWavePacketVector->at(wavePacketIndex);
     }
     // delete the vector
     delete fpWavePacketVector;
