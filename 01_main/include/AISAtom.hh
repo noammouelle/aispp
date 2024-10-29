@@ -6,7 +6,7 @@
 #include "AISWavePacket.hh"
 #include "AISUtilities.hh"
 
-using wavePacketVector = std::vector<AISWavePacket*>;
+using wavePacketVector = std::vector<std::unique_ptr<AISWavePacket>>;
 
 class AISAtom{
 public:
@@ -18,11 +18,10 @@ public:
     AISWavePacket* GetWavePacket(int wavePacketIndex);
 
     void DeleteWavePackets();
-    void AddWavePackets(wavePacketVector* newWavePacketVector);
+    void AddWavePackets(std::unique_ptr<wavePacketVector> newWavePacketVector);
 
 private:
-    //wavePacketVector fWavePacketVector;
-    wavePacketVector* fpWavePacketVector = new wavePacketVector;
+    std::unique_ptr<wavePacketVector> fpWavePacketVector;
 
 };
 

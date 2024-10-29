@@ -1,7 +1,7 @@
 #include "AISAtom.hh"
 
 AISAtom::AISAtom(doubleThreeVector initialPos, doubleThreeVector initialVel, __float128 initialTime){
-    AISWavePacket* initialWavePacket = new AISWavePacket();
+    std::unique_ptr<AISWavePacket> initialWavePacket(new AISWavePacket());
     initialWavePacket->SetPosition(initialPos);
     initialWavePacket->SetVelocity(initialVel);
     initialWavePacket->SetTime(initialTime);
