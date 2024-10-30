@@ -26,8 +26,6 @@ void AISPulsePropagator::PropagateAtom(std::unique_ptr<AISAtom>& atom)
     // create a new wavepacket vector
     std::unique_ptr<wavePacketVector> newWavePackets(new wavePacketVector);
 
-    std::cout << "Propagating atom with " << atom->GetNumberOfWavePackets() << " wavepackets." << std::endl;
-
     // Step 1: Û3 * Û2 * Û1 (forward transformations)
     for(int wavePacketIndex = 0; wavePacketIndex < atom->GetNumberOfWavePackets(); ++wavePacketIndex)
     {
