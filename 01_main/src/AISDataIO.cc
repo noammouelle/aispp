@@ -1,6 +1,6 @@
 #include "AISDataIO.hh"
 
-void writeAtomEnsembleToFile(std::string fName, AISAtomEnsemble* atomEnsemble)
+void writeAtomEnsembleToFile(std::string fName, std::unique_ptr<AISAtomEnsemble>& atomEnsemble)
 {
     // write a file to cross check
     std::ofstream outFile(fName);
@@ -11,10 +11,10 @@ void writeAtomEnsembleToFile(std::string fName, AISAtomEnsemble* atomEnsemble)
     outFile << "State, Amplitude, X, Y, Z, VX, VY, VZ, Phase, PhaseErr, PhaseQuad, Time" << std::endl;
     for(int i = 0; i < atomEnsemble->GetNumberOfAtoms(); ++i)
     {
-        AISAtom* currentAtom   = atomEnsemble->GetAtom(i);
+        std::unique_ptr<AISAtom>& currentAtom = atomEnsemble->GetAtom(i);
         for(int j = 0; j < currentAtom->GetNumberOfWavePackets(); ++j)
         {
-            AISWavePacket* currentWavePacket = currentAtom->GetWavePacket(j);
+            std::unique_ptr<AISWavePacket>& currentWavePacket = currentAtom->GetWavePacket(j);
             int currentState = currentWavePacket->GetState();
             double currentAmplitude = currentWavePacket->GetAmplitude();
             doubleThreeVector currentPos = currentWavePacket->GetPosition();

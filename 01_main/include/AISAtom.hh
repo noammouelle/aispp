@@ -3,6 +3,7 @@
 
 #include "AISConstants.hh"
 #include <vector>
+#include <memory>
 #include "AISWavePacket.hh"
 #include "AISUtilities.hh"
 
@@ -15,10 +16,10 @@ public:
 
     int GetNumberOfWavePackets();
 
-    AISWavePacket* GetWavePacket(int wavePacketIndex);
+    std::unique_ptr<AISWavePacket>& GetWavePacket(int wavePacketIndex);
 
     void DeleteWavePackets();
-    void AddWavePackets(std::unique_ptr<wavePacketVector> newWavePacketVector);
+    void AddWavePackets(std::unique_ptr<wavePacketVector>& newWavePacketVector);
 
 private:
     std::unique_ptr<wavePacketVector> fpWavePacketVector;

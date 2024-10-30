@@ -22,7 +22,7 @@
 #include "AISParams.hh"
 
 /* I/O routines */
-void writeAtomEnsembleToFile(std::string fName, AISAtomEnsemble* atomEnsemble);
+void writeAtomEnsembleToFile(std::string fName, std::unique_ptr<AISAtomEnsemble>& atomEnsemble);
 AISParams readParamsFromFile(std::string fName);
 
 

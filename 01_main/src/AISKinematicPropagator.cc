@@ -1,50 +1,74 @@
 #include "AISKinematicPropagator.hh"
 
-AISKinematicPropagator::AISKinematicPropagator(potentialFunctionType U, gradPotentialFunctionType dUdx,
-                                               gradPotentialFunctionType dUdp,
-                                               hessianPotentialFunctionType d2Udxdx,
-                                               hessianPotentialFunctionType d2Udxdp,
-                                               hessianPotentialFunctionType d2Udpdp)
-{
-    this->U = U;
-    this->dUdx = dUdx;
-    this->dUdp = dUdp;
-    this->d2Udxdx = d2Udxdx;
-    this->d2Udxdp = d2Udxdp;
-    this->d2Udpdp = d2Udpdp;
-}
+AISKinematicPropagator::AISKinematicPropagator(std::shared_ptr<potentialFunctionType> aU, std::shared_ptr<gradPotentialFunctionType> aDUdx,
+                                               std::shared_ptr<gradPotentialFunctionType> aDUdp,
+                                               std::shared_ptr<hessianPotentialFunctionType> aD2Udxdx,
+                                               std::shared_ptr<hessianPotentialFunctionType> aD2Udxdp,
+                                               std::shared_ptr<hessianPotentialFunctionType> aD2Udpdp) : U(aU), dUdx(aDUdx), dUdp(aDUdp),
+                                                                                                  d2Udxdx(aD2Udxdx), d2Udxdp(aD2Udxdp), d2Udpdp(aD2Udpdp)
+{}
 
 AISKinematicPropagator::~AISKinematicPropagator()
 {}
 
 double AISKinematicPropagator::get_U(const doubleThreeVector& pos, const doubleThreeVector& vel)
 {
-    return U(pos, vel);
+    if(U == nullptr)
+    {
+        std::cerr << "Potential function not initialized!" << std::endl;
+        throw std::runtime_error("Potential function not initialized");
+    }
+    return (*U)(pos, vel);
 }
 
 doubleThreeVector AISKinematicPropagator::get_dUdx(const doubleThreeVector& pos, const doubleThreeVector& vel)
 {
-    return dUdx(pos,vel);
+    if(dUdx == nullptr)
+    {
+        std::cerr << "Gradient potential function not initialized!" << std::endl;
+        throw std::runtime_error("Gradient potential function not initialized");
+    }
+    return (*dUdx)(pos, vel);
 }
 
 doubleThreeVector AISKinematicPropagator::get_dUdp(const doubleThreeVector& pos, const doubleThreeVector& vel)
 {
-    return dUdp(pos, vel);
+    if(dUdp == nullptr)
+    {
+        std::cerr << "Gradient potential function not initialized!" << std::endl;
+        throw std::runtime_error("Gradient potential function not initialized");
+    }
+    return (*dUdp)(pos, vel);
 }
 
 double3x3Matrix AISKinematicPropagator::get_d2Udxdx(const doubleThreeVector& pos, const doubleThreeVector& vel)
 {
-    return d2Udxdx(pos, vel);
+    if(d2Udxdx == nullptr)
+    {
+        std::cerr << "Hessian potential function not initialized!" << std::endl;
+        throw std::runtime_error("Hessian potential function not initialized");
+    }
+    return (*d2Udxdx)(pos, vel);
 }
 
 double3x3Matrix AISKinematicPropagator::get_d2Udxdp(const doubleThreeVector& pos, const doubleThreeVector& vel)
 {
-    return d2Udxdp(pos, vel);
+    if(d2Udxdp == nullptr)
+    {
+        std::cerr << "Hessian potential function not initialized!" << std::endl;
+        throw std::runtime_error("Hessian potential function not initialized");
+    }
+    return (*d2Udxdp)(pos, vel);
 }
 
 double3x3Matrix AISKinematicPropagator::get_d2Udpdp(const doubleThreeVector& pos, const doubleThreeVector& vel)
 {
-    return d2Udpdp(pos, vel);
+    if(d2Udpdp == nullptr)
+    {
+        std::cerr << "Hessian potential function not initialized!" << std::endl;
+        throw std::runtime_error("Hessian potential function not initialized");
+    }
+    return (*d2Udpdp)(pos, vel);
 }
 
 void AISKinematicPropagator::SetAddEnergyPhase(bool addEnergyPhase)
@@ -52,26 +76,26 @@ void AISKinematicPropagator::SetAddEnergyPhase(bool addEnergyPhase)
     fAddEnergyPhase = addEnergyPhase;
 }
 
-void AISKinematicPropagator::PropagateEnsemble(AISAtomEnsemble* atomEnsemble, __float128 t1)
+void AISKinematicPropagator::PropagateEnsemble(std::unique_ptr<AISAtomEnsemble>& atomEnsemble, __float128 t1)
 {
     #pragma omp parallel for
     for(int i_atom = 0; i_atom < atomEnsemble->GetNumberOfAtoms(); ++i_atom)
     {
-        AISAtom* currentAtom = atomEnsemble->GetAtom(i_atom);
+        std::unique_ptr<AISAtom>& currentAtom = atomEnsemble->GetAtom(i_atom);
         PropagateAtom(currentAtom, t1);
     }
 }
 
-void AISKinematicPropagator::PropagateAtom(AISAtom* atom, __float128 t1)
+void AISKinematicPropagator::PropagateAtom(std::unique_ptr<AISAtom>& atom, __float128 t1)
 {
     for(int i_wavePacket = 0; i_wavePacket < atom->GetNumberOfWavePackets(); ++i_wavePacket)
     {
-        AISWavePacket* currentWavePacket = atom->GetWavePacket(i_wavePacket);
+        std::unique_ptr<AISWavePacket>& currentWavePacket = atom->GetWavePacket(i_wavePacket);
         PropagateWavePacket(currentWavePacket, t1);
     }
 }
 
-void AISKinematicPropagator::PropagateWavePacket(AISWavePacket* wavePacket, __float128 t1)
+void AISKinematicPropagator::PropagateWavePacket(std::unique_ptr<AISWavePacket>& wavePacket, __float128 t1)
 {
     doubleThreeVector currentPos  = wavePacket->GetPosition();
     doubleThreeVector currentVel  = wavePacket->GetVelocity();
@@ -108,26 +132,26 @@ void AISKinematicPropagator::PropagateWavePacket(AISWavePacket* wavePacket, __fl
     wavePacket->SetTime(t1);
 }
 
-void AISKinematicPropagator::PropagateEnsembleLinearized(AISAtomEnsemble* atomEnsemble, __float128 t1)
+void AISKinematicPropagator::PropagateEnsembleLinearized(std::unique_ptr<AISAtomEnsemble>& atomEnsemble, __float128 t1)
 {
     #pragma omp parallel for
     for(int i_atom = 0; i_atom < atomEnsemble->GetNumberOfAtoms(); ++i_atom)
     {
-        AISAtom* currentAtom = atomEnsemble->GetAtom(i_atom);
+        std::unique_ptr<AISAtom>& currentAtom = atomEnsemble->GetAtom(i_atom);
         PropagateAtomLinearized(currentAtom, t1);
     }
 }
 
-void AISKinematicPropagator::PropagateAtomLinearized(AISAtom* atom, __float128 t1)
+void AISKinematicPropagator::PropagateAtomLinearized(std::unique_ptr<AISAtom>& atom, __float128 t1)
 {
     for(int i_wavePacket = 0; i_wavePacket < atom->GetNumberOfWavePackets(); ++i_wavePacket)
     {
-        AISWavePacket* currentWavePacket = atom->GetWavePacket(i_wavePacket);
+        std::unique_ptr<AISWavePacket>& currentWavePacket = atom->GetWavePacket(i_wavePacket);
         PropagateWavePacketLinearized(currentWavePacket, t1);
     }
 }
 
-void AISKinematicPropagator::PropagateWavePacketLinearized(AISWavePacket* wavePacket, __float128 t1)
+void AISKinematicPropagator::PropagateWavePacketLinearized(std::unique_ptr<AISWavePacket>& wavePacket, __float128 t1)
 {
     // only propagate kinematics, not the phase
     doubleThreeVector currentPos  = wavePacket->GetPosition();
@@ -222,7 +246,7 @@ std::array<doubleThreeVector,2> AISKinematicPropagator::get_dotPhaseSpaceCoordsL
     doubleThreeVector pos = newCoords[0];
     doubleThreeVector vel = newCoords[1];
     // get the gradients and hessians
-    doubleThreeVector dUdx = get_dUdx(pos0,vel0);
+    doubleThreeVector dUdx = this->get_dUdx(pos0,vel0);
     doubleThreeVector dUdp = get_dUdp(pos0,vel0);
     double3x3Matrix d2Udxdx = get_d2Udxdx(pos0,vel0);
     double3x3Matrix d2Udxdp = get_d2Udxdp(pos0,vel0);

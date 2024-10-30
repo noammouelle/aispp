@@ -1,42 +1,41 @@
 #include "AISAtom.hh"
 
-AISAtom::AISAtom(doubleThreeVector initialPos, doubleThreeVector initialVel, __float128 initialTime){
+AISAtom::AISAtom(doubleThreeVector initialPos, doubleThreeVector initialVel, __float128 initialTime)
+{
     std::unique_ptr<AISWavePacket> initialWavePacket(new AISWavePacket());
     initialWavePacket->SetPosition(initialPos);
     initialWavePacket->SetVelocity(initialVel);
     initialWavePacket->SetTime(initialTime);
-    fpWavePacketVector->push_back(initialWavePacket);
+
+    // init wavepacket vector
+    fpWavePacketVector = std::make_unique<wavePacketVector>();
+    // add the initial wavepacket to the vector
+    fpWavePacketVector->push_back(std::move(initialWavePacket));
 };
 
 AISAtom::~AISAtom(){
-    // delete all the wavepackets
-    for(int wavePacketIndex = 0; wavePacketIndex < fpWavePacketVector->size(); wavePacketIndex++)
-    {
-        delete (*fpWavePacketVector)[wavePacketIndex];
-    }
-    // delete the vector
-    delete fpWavePacketVector;
+    // free all the wavepacket smart pointers and then free the vector smart pointer
+    fpWavePacketVector->clear();
+    fpWavePacketVector.reset();
 };
 
 int AISAtom::GetNumberOfWavePackets(){
     return fpWavePacketVector->size();
 };
 
-AISWavePacket* AISAtom::GetWavePacket(int wavePacketIndex)
+std::unique_ptr<AISWavePacket>& AISAtom::GetWavePacket(int wavePacketIndex)
 {
-    return (*fpWavePacketVector)[wavePacketIndex];
+    return fpWavePacketVector->at(wavePacketIndex);
 }
 
 void AISAtom::DeleteWavePackets(){
-    for(int i = 0; i < fpWavePacketVector->size(); ++i){
-        std::cout << "Deleting wavepacket " << i << std::endl;
-        delete (*fpWavePacketVector)[i];
-    }
+    fpWavePacketVector->clear();
+    fpWavePacketVector.reset();
 };
 
-void AISAtom::AddWavePackets(wavePacketVector* newWavePacketVector){
+void AISAtom::AddWavePackets(std::unique_ptr<wavePacketVector>& newWavePacketVector){
     // if the length of the vector is non-zero, add the wavepackets to the atom
     if(newWavePacketVector->size() > 0){
-        fpWavePacketVector = newWavePacketVector;
+        fpWavePacketVector = std::move(newWavePacketVector);
     }
 };

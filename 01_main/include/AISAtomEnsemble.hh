@@ -2,17 +2,19 @@
 #define AISATOMENSEMBLE_HH
 
 #include <vector>
+#include <memory>
 
 #include "AISConstants.hh"
 #include "AISUtilities.hh"
 #include "AISAtom.hh"
 
-using atomVector = std::vector<AISAtom*>;
+using atomVector = std::vector<std::unique_ptr<AISAtom>>;
 
 class AISAtomEnsemble
 {
 private:
-    atomVector* fpAtomVector = new atomVector;
+    std::unique_ptr<atomVector> fpAtomVector = std::make_unique<atomVector>();
+
 public:
     AISAtomEnsemble(int nAtoms, double temperature, double width,
                     doubleThreeVector initialPosition, doubleThreeVector initialVelocity);
@@ -22,8 +24,8 @@ public:
 
     int GetNumberOfAtoms();
 
-    atomVector* GetAtomVector();
-    AISAtom* GetAtom(int atomIndex);
+    std::unique_ptr<atomVector>& GetAtomVector();
+    std::unique_ptr<AISAtom>& GetAtom(int atomIndex);
 };
 
 #endif

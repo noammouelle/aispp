@@ -1,16 +1,12 @@
 #include "AISLaserBeam.hh"
 
-AISLaserBeam::AISLaserBeam(doubleThreeVector k, __float128 omega, double rabiFreq,
-                           wavefrontFunctionType wavefrontFunction,
-                           delWavefrontFunctionType delWavefrontFunction,
-                           rabifreqFunctionType rabiFreqFunction)
+AISLaserBeam::AISLaserBeam(doubleThreeVector aK, __float128 aOmega, double aRabiFreq,
+                           std::shared_ptr<wavefrontFunctionType> aWavefrontFunction,
+                           std::shared_ptr<delWavefrontFunctionType> aDelWavefrontFunction,
+                           std::shared_ptr<rabifreqFunctionType> aRabiFreqFunction) : k(aK), omega(aOmega), rabiFreq(aRabiFreq),
+                            wavefrontFunction(aWavefrontFunction), delWavefrontFunction(aDelWavefrontFunction),
+                            rabifreqFunction(aRabiFreqFunction)
 {
-    this->k = k;
-    this->omega = omega;
-    this->wavefrontFunction = wavefrontFunction;
-    this->delWavefrontFunction = delWavefrontFunction;
-    this->rabifreqFunction = rabiFreqFunction;
-
 }
 
 AISLaserBeam::~AISLaserBeam()
@@ -36,17 +32,22 @@ void AISLaserBeam::SetOmega(__float128 omega)
     this->omega=omega;
 }
 
-double AISLaserBeam::GetPhi(doubleThreeVector pos)
+double AISLaserBeam::GetPhi(const doubleThreeVector& pos)
 {
-    return wavefrontFunction(pos);
+    return (*wavefrontFunction)(pos);
 }
 
-doubleThreeVector AISLaserBeam::GetDelPhi(doubleThreeVector pos)
+doubleThreeVector AISLaserBeam::GetDelPhi(const doubleThreeVector& pos)
 {
-    return delWavefrontFunction(pos);
+    // Check if delWavefrontFunction is null
+    if (delWavefrontFunction == nullptr) {
+        std::cerr << "Error: delWavefrontFunction is not initialized!" << std::endl;
+        throw std::runtime_error("delWavefrontFunction is not initialized");
+    }
+    return (*delWavefrontFunction)(pos);
 }
 
-double AISLaserBeam::GetRabiFreq(doubleThreeVector pos, __float128 t0, __float128 t)
+double AISLaserBeam::GetRabiFreq(const doubleThreeVector& pos, const __float128& t0, const __float128& t)
 {
-    return this->rabiFreq * rabifreqFunction(pos, t0, t); // central rabi freq times envelope
+    return this->rabiFreq * (*rabifreqFunction)(pos, t0, t); // central rabi freq times envelope
 }

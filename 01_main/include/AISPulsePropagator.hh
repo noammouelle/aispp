@@ -11,6 +11,7 @@
 
 #include <stdio.h>
 #include <math.h>
+#include <memory>
 
 #include <gsl/gsl_errno.h>
 #include <gsl/gsl_matrix.h>
@@ -19,35 +20,36 @@
 
 class AISPulsePropagator
 {
-private:
-    AISLaserBeam* laserBeam;
-    AISKinematicPropagator* kinematicPropagator;
+//private:
+public:
+    std::shared_ptr<AISLaserBeam> laserBeam;
+    std::shared_ptr<AISKinematicPropagator> kinematicPropagator;
     __float128 initTime, finalTime;
     double initTimeDouble, finalTimeDouble;
 
 protected:
-    void ApplyU1(AISWavePacket* wavepacket, __float128 t0, __float128 t1);
-    void ApplyU2(AISWavePacket* wavepacket, __float128 t0); // in theory could define in terms of t0 and t1 but in practice only need U2(t0,t0).
-    void ApplyU2Dagger(AISWavePacket* wavepacket, __float128 t0, __float128 t1);
-    void ApplyU3(AISWavePacket* wavepacket0, AISWavePacket* wavepacket1, __float128 t0, __float128 t1);
+    void ApplyU1(std::unique_ptr<AISWavePacket>& wavepacket, __float128 t0, __float128 t1);
+    void ApplyU2(std::unique_ptr<AISWavePacket>& wavepacket, __float128 t0); // in theory could define in terms of t0 and t1 but in practice only need U2(t0,t0).
+    void ApplyU2Dagger(std::unique_ptr<AISWavePacket>& wavepacket, __float128 t0, __float128 t1);
+    void ApplyU3(std::unique_ptr<AISWavePacket>& wavepacket0, std::unique_ptr<AISWavePacket>& wavepacket1, __float128 t0, __float128 t1);
 
     static int funcU3(double t, const double y[], double f[], void *params);
 
-    double getDelta(doubleThreeVector pos0, doubleThreeVector vel0, double t0, double t1, AISLaserBeam* laserBeam);
+    double getDelta(doubleThreeVector pos0, doubleThreeVector vel0, double t0, double t1, std::shared_ptr<AISLaserBeam> laserBeam);
 public: 
-    AISPulsePropagator(AISLaserBeam* beam, __float128 t0, __float128 t1,
-                       AISKinematicPropagator* kinematicPropagator);
+    AISPulsePropagator(std::shared_ptr<AISLaserBeam> beam, __float128 t0, __float128 t1,
+                       std::shared_ptr<AISKinematicPropagator> kinematicPropagator);
     ~AISPulsePropagator();
 
-    void PropagateEnsemble(AISAtomEnsemble* atomEnsemble);
-    void PropagateAtom(AISAtom* atom);
+    void PropagateEnsemble(std::unique_ptr<AISAtomEnsemble>& atomEnsemble);
+    void PropagateAtom(std::unique_ptr<AISAtom>& atom);
 };
 
 struct U3Params
 {
     double t0;
     doubleThreeVector pos, vel;
-    AISLaserBeam* laserBeam;
+    std::shared_ptr<AISLaserBeam> laserBeam;
     AISPulsePropagator* pulsePropagator;
 };
 

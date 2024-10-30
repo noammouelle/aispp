@@ -1,48 +1,44 @@
 #include "AISDetector.hh"
 
-AISDetector::AISDetector(AISAtomEnsemble* pAtomEnsemble, double coherenceLength)
+AISDetector::AISDetector(std::unique_ptr<AISAtomEnsemble>& pAtomEnsemble, double coherenceLength)
 {
     // initialize the port-frame vector and allocate memory
-    fpPortFrameVector = new portFrameVector();
+    fpPortFrameVector = std::make_unique<portFrameVector>();
 
     for(int atomIndex = 0; atomIndex < pAtomEnsemble->GetNumberOfAtoms(); atomIndex++)
     {
-        AISAtom* currentAtom = pAtomEnsemble->GetAtom(atomIndex);
+        std::unique_ptr<AISAtom>& currentAtom = pAtomEnsemble->GetAtom(atomIndex);
         // get the indices of wavepackets close enough to interfere
         intTuple adjacentWavepacketIndices = GetAdjacentWavepackets(currentAtom, coherenceLength);
 
         // create the port-frame object
-        AISPortFrame* currentPortFrame = new AISPortFrame(currentAtom, coherenceLength);
-        fpPortFrameVector->push_back(currentPortFrame);
+        std::unique_ptr<AISPortFrame> currentPortFrame(new AISPortFrame(currentAtom, coherenceLength));
+        fpPortFrameVector->push_back(std::move(currentPortFrame));
     }
 }
 
 AISDetector::~AISDetector()
 {
-    // delete all the port-frames
-    for(int portFrameIndex = 0; portFrameIndex < fpPortFrameVector->size(); portFrameIndex++)
-    {
-        delete fpPortFrameVector->at(portFrameIndex);
-    }
-    // delete the vector
-    delete fpPortFrameVector;
+    // delete all the unique pointers to port-frames then free the vector smart pointer
+    fpPortFrameVector->clear();
+    fpPortFrameVector.reset();
 }
 
-intTuple AISDetector::GetAdjacentWavepackets(AISAtom* anAtom, double coherenceLength)
+intTuple AISDetector::GetAdjacentWavepackets(std::unique_ptr<AISAtom>& anAtom, double coherenceLength)
 {
     intTuple adjacentWavepacketIndices;
     // loop over all the wavepackets of the atom
     for(int wavepacketIndex = 0; wavepacketIndex < anAtom->GetNumberOfWavePackets(); wavepacketIndex++)
     {
         // get the current wavepacket
-        AISWavePacket* currentWavePacket = anAtom->GetWavePacket(wavepacketIndex);
+        std::unique_ptr<AISWavePacket>& currentWavePacket = anAtom->GetWavePacket(wavepacketIndex);
         // get the position of the current wavepacket
         doubleThreeVector currentPosition = currentWavePacket->GetPosition();
         // loop over all the other wavepackets
         for(int otherWavepacketIndex = wavepacketIndex + 1; otherWavepacketIndex < anAtom->GetNumberOfWavePackets(); otherWavepacketIndex++)
         {
             // get the other wavepacket
-            AISWavePacket* otherWavePacket = anAtom->GetWavePacket(otherWavepacketIndex);
+            std::unique_ptr<AISWavePacket>& otherWavePacket = anAtom->GetWavePacket(otherWavepacketIndex);
             // get the position of the other wavepacket
             doubleThreeVector otherPosition = otherWavePacket->GetPosition();
             // calculate the distance between the two wavepackets
@@ -61,7 +57,7 @@ intTuple AISDetector::GetAdjacentWavepackets(AISAtom* anAtom, double coherenceLe
     return adjacentWavepacketIndices;
 }
 
-int AISDetector::SamplePort(AISPortFrame* aPortFrame)
+int AISDetector::SamplePort(std::unique_ptr<AISPortFrame>& aPortFrame)
 {
     // compute the cumulative probabilities
     doubleVector cumulativeProbabilities;
@@ -120,7 +116,7 @@ int AISDetector::GetNumberOfSamples()
     return numSamples;
 }
 
-AISPortFrame* AISDetector::GetPortFrame(int portFrameIndex)
+std::unique_ptr<AISPortFrame>& AISDetector::GetPortFrame(int portFrameIndex)
 {
     // assert that the port-frame vector is not empty
     assert(fpPortFrameVector->size() > 0);

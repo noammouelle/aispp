@@ -1,34 +1,30 @@
 #include "AISPulsePropagator.hh"
 
-AISPulsePropagator::AISPulsePropagator(AISLaserBeam* beam, __float128 t0, __float128 t1,
-                                        AISKinematicPropagator* kinematicPropagator)
-{
-    this->laserBeam=beam;
-    this->kinematicPropagator=kinematicPropagator;
-    this->initTime=t0;
-    this->finalTime=t1;
-    this->initTimeDouble = static_cast<double>(t0);
-    this->finalTimeDouble = static_cast<double>(t1);
+AISPulsePropagator::AISPulsePropagator(std::shared_ptr<AISLaserBeam> beam, 
+                                       __float128 t0, __float128 t1,
+                                       std::shared_ptr<AISKinematicPropagator> prop)
+    : laserBeam(beam), kinematicPropagator(prop), initTime(t0), finalTime(t1),
+      initTimeDouble(static_cast<double>(t0)), finalTimeDouble(static_cast<double>(t1)) {
 }
 
 AISPulsePropagator::~AISPulsePropagator()
 {
 }
 
-void AISPulsePropagator::PropagateEnsemble(AISAtomEnsemble* atomEnsemble)
+void AISPulsePropagator::PropagateEnsemble(std::unique_ptr<AISAtomEnsemble>& atomEnsemble)
 {
     //#pragma omp parallel for
     for(int i_atom = 0; i_atom < atomEnsemble->GetNumberOfAtoms(); ++i_atom)
     {
-        AISAtom* currentAtom = atomEnsemble->GetAtom(i_atom);
+        std::unique_ptr<AISAtom>& currentAtom = atomEnsemble->GetAtom(i_atom);
         PropagateAtom(currentAtom);
     }
 }
 
-void AISPulsePropagator::PropagateAtom(AISAtom* atom)
+void AISPulsePropagator::PropagateAtom(std::unique_ptr<AISAtom>& atom)
 {   
     // create a new wavepacket vector
-    wavePacketVector* newWavePackets = new wavePacketVector;
+    std::unique_ptr<wavePacketVector> newWavePackets(new wavePacketVector);
 
     std::cout << "Propagating atom with " << atom->GetNumberOfWavePackets() << " wavepackets." << std::endl;
 
@@ -36,8 +32,8 @@ void AISPulsePropagator::PropagateAtom(AISAtom* atom)
     for(int wavePacketIndex = 0; wavePacketIndex < atom->GetNumberOfWavePackets(); ++wavePacketIndex)
     {
         // Get the pointer to the wavepackets
-        AISWavePacket* wavepacket0 = atom->GetWavePacket(wavePacketIndex);
-        AISWavePacket* wavepacket1 = new AISWavePacket();
+        std::unique_ptr<AISWavePacket>& wavepacket0 = atom->GetWavePacket(wavePacketIndex);
+        std::unique_ptr<AISWavePacket> wavepacket1(new AISWavePacket());
 
         // Apply U1(t_0,t_0) transformation (do nothing)
         // Apply U2(t_0,t_0) transformation
@@ -47,44 +43,35 @@ void AISPulsePropagator::PropagateAtom(AISAtom* atom)
         ApplyU3(wavepacket0, wavepacket1, this->initTime, this->finalTime);
         
         // add the wavepackets to the vector
-        newWavePackets->push_back(wavepacket0);
-        newWavePackets->push_back(wavepacket1);        
+        newWavePackets->push_back(std::move(wavepacket0));
+        newWavePackets->push_back(std::move(wavepacket1));        
     }
 
-    // Step 2: update the wavepacket vector
-    //atom->DeleteWavePackets();
-    //atom->AddWavePackets(newWavePackets);
-
-    // Step 3: perform the inverse transformations
+    // Step 2: perform the inverse transformations
     // Û1^dagger * Û_2^dagger
     //for(int wavePacketIndex = 0; wavePacketIndex < atom->GetNumberOfWavePackets(); ++wavePacketIndex)
     for(int wavePacketIndex = 0; wavePacketIndex < newWavePackets->size(); ++wavePacketIndex)
     {
-        //AISWavePacket* currentWavepacket = atom->GetWavePacket(wavePacketIndex);
-        //ApplyU2Dagger(currentWavepacket, this->initTime, this->finalTime);
-        //ApplyU1(currentWavepacket, this->finalTime, this->initTime); // note the reverse time order
-        // make sure the wavepacket time is correct
-        //currentWavepacket->SetTime(this->finalTime);
-        AISWavePacket* currentWavepacket = newWavePackets->at(wavePacketIndex);
+        std::unique_ptr<AISWavePacket>& currentWavepacket = newWavePackets->at(wavePacketIndex);
         ApplyU2Dagger(currentWavepacket, this->initTime, this->finalTime);
         ApplyU1(currentWavepacket, this->finalTime, this->initTime); // note the reverse time order
         // make sure the wavepacket time is correct
         currentWavepacket->SetTime(this->finalTime);
     }
 
-    // Step 4: update the wavepacket vector
+    // Step 3: update the wavepacket vector
     atom->DeleteWavePackets();
     atom->AddWavePackets(newWavePackets);
 }
 
-void AISPulsePropagator::ApplyU1(AISWavePacket* wavepacket, __float128 t0, __float128 t1)
+void AISPulsePropagator::ApplyU1(std::unique_ptr<AISWavePacket>& wavepacket, __float128 t0, __float128 t1)
 {
     // U1 is just kinematic propagation from t1 to t0 (note the reverse time order)
     wavepacket->SetTime(t1); // TODO: there must be a better way of doing this
     this->kinematicPropagator->PropagateWavePacket(wavepacket, t0);
 }
 
-void AISPulsePropagator::ApplyU2(AISWavePacket* wavepacket, __float128 t0)
+void AISPulsePropagator::ApplyU2(std::unique_ptr<AISWavePacket>& wavepacket, __float128 t0)
 {
     if(wavepacket->GetState() == 1)
     {
@@ -105,7 +92,7 @@ void AISPulsePropagator::ApplyU2(AISWavePacket* wavepacket, __float128 t0)
     }
 }
 
-void AISPulsePropagator::ApplyU2Dagger(AISWavePacket* wavepacket, __float128 t0, __float128 t1)
+void AISPulsePropagator::ApplyU2Dagger(std::unique_ptr<AISWavePacket>& wavepacket, __float128 t0, __float128 t1)
 {
     if(wavepacket->GetState() == 1)
     {
@@ -136,7 +123,7 @@ void AISPulsePropagator::ApplyU2Dagger(AISWavePacket* wavepacket, __float128 t0,
     }
 }
 
-double AISPulsePropagator::getDelta(doubleThreeVector pos0, doubleThreeVector vel0, double t0, double t1, AISLaserBeam* laserBeam)
+double AISPulsePropagator::getDelta(doubleThreeVector pos0, doubleThreeVector vel0, double t0, double t1, std::shared_ptr<AISLaserBeam> laserBeam)
 {
     // get the effective wavevector
     doubleThreeVector k = laserBeam->GetK();
@@ -166,10 +153,9 @@ int AISPulsePropagator::funcU3(double t, const double y[], double f[], void *par
     // extract the params
     U3Params* u3Params = static_cast<U3Params*>(params);
     doubleThreeVector pos,vel;
-    AISLaserBeam* laserBeam;
+    std::shared_ptr<AISLaserBeam> laserBeam = u3Params->laserBeam;
     pos = u3Params->pos;
     vel = u3Params->vel;
-    laserBeam = u3Params->laserBeam;
     AISPulsePropagator* pulsePropagator = u3Params->pulsePropagator;
     double t0 = u3Params->t0;
 
@@ -195,7 +181,7 @@ int AISPulsePropagator::funcU3(double t, const double y[], double f[], void *par
 
 }
 
-void AISPulsePropagator::ApplyU3(AISWavePacket* wavepacket0, AISWavePacket* wavepacket1, __float128 t0, __float128 t1)
+void AISPulsePropagator::ApplyU3(std::unique_ptr<AISWavePacket>& wavepacket0, std::unique_ptr<AISWavePacket>& wavepacket1, __float128 t0, __float128 t1)
 {
     // define the params
     double t0Double = static_cast<double>(t0);

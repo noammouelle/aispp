@@ -9,31 +9,31 @@
 #include "AISAtomEnsemble.hh"
 #include "AISPortFrame.hh"
 
-using portFrameVector = std::vector<AISPortFrame*>;
+using portFrameVector = std::vector<std::unique_ptr<AISPortFrame>>;
 
 class AISDetector
 {
 public:
-    AISDetector(AISAtomEnsemble* pAtomEnsemble, double coherenceLength);
+    AISDetector(std::unique_ptr<AISAtomEnsemble>& pAtomEnsemble, double coherenceLength);
     ~AISDetector();
 
     intVector SampleAllPorts();
-    int SamplePort(AISPortFrame* aPortFrame);
+    int SamplePort(std::unique_ptr<AISPortFrame>& aPortFrame);
 
     int GetNumberOfSamples();
 
 //protected:
-    intTuple GetAdjacentWavepackets(AISAtom* anAtom, double coherenceLength);
+    intTuple GetAdjacentWavepackets(std::unique_ptr<AISAtom>& anAtom, double coherenceLength);
     doubleVector GetPortProbabilities(int atomIndex, intVector adjacentWavepackets);
 
-    AISPortFrame* GetPortFrame(int portFrameIndex);
+    std::unique_ptr<AISPortFrame>& GetPortFrame(int portFrameIndex);
     int GetNumberOfPortFrames();
 
     double coherenceLength;
 
     int numSamples = 0;
 
-    portFrameVector* fpPortFrameVector;
+    std::unique_ptr<portFrameVector> fpPortFrameVector;
 };
 
 #endif

@@ -1,9 +1,9 @@
 #include "AISPortFrame.hh"
 
-AISPortFrame::AISPortFrame(AISAtom* anAtom, double coherenceLength)
+AISPortFrame::AISPortFrame(std::unique_ptr<AISAtom>& anAtom, double coherenceLength)
 {
     // initialize the port vector
-    fpPortVector = new portVector();
+    fpPortVector = std::make_unique<portVector>();
 
     // for each wavepacket, find the indices of the wavepackets that are close enough to interfere
     std::vector<std::vector<int>> wavePacketIndexGroups;
@@ -32,12 +32,12 @@ AISPortFrame::AISPortFrame(AISAtom* anAtom, double coherenceLength)
     for(int groupIndex = 0; groupIndex < uniqueWavePacketIndexGroups.size(); groupIndex++)
     {
         // create a new port
-        AISPort* newPort = new AISPort();
+        std::unique_ptr<AISPort> newPort(new AISPort());
         for(int wavepacketIndex : uniqueWavePacketIndexGroups[groupIndex])
         {
             newPort->wavePacketIndices.push_back(wavepacketIndex);
         }
-        fpPortVector->push_back(newPort);
+        fpPortVector->push_back(std::move(newPort));
     }
 
     // set the port parameters
@@ -46,14 +46,12 @@ AISPortFrame::AISPortFrame(AISAtom* anAtom, double coherenceLength)
 
 AISPortFrame::~AISPortFrame()
 {
-    for(AISPort* port : *fpPortVector)
-    {
-        delete port;
-    }
-    delete fpPortVector;
+    // delete all the unique pointers to ports then free the vector smart pointer
+    fpPortVector->clear();
+    fpPortVector.reset();
 }
 
-std::vector<int> AISPortFrame::createGroup(AISAtom* anAtom, int wavePacketIndex, double coherenceLength)
+std::vector<int> AISPortFrame::createGroup(std::unique_ptr<AISAtom>& anAtom, int wavePacketIndex, double coherenceLength)
 {
     // create a list of wavepacket indices for current group
     std::vector<int> wavepacketIndexGroup;
@@ -62,14 +60,14 @@ std::vector<int> AISPortFrame::createGroup(AISAtom* anAtom, int wavePacketIndex,
     wavepacketIndexGroup.push_back(wavePacketIndex);
 
     // get the position of the current wavepacket
-    AISWavePacket* currentWavePacket = anAtom->GetWavePacket(wavePacketIndex);
+    std::unique_ptr<AISWavePacket>& currentWavePacket = anAtom->GetWavePacket(wavePacketIndex);
     doubleThreeVector currentPosition = currentWavePacket->GetPosition();
 
     // loop over all the other wavepackets
     for(int otherWavepacketIndex = 0; otherWavepacketIndex < anAtom->GetNumberOfWavePackets(); otherWavepacketIndex++)
     {
         // get the other wavepacket
-        AISWavePacket* otherWavePacket = anAtom->GetWavePacket(otherWavepacketIndex);
+        std::unique_ptr<AISWavePacket>& otherWavePacket = anAtom->GetWavePacket(otherWavepacketIndex);
         // get the position of the other wavepacket
         doubleThreeVector otherPosition = otherWavePacket->GetPosition();
         // calculate the distance between the two wavepackets
@@ -92,11 +90,11 @@ std::vector<int> AISPortFrame::createGroup(AISAtom* anAtom, int wavePacketIndex,
 
 void AISPortFrame::initializePortVector(int numberOfPorts)
 {
-    fpPortVector = new portVector();
+    fpPortVector = std::make_unique<portVector>();
     for(int portIndex = 0; portIndex < numberOfPorts; portIndex++)
     {
-        AISPort* newPort = new AISPort();
-        fpPortVector->push_back(newPort);
+        std::unique_ptr<AISPort> newPort(new AISPort());
+        fpPortVector->push_back(std::move(newPort));
     }
 
 }
@@ -127,20 +125,20 @@ void AISPortFrame::associatePortsWithWavePackets(AISAtom* anAtom, std::vector<st
     }
 */
 
-void AISPortFrame::setPortParameters(AISAtom* anAtom)
+void AISPortFrame::setPortParameters(std::unique_ptr<AISAtom>& anAtom)
 {
     // loop over ports
     for(int portIndex = 0; portIndex < GetNumberOfPorts(); portIndex++)
     {
         // get the port
-        AISPort* port = GetPort(portIndex);
+        std::unique_ptr<AISPort>& port = GetPort(portIndex);
         // if only one wavepacket is in the port, no interference happens
         if(port->getNumberOfWavePackets() == 1)
         {   
             // set the interfering flag
             port->interfering = false;
             // get the wavepacket
-            AISWavePacket* wavePacket = anAtom->GetWavePacket(port->wavePacketIndices[0]);
+            std::unique_ptr<AISWavePacket>& wavePacket = anAtom->GetWavePacket(port->wavePacketIndices[0]);
             // calculate the port parameters
             port->state = wavePacket->GetState();
             port->position = wavePacket->GetPosition();
@@ -180,8 +178,8 @@ void AISPortFrame::setPortParameters(AISAtom* anAtom)
             {
                 for(int j = i + 1; j < port->getNumberOfWavePackets(); j++)
                 {
-                    AISWavePacket* wavePacket1 = anAtom->GetWavePacket(port->wavePacketIndices[i]);
-                    AISWavePacket* wavePacket2 = anAtom->GetWavePacket(port->wavePacketIndices[j]);
+                    std::unique_ptr<AISWavePacket>& wavePacket1 = anAtom->GetWavePacket(port->wavePacketIndices[i]);
+                    std::unique_ptr<AISWavePacket>& wavePacket2 = anAtom->GetWavePacket(port->wavePacketIndices[j]);
 
                     double A1 = wavePacket1->GetAmplitude();
                     double A2 = wavePacket2->GetAmplitude();
@@ -211,7 +209,7 @@ void AISPortFrame::setPortParameters(AISAtom* anAtom)
             doubleThreeVector meanPosition = {0.0, 0.0, 0.0};
             for(int wavePacketIndex : port->wavePacketIndices)
             {
-                AISWavePacket* wavePacket = anAtom->GetWavePacket(wavePacketIndex);
+                std::unique_ptr<AISWavePacket>& wavePacket = anAtom->GetWavePacket(wavePacketIndex);
                 meanVelocity = matrixAdd(meanVelocity, wavePacket->GetVelocity());
                 meanPosition = matrixAdd(meanPosition, wavePacket->GetPosition());
             }
@@ -227,8 +225,8 @@ void AISPortFrame::setPortParameters(AISAtom* anAtom)
             // if the number of wavepackets is 2, the phase shift is the difference in the phase of the two wavepackets
             if(port->getNumberOfWavePackets() == 2)
             {
-                AISWavePacket* wavePacket1 = anAtom->GetWavePacket(port->wavePacketIndices[0]);
-                AISWavePacket* wavePacket2 = anAtom->GetWavePacket(port->wavePacketIndices[1]);
+                std::unique_ptr<AISWavePacket>& wavePacket1 = anAtom->GetWavePacket(port->wavePacketIndices[0]);
+                std::unique_ptr<AISWavePacket>& wavePacket2 = anAtom->GetWavePacket(port->wavePacketIndices[1]);
                 doubleThreeVector r1 = wavePacket1->GetPosition();
                 doubleThreeVector r2 = wavePacket2->GetPosition();
                 doubleThreeVector v1 = wavePacket1->GetVelocity();
@@ -258,7 +256,7 @@ int AISPortFrame::GetNumberOfPorts()
     return fpPortVector->size();
 }
 
-AISPort* AISPortFrame::GetPort(int index)
+std::unique_ptr<AISPort>& AISPortFrame::GetPort(int index)
 {
     return fpPortVector->at(index);
 }

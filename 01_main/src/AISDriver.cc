@@ -5,15 +5,28 @@ AISDriver::AISDriver(AISParams params)
     // three times the De Broglie wavelength of the cloud
     double coherenceLength = 3 * sqrt(2 * pi) * hbar / sqrt(massSr87 * kB * params.cloudTemperature);
     // create the atom ensemble
-    atomEnsemble = new AISAtomEnsemble(params.nAtoms, params.cloudTemperature, params.cloudRadius,
-                                       params.initialPosition, params.initialVelocity);
+    atomEnsemble = std::make_unique<AISAtomEnsemble>(params.nAtoms, params.cloudTemperature, params.cloudRadius,
+                                                     params.initialPosition, params.initialVelocity);
     // create the detector
-    detector = new AISDetector(atomEnsemble, coherenceLength);
+    detector = std::make_unique<AISDetector>(atomEnsemble, coherenceLength);
 
-    // create the kinematic propagator
+    // create the pointers to potential functions
+    using potentialFunctionType = double(*)(const doubleThreeVector&, const doubleThreeVector&);
+    using gradPotentialFunctionType = doubleThreeVector(*)(const doubleThreeVector&, const doubleThreeVector&);
+    using hessianPotentialFunctionType = double3x3Matrix(*)(const doubleThreeVector&, const doubleThreeVector&);
+
+    std::shared_ptr<potentialFunctionType> U;
+    std::shared_ptr<gradPotentialFunctionType> dUdx, dUdp;
+    std::shared_ptr<hessianPotentialFunctionType> d2Udxdx, d2Udxdp, d2Udpdp;
+
+    // assign the potential function pointers
     if(params.potentialType == "zero_pot")
-    {
-        kinematicPropagator = new AISKinematicPropagator(zeroU,zeroGrad,zeroGrad,zeroHess,zeroHess,zeroHess);
+    {   U = std::make_shared<potentialFunctionType>(zeroU);
+        dUdx = std::make_shared<gradPotentialFunctionType>(zeroGrad);
+        dUdp = std::make_shared<gradPotentialFunctionType>(zeroGrad);
+        d2Udxdx = std::make_shared<hessianPotentialFunctionType>(zeroHess);
+        d2Udxdp = std::make_shared<hessianPotentialFunctionType>(zeroHess);
+        d2Udpdp = std::make_shared<hessianPotentialFunctionType>(zeroHess);
     }
     else
     {
@@ -21,30 +34,29 @@ AISDriver::AISDriver(AISParams params)
         exit(1);
     }
 
-    // create the pulse propagators
-    using wavefrontFunctionType = double(*)(doubleThreeVector);
-    using delWavefrontFunctionType = doubleThreeVector(*)(doubleThreeVector);
-    using rabifreqFunctionType  = double(*)(doubleThreeVector, __float128, __float128);
+    // create the kinematic propagator
+    kinematicPropagator = std::make_shared<AISKinematicPropagator>(U,dUdx,dUdp,d2Udxdx,d2Udxdp,d2Udpdp);
 
-    wavefrontFunctionType wff;
-    delWavefrontFunctionType dwff;
-    rabifreqFunctionType rff;
+    // create the pulse propagators
+    using wavefrontFunctionType = double(*)(const doubleThreeVector&);
+    using delWavefrontFunctionType = doubleThreeVector(*)(const doubleThreeVector&);
+    using rabifreqFunctionType  = double(*)(const doubleThreeVector&, const __float128&,const  __float128&);
+
+    std::shared_ptr<wavefrontFunctionType> wff;
+    std::shared_ptr<delWavefrontFunctionType> dwff;
+    std::shared_ptr<rabifreqFunctionType> rff;
 
     __float128 omega_;
     doubleThreeVector k_;
     double rabiFreq_;
 
-    AISLaserBeam* beam;
-
-    std::cout << "Number of pulses: " << params.rabiFrequencies.size() << std::endl;
-
     for(int i = 0; i < params.rabiFrequencies.size(); ++i)
     {   
         if(params.wavefrontTypeVector[i] == "flat_square")
         {
-            wff = flatWavefront;
-            dwff = flatGradientWavefront;
-            rff = flatSquareEnvelope;
+            wff = std::make_shared<wavefrontFunctionType>(flatWavefront);
+            dwff = std::make_shared<delWavefrontFunctionType>(flatGradientWavefront);
+            rff = std::make_shared<rabifreqFunctionType>(flatSquareEnvelope);
         }
         else{
             std::cerr << "Wavefront type " << params.wavefrontTypeVector[i] << " not recognized. Exiting." << std::endl;
@@ -55,10 +67,10 @@ AISDriver::AISDriver(AISParams params)
         omega_    = params.omegaVector[i];
         rabiFreq_ = params.rabiFrequencies[i];
 
-        beam = new AISLaserBeam(k_,omega_,rabiFreq_,wff,dwff,rff);
+        std::shared_ptr<AISLaserBeam> beam = std::make_shared<AISLaserBeam>(k_,omega_,rabiFreq_,wff,dwff,rff);
 
         // create the propagator
-        AISPulsePropagator* pulsePropagator = new AISPulsePropagator(beam, params.initialPulseTimes[i], params.finalPulseTimes[i], kinematicPropagator);
+        auto pulsePropagator = std::make_shared<AISPulsePropagator>(beam, params.initialPulseTimes[i], params.finalPulseTimes[i], kinematicPropagator);
 
         // add the propagator to the list
         pulsePropagators.push_back(pulsePropagator);
@@ -70,22 +82,10 @@ AISDriver::AISDriver(AISParams params)
 
 AISDriver::~AISDriver()
 {
-    delete atomEnsemble;
-    delete detector;
-    delete kinematicPropagator;
-    for(auto pulsePropagator : pulsePropagators)
-    {
-        delete pulsePropagator;
-    }
-    for(auto laserBeam : laserBeams)
-    {
-        delete laserBeam;
-    }
 }
 
 void AISDriver::Run()
 {
-
     for(int i = 0; i < pulsePropagators.size(); ++i)
     {
         // kinematic propagation
@@ -130,9 +130,9 @@ void AISDriver::WriteDetectedAtomsToFile(std::string filename)
         if(sampledPortIndex != -1)
         {
             // get the port frame
-            AISPortFrame* portFrame = detector->GetPortFrame(portFrameIndex);
+            std::unique_ptr<AISPortFrame>& portFrame = detector->GetPortFrame(portFrameIndex);
             // get the port
-            AISPort* port = portFrame->GetPort(sampledPortIndex);
+            std::unique_ptr<AISPort>& port = portFrame->GetPort(sampledPortIndex);
             // get the data
             doubleThreeVector currentPosition = port->position;
             doubleThreeVector currentVelocity = port->velocity;
