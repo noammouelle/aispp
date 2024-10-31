@@ -13,7 +13,7 @@ public:
     using delWavefrontFunctionType = doubleThreeVector(*)(const doubleThreeVector&);
     using rabifreqFunctionType  = double(*)(const doubleThreeVector&, const __float128&, const __float128&);
 
-    AISLaserBeam(doubleThreeVector k, __float128 omega, double rabiFreq,
+    AISLaserBeam(doubleThreeVector k, __float128 omega, double rabiFreq, double phi0,
                  std::shared_ptr<wavefrontFunctionType> wavefrontFunction,
                  std::shared_ptr<delWavefrontFunctionType> delWavefrontFunction,
                  std::shared_ptr<rabifreqFunctionType> rabiFreqFunction);
@@ -36,6 +36,7 @@ private:
 
     doubleThreeVector k;
     __float128 omega;
+    double phi0;
 
     std::shared_ptr<wavefrontFunctionType> wavefrontFunction;
     std::shared_ptr<delWavefrontFunctionType> delWavefrontFunction;

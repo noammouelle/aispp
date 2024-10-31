@@ -1,9 +1,9 @@
 #include "AISLaserBeam.hh"
 
-AISLaserBeam::AISLaserBeam(doubleThreeVector aK, __float128 aOmega, double aRabiFreq,
+AISLaserBeam::AISLaserBeam(doubleThreeVector aK, __float128 aOmega, double aRabiFreq, double phi0,
                            std::shared_ptr<wavefrontFunctionType> aWavefrontFunction,
                            std::shared_ptr<delWavefrontFunctionType> aDelWavefrontFunction,
-                           std::shared_ptr<rabifreqFunctionType> aRabiFreqFunction) : k(aK), omega(aOmega), rabiFreq(aRabiFreq),
+                           std::shared_ptr<rabifreqFunctionType> aRabiFreqFunction) : k(aK), omega(aOmega), rabiFreq(aRabiFreq), phi0(phi0),
                             wavefrontFunction(aWavefrontFunction), delWavefrontFunction(aDelWavefrontFunction),
                             rabifreqFunction(aRabiFreqFunction)
 {
@@ -34,7 +34,7 @@ void AISLaserBeam::SetOmega(__float128 omega)
 
 double AISLaserBeam::GetPhi(const doubleThreeVector& pos)
 {
-    return (*wavefrontFunction)(pos);
+    return phi0 + (*wavefrontFunction)(pos);
 }
 
 doubleThreeVector AISLaserBeam::GetDelPhi(const doubleThreeVector& pos)
