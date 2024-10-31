@@ -2,13 +2,12 @@
 
 AISDriver::AISDriver(AISParams params)
 {   
-    // three times the De Broglie wavelength of the cloud
-    double coherenceLength = 3 * sqrt(2 * pi) * hbar / sqrt(massSr87 * kB * params.cloudTemperature);
     // create the atom ensemble
     atomEnsemble = std::make_unique<AISAtomEnsemble>(params.nAtoms, params.cloudTemperature, params.cloudRadius,
                                                      params.initialPosition, params.initialVelocity);
     // create the detector
-    detector = std::make_unique<AISDetector>(atomEnsemble, coherenceLength);
+    //detector = std::make_unique<AISDetector>(atomEnsemble, coherenceLength);
+    std::unique_ptr<AISDetector> detector;
 
     // create the pointers to potential functions
     using potentialFunctionType = double(*)(const doubleThreeVector&, const doubleThreeVector&);
@@ -105,7 +104,11 @@ void AISDriver::Run()
 }
 
 void AISDriver::Detect()
-{
+{   
+    // three times the De Broglie wavelength of the cloud
+    double coherenceLength = 3 * sqrt(2 * pi) * hbar / sqrt(massSr87 * kB * params.cloudTemperature);
+    // init the detector
+    detector = std::make_unique<AISDetector>(atomEnsemble, coherenceLength);
     sampledPortIndices = detector->SampleAllPorts();
 }
 

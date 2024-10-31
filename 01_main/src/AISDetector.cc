@@ -9,7 +9,7 @@ AISDetector::AISDetector(std::unique_ptr<AISAtomEnsemble>& pAtomEnsemble, double
     {
         std::unique_ptr<AISAtom>& currentAtom = pAtomEnsemble->GetAtom(atomIndex);
         // get the indices of wavepackets close enough to interfere
-        intTuple adjacentWavepacketIndices = GetAdjacentWavepackets(currentAtom, coherenceLength);
+        //intTuple adjacentWavepacketIndices = GetAdjacentWavepackets(currentAtom, coherenceLength);
 
         // create the port-frame object
         std::unique_ptr<AISPortFrame> currentPortFrame(new AISPortFrame(currentAtom, coherenceLength));
@@ -45,6 +45,7 @@ intTuple AISDetector::GetAdjacentWavepackets(std::unique_ptr<AISAtom>& anAtom, d
             double distance = sqrt(pow(currentPosition[0] - otherPosition[0], 2) + 
                                    pow(currentPosition[1] - otherPosition[1], 2) + 
                                    pow(currentPosition[2] - otherPosition[2], 2));
+
             // check if the distance is smaller than the coherence length
             if(distance < coherenceLength && currentWavePacket->GetState() == otherWavePacket->GetState())
             {

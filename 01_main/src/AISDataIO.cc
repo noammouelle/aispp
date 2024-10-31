@@ -141,7 +141,14 @@ AISParams readParamsFromFile(std::string fName)
     params.kXVector = DoubleArrayParams["kx"];
     params.kYVector = DoubleArrayParams["ky"];
     params.kZVector = DoubleArrayParams["kz"];
+
+    // Rabi frequencies (convert Hz to rad/s)
+    for(int i=0; i<DoubleArrayParams["rabifreq"].size(); i++)
+    {
+        DoubleArrayParams["rabifreq"][i] = DoubleArrayParams["rabifreq"][i] * 2 * pi;
+    }
     params.rabiFrequencies = DoubleArrayParams["rabifreq"];
+    
     params.phi0 = DoubleArrayParams["phi0"];
     params.omegaVector = QuadArrayParams["omega"];
     params.wavefrontTypeVector = StrArrayParams["wtype"];
