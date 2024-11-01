@@ -87,28 +87,40 @@ AISDriver::~AISDriver()
 
 void AISDriver::Run()
 {
+    __float128 t0, t1;
+    // initial propagation, if the initial pulse time is not zero
+    if(params.initialPulseTimes[0] != 0.0q)
+    {
+        kinematicPropagator->SetAddEnergyPhase(false);
+        kinematicPropagator->PropagateEnsemble(atomEnsemble, params.initialPulseTimes[0]);
+    }
+
+    // loop over the pulse propagators, and kinematic propagators in between
     for(int i = 0; i < pulsePropagators.size(); ++i)
     {
-        // kinematic propagation
-        if(i==0 && params.initialPulseTimes[i] != 0.0q) // propagate the ensemble to the initial pulse time
-        {
-            kinematicPropagator->PropagateEnsemble(atomEnsemble, params.initialPulseTimes[i]);
-        }
         // pulse propagation
         pulsePropagators[i]->PropagateEnsemble(atomEnsemble);
+
+        // kinematic propagation (unless it is the last pulse)
+        if(i < pulsePropagators.size() - 1)
+        {
+            kinematicPropagator->SetAddEnergyPhase(true);
+            kinematicPropagator->PropagateEnsemble(atomEnsemble, params.initialPulseTimes[i + 1]); // propagate to the start of the next pulse
+        }
     }
 
     // final propagation
-    if(params.finalPropagationTime != params.finalPulseTimes.back())
+    if(params.detectionTime != params.finalPulseTimes.back())
     {
-        kinematicPropagator->PropagateEnsemble(atomEnsemble, params.finalPropagationTime);
+        kinematicPropagator->SetAddEnergyPhase(false);
+        kinematicPropagator->PropagateEnsemble(atomEnsemble, params.detectionTime);
     }
 }
 
 void AISDriver::Detect()
 {   
     // three times the De Broglie wavelength of the cloud
-    double coherenceLength = 3 * sqrt(2 * pi) * hbar / sqrt(massSr87 * kB * params.cloudTemperature);
+    double coherenceLength = 0.5 * hbar / sqrt(massSr87 * kB * params.cloudTemperature);//3 * sqrt(2 * pi) * hbar / sqrt(massSr87 * kB * params.cloudTemperature);
     // init the detector
     detector = std::make_unique<AISDetector>(atomEnsemble, coherenceLength);
     sampledPortIndices = detector->SampleAllPorts();

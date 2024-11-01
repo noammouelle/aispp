@@ -87,6 +87,11 @@ void AISPulsePropagator::ApplyU2(std::unique_ptr<AISWavePacket>& wavepacket, __f
 
         wavepacket->SetPhaseDouble(currentPhaseDouble + dPhaseDouble);
         wavepacket->SetPhaseQuad(currentPhaseQuad + dPhaseQuad);
+
+        // shift the central momentum
+        doubleThreeVector vel  = wavepacket->GetVelocity();
+        doubleThreeVector dvel = scalarMultiply(matrixAdd(k,gradPhi),-hbar/massSr87);
+        wavepacket->SetVelocity(matrixAdd(vel,dvel));
     }
 }
 

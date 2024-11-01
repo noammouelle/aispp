@@ -10,7 +10,7 @@
 #include <string>
 #include <complex>
 #include <sstream>
-//#include <quadmath.h>
+#include <quadmath.h>
 #include <iomanip>
 #include <iomanip>
 #include <fstream>
@@ -86,6 +86,10 @@ void arrayToGslMatrix(const double6x6Matrix& src, gsl_matrix* dst);
 void gslMatrixToArray(const gsl_matrix* src, double6x6Matrix& dst);
 double6x6Matrix invertMatrix(const double6x6Matrix& M);
 double6x6Matrix expMatrix(const double6x6Matrix& M);
+
+/*Printing routines*/
+std::string float128ToString(__float128 value);
+
 
 
 #endif

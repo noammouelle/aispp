@@ -71,7 +71,7 @@ public:
 
     __float128 deltaTime = 0.0q;
 
-    bool fAddEnergyPhase = true;//false;
+    bool fAddEnergyPhase = false;//true;//false;
 
     std::shared_ptr<potentialFunctionType> U;
     std::shared_ptr<gradPotentialFunctionType> dUdx, dUdp;

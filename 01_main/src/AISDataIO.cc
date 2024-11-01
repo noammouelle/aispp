@@ -61,7 +61,7 @@ AISParams readParamsFromFile(std::string fName)
     // Define the possible parameter keys using sets
     std::set<std::string> IntParamsKeys = {"natoms"};
     std::set<std::string> DoubleParamsKeys = {"sigma", "temp"};
-    std::set<std::string> QuadParamsKeys = {"finalproptime"};
+    std::set<std::string> QuadParamsKeys = {"detectiontime"};
     std::set<std::string> StrParamsKeys = {"utype"};
     std::set<std::string> DoubleArrayParamsKeys = {"x0", "v0", "kx", "ky", "kz","rabifreq", "phi0"};
     std::set<std::string> QuadArrayParamsKeys = {"t0", "t1", "omega"};
@@ -153,7 +153,7 @@ AISParams readParamsFromFile(std::string fName)
     params.omegaVector = QuadArrayParams["omega"];
     params.wavefrontTypeVector = StrArrayParams["wtype"];
 
-    params.finalPropagationTime = QuadParams["finalproptime"];
+    params.detectionTime = QuadParams["detectiontime"];
 
     return params;
 }
