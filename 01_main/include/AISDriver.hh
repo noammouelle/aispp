@@ -27,14 +27,14 @@ public:
     void WriteDetectedAtomsToFile(std::string fName);
     void WriteWavePacketsToFile(std::string fName);
 
-private:
+//private:
     AISParams params;
-    AISAtomEnsemble* atomEnsemble;
-    AISDetector* detector;
-    AISKinematicPropagator* kinematicPropagator;
+    std::unique_ptr<AISAtomEnsemble> atomEnsemble;
+    std::unique_ptr<AISDetector> detector;
+    std::shared_ptr<AISKinematicPropagator> kinematicPropagator;
 
-    std::vector<AISPulsePropagator*> pulsePropagators;
-    std::vector<AISLaserBeam*> laserBeams;
+    std::vector<std::shared_ptr<AISPulsePropagator>> pulsePropagators;
+    std::vector<std::unique_ptr<AISLaserBeam>> laserBeams;
 
     std::vector<int> sampledPortIndices;
 };

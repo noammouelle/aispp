@@ -37,7 +37,7 @@ int main(int argc, char* argv[])
     
     // create the driver
     AISDriver* driver = new AISDriver(params);
-
+    
     // run the simulation
     driver->Run();
     driver->Detect();

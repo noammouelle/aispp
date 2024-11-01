@@ -34,7 +34,7 @@ public:
     std::vector<std::string> wavefrontTypeVector;
 
     // Kinematic parameters
-    __float128 finalPropagationTime;
+    __float128 detectionTime;
 };
 
 

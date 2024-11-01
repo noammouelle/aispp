@@ -9,6 +9,7 @@
 
 #include <stdio.h>
 #include <math.h>
+#include <memory>
 
 #include <gsl/gsl_errno.h>
 #include <gsl/gsl_matrix.h>
@@ -22,20 +23,20 @@ public:
     using gradPotentialFunctionType = doubleThreeVector(*)(const doubleThreeVector&, const doubleThreeVector&);
     using hessianPotentialFunctionType = double3x3Matrix(*)(const doubleThreeVector&, const doubleThreeVector&);
 
-    AISKinematicPropagator(potentialFunctionType U, gradPotentialFunctionType dUdx,
-                           gradPotentialFunctionType dUdp,
-                           hessianPotentialFunctionType d2Udxdx,
-                           hessianPotentialFunctionType d2Udxdp,
-                           hessianPotentialFunctionType d2Udpdp);
+    AISKinematicPropagator(std::shared_ptr<potentialFunctionType> U, std::shared_ptr<gradPotentialFunctionType> dUdx,
+                           std::shared_ptr<gradPotentialFunctionType> dUdp,
+                           std::shared_ptr<hessianPotentialFunctionType> d2Udxdx,
+                           std::shared_ptr<hessianPotentialFunctionType> d2Udxdp,
+                           std::shared_ptr<hessianPotentialFunctionType> d2Udpdp);
     ~AISKinematicPropagator();
 
-    void PropagateEnsemble(AISAtomEnsemble* atomEnsemble, __float128 t1);
-    void PropagateAtom(AISAtom* atom, __float128 t1);
-    void PropagateWavePacket(AISWavePacket* wavePacket, __float128 t1);
+    void PropagateEnsemble(std::unique_ptr<AISAtomEnsemble>& atomEnsemble, __float128 t1);
+    void PropagateAtom(std::unique_ptr<AISAtom>& atom, __float128 t1);
+    void PropagateWavePacket(std::unique_ptr<AISWavePacket>& wavePacket, __float128 t1);
 
-    void PropagateEnsembleLinearized(AISAtomEnsemble* atomEnsemble, __float128 t1);
-    void PropagateAtomLinearized(AISAtom* atom, __float128 t1);
-    void PropagateWavePacketLinearized(AISWavePacket* wavePacket, __float128 t1);
+    void PropagateEnsembleLinearized(std::unique_ptr<AISAtomEnsemble>& atomEnsemble, __float128 t1);
+    void PropagateAtomLinearized(std::unique_ptr<AISAtom>& atom, __float128 t1);
+    void PropagateWavePacketLinearized(std::unique_ptr<AISWavePacket>& wavePacket, __float128 t1);
 
     void SetAddEnergyPhase(bool addEnergyPhase);
 
@@ -70,11 +71,11 @@ public:
 
     __float128 deltaTime = 0.0q;
 
-    bool fAddEnergyPhase = false;
+    bool fAddEnergyPhase = false;//true;//false;
 
-    potentialFunctionType U;
-    gradPotentialFunctionType dUdx, dUdp;
-    hessianPotentialFunctionType d2Udxdx, d2Udxdp, d2Udpdp;
+    std::shared_ptr<potentialFunctionType> U;
+    std::shared_ptr<gradPotentialFunctionType> dUdx, dUdp;
+    std::shared_ptr<hessianPotentialFunctionType> d2Udxdx, d2Udxdp, d2Udpdp;
 };
 
 // struct for the Lagrangian parameters

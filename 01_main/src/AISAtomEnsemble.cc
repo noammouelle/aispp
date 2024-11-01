@@ -43,23 +43,18 @@ AISAtomEnsemble::AISAtomEnsemble(int nAtoms, double temperature, double width,
     }
 
     for(int atom_i = 0; atom_i < nAtoms; ++atom_i){
-        AISAtom* currentAtom = new AISAtom(sampledPos[atom_i],
-                                           sampledVel[atom_i],
-                                           0.0q);
-        
-        fpAtomVector->push_back(currentAtom);
+        std::unique_ptr<AISAtom> currentAtom(new AISAtom(sampledPos[atom_i],
+                                                         sampledVel[atom_i],
+                                                         0.0q));
+        fpAtomVector->push_back(std::move(currentAtom));
     }
 };
 
 AISAtomEnsemble::~AISAtomEnsemble()
 {
-    // delete all the atoms
-    for(int atomIndex = 0; atomIndex < fpAtomVector->size(); atomIndex++)
-    {
-        delete fpAtomVector->at(atomIndex);
-    }
-    // 
-    delete fpAtomVector;
+    // free all the unique_ptr to the atoms then free the unique_ptr to the atom vector
+    fpAtomVector->clear();
+    fpAtomVector.reset();
 };
 
 int AISAtomEnsemble::GetNumberOfAtoms()
@@ -67,12 +62,12 @@ int AISAtomEnsemble::GetNumberOfAtoms()
     return fpAtomVector->size();
 }
 
-atomVector* AISAtomEnsemble::GetAtomVector()
+std::unique_ptr<atomVector>& AISAtomEnsemble::GetAtomVector()
 {
     return fpAtomVector;
 }
 
-AISAtom* AISAtomEnsemble::GetAtom(int atomIndex)
+std::unique_ptr<AISAtom>& AISAtomEnsemble::GetAtom(int atomIndex)
 {
     return fpAtomVector->at(atomIndex); // Find better way
 }

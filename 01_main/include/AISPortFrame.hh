@@ -10,28 +10,28 @@
 #include "AISPort.hh"
 #include "AISAtom.hh"
 
-using portVector = std::vector<AISPort*>;
+using portVector = std::vector<std::unique_ptr<AISPort>>;
 
 class AISPortFrame
 {
 public:
-    AISPortFrame(AISAtom* anAtom, double coherenceLength);
+    AISPortFrame(std::unique_ptr<AISAtom>& anAtom, double coherenceLength);
     ~AISPortFrame();
 
     double coherenceLength;
 
     void initializePortVector(int numberOfPorts);
-    void associatePortsWithWavePackets(AISAtom* anAtom, intTuple adjacentWavepacketIndices);
-    void setPortParameters(AISAtom* anAtom);
+    void associatePortsWithWavePackets(std::unique_ptr<AISAtom>& anAtom, intTuple adjacentWavepacketIndices);
+    void setPortParameters(std::unique_ptr<AISAtom>& anAtom);
     
-    std::vector<int> createGroup(AISAtom* anAtom, int wavePacketIndex, double coherenceLength);
+    std::vector<int> createGroup(std::unique_ptr<AISAtom>& anAtom, int wavePacketIndex, double coherenceLength);
 
-    portVector* fpPortVector;
+    std::unique_ptr<portVector> fpPortVector;
 
     int findValueInVector(int value, const intVector& vector);
     bool isValueInVector(int value, const intVector& vector);
     int GetNumberOfPorts();
-    AISPort* GetPort(int portIndex);
+    std::unique_ptr<AISPort>& GetPort(int portIndex);
 };
 
 

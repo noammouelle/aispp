@@ -2,6 +2,7 @@
 #define AISPOTENTIAL_HH
 
 #include <array>
+#include <iostream>
 
 // no gravity
 double zeroU(const std::array<double,3>& pos, const std::array<double,3>& vel);

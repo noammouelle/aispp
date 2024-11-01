@@ -364,3 +364,9 @@ double6x6Matrix expMatrix(const double6x6Matrix& M) {
 
     return expM;
 }
+
+std::string float128ToString(__float128 value) {
+    char buffer[128];
+    quadmath_snprintf(buffer, sizeof(buffer), "%.36Qg", value);
+    return std::string(buffer);
+}

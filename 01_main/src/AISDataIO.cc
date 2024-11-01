@@ -1,6 +1,6 @@
 #include "AISDataIO.hh"
 
-void writeAtomEnsembleToFile(std::string fName, AISAtomEnsemble* atomEnsemble)
+void writeAtomEnsembleToFile(std::string fName, std::unique_ptr<AISAtomEnsemble>& atomEnsemble)
 {
     // write a file to cross check
     std::ofstream outFile(fName);
@@ -11,10 +11,10 @@ void writeAtomEnsembleToFile(std::string fName, AISAtomEnsemble* atomEnsemble)
     outFile << "State, Amplitude, X, Y, Z, VX, VY, VZ, Phase, PhaseErr, PhaseQuad, Time" << std::endl;
     for(int i = 0; i < atomEnsemble->GetNumberOfAtoms(); ++i)
     {
-        AISAtom* currentAtom   = atomEnsemble->GetAtom(i);
+        std::unique_ptr<AISAtom>& currentAtom = atomEnsemble->GetAtom(i);
         for(int j = 0; j < currentAtom->GetNumberOfWavePackets(); ++j)
         {
-            AISWavePacket* currentWavePacket = currentAtom->GetWavePacket(j);
+            std::unique_ptr<AISWavePacket>& currentWavePacket = currentAtom->GetWavePacket(j);
             int currentState = currentWavePacket->GetState();
             double currentAmplitude = currentWavePacket->GetAmplitude();
             doubleThreeVector currentPos = currentWavePacket->GetPosition();
@@ -61,7 +61,7 @@ AISParams readParamsFromFile(std::string fName)
     // Define the possible parameter keys using sets
     std::set<std::string> IntParamsKeys = {"natoms"};
     std::set<std::string> DoubleParamsKeys = {"sigma", "temp"};
-    std::set<std::string> QuadParamsKeys = {"finalproptime"};
+    std::set<std::string> QuadParamsKeys = {"detectiontime"};
     std::set<std::string> StrParamsKeys = {"utype"};
     std::set<std::string> DoubleArrayParamsKeys = {"x0", "v0", "kx", "ky", "kz","rabifreq", "phi0"};
     std::set<std::string> QuadArrayParamsKeys = {"t0", "t1", "omega"};
@@ -141,12 +141,19 @@ AISParams readParamsFromFile(std::string fName)
     params.kXVector = DoubleArrayParams["kx"];
     params.kYVector = DoubleArrayParams["ky"];
     params.kZVector = DoubleArrayParams["kz"];
+
+    // Rabi frequencies (convert Hz to rad/s)
+    for(int i=0; i<DoubleArrayParams["rabifreq"].size(); i++)
+    {
+        DoubleArrayParams["rabifreq"][i] = DoubleArrayParams["rabifreq"][i] * 2 * pi;
+    }
     params.rabiFrequencies = DoubleArrayParams["rabifreq"];
+    
     params.phi0 = DoubleArrayParams["phi0"];
     params.omegaVector = QuadArrayParams["omega"];
     params.wavefrontTypeVector = StrArrayParams["wtype"];
 
-    params.finalPropagationTime = QuadParams["finalproptime"];
+    params.detectionTime = QuadParams["detectiontime"];
 
     return params;
 }
