@@ -181,8 +181,8 @@ std::array<doubleThreeVector, 2> AISKinematicPropagator::CalculateNewPhaseSpaceC
     gsl_odeiv2_system sys = {func, nullptr, 6, this};
     // setup the driver
     double reltol = 0.0;
-    double abstol = 1e-9;
-    double hstart = (t1 - t0) / 1000.0;
+    double abstol = 1e-3;
+    double hstart = (t1 - t0) / 10.0;
     gsl_odeiv2_driver * d =
     gsl_odeiv2_driver_alloc_y_new (&sys, gsl_odeiv2_step_rk8pd,
                                   hstart, abstol, reltol);
@@ -212,12 +212,13 @@ std::array<doubleThreeVector, 2> AISKinematicPropagator::CalculateNewPhaseSpaceC
     else
     {
     // define the ode system
+    std::cout << "Calculating new linearized phase space coordinates " << "t0 = " << t0 << " t1 = " << t1 << std::endl;
     FuncLinearizedParams* linearizedParams = new FuncLinearizedParams{pos0, vel0, this};
     gsl_odeiv2_system sys = {funcLinearized, nullptr, 6, linearizedParams};
     // setup the driver
     double reltol = 0.0;
-    double abstol = 1e-9;
-    double hstart = (t1 - t0) / 1000.0;   
+    double abstol = 1e-3;
+    double hstart = (t1 - t0) / 10.0;   
     gsl_odeiv2_driver * d =
     gsl_odeiv2_driver_alloc_y_new (&sys, gsl_odeiv2_step_rk8pd,
                                   hstart, abstol, reltol);
@@ -301,7 +302,7 @@ int AISKinematicPropagator::funcLinearized(double t, const double y[], double f[
 {
     // Function to be used by the ODE solver
     // defined such that dy_i/dt = f_i(t, y_1, y_2, ..., y_n)
-
+    std::cout << "funcLinearized t: " << t << "y[2] = " << y[2] << std::endl;
     (void)(t); /* avoid unused parameter warning */
     FuncLinearizedParams* linearizedParams = static_cast<FuncLinearizedParams*>(params);
     AISKinematicPropagator* propagator = linearizedParams->propagator;

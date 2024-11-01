@@ -23,5 +23,5 @@ double uniformGravityU(const std::array<double,3>& pos, const std::array<double,
 }
 std::array<double,3> uniformGravityGrad(const std::array<double,3>& pos, const std::array<double,3>& vel)
 {
-    return {0.,0.,-g};
+    return {0.,0.,-massSr87 * g};
 }
