@@ -27,6 +27,15 @@ AISDriver::AISDriver(AISParams params)
         d2Udxdp = std::make_shared<hessianPotentialFunctionType>(zeroHess);
         d2Udpdp = std::make_shared<hessianPotentialFunctionType>(zeroHess);
     }
+    else if(params.potentialType == "linear_pot")
+    {
+        U = std::make_shared<potentialFunctionType>(uniformGravityU);
+        dUdx = std::make_shared<gradPotentialFunctionType>(uniformGravityGrad);
+        dUdp = std::make_shared<gradPotentialFunctionType>(zeroGrad);
+        d2Udxdx = std::make_shared<hessianPotentialFunctionType>(zeroHess);
+        d2Udxdp = std::make_shared<hessianPotentialFunctionType>(zeroHess);
+        d2Udpdp = std::make_shared<hessianPotentialFunctionType>(zeroHess);
+    }
     else
     {
         std::cerr << "Potential type "<<params.potentialType<<" not recognized. Exiting." << std::endl;

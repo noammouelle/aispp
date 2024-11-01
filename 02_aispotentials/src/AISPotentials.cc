@@ -15,3 +15,13 @@ std::array<std::array<double,3>,3> zeroHess(const std::array<double,3>& pos, con
              {0.,0.,0.},
              {0.,0.,0.}}};
 }
+
+// uniform gravity
+double uniformGravityU(const std::array<double,3>& pos, const std::array<double,3>& vel)
+{
+    return -g * pos[2];
+}
+std::array<double,3> uniformGravityGrad(const std::array<double,3>& pos, const std::array<double,3>& vel)
+{
+    return {0.,0.,-g};
+}

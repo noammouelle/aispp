@@ -4,9 +4,15 @@
 #include <array>
 #include <iostream>
 
+#include "AISConstants.hh"
+
 // no gravity
 double zeroU(const std::array<double,3>& pos, const std::array<double,3>& vel);
 std::array<double,3> zeroGrad(const std::array<double,3>& pos, const std::array<double,3>& vel);
 std::array<std::array<double,3>,3> zeroHess(const std::array<double,3>& pos, const std::array<double,3>& vel);
+
+// uniform gravity
+double uniformGravityU(const std::array<double,3>& pos, const std::array<double,3>& vel);
+std::array<double,3> uniformGravityGrad(const std::array<double,3>& pos, const std::array<double,3>& vel);
 
 #endif
