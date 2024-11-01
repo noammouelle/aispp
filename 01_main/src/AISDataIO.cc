@@ -129,6 +129,43 @@ AISParams readParamsFromFile(std::string fName)
 
     file.close();
 
+    // Check for missing parameters
+    for (const auto& key : IntParamsKeys) {
+        if (IntParams.find(key) == IntParams.end()) {
+            throw std::runtime_error("Missing integer parameter: " + key);
+        }
+    }
+    for (const auto& key : DoubleParamsKeys) {
+        if (DoubleParams.find(key) == DoubleParams.end()) {
+            throw std::runtime_error("Missing double parameter: " + key);
+        }
+    }
+    for (const auto& key : QuadParamsKeys) {
+        if (QuadParams.find(key) == QuadParams.end()) {
+            throw std::runtime_error("Missing quad parameter: " + key);
+        }
+    }
+    for (const auto& key : StrParamsKeys) {
+        if (StrParams.find(key) == StrParams.end()) {
+            throw std::runtime_error("Missing string parameter: " + key);
+        }
+    }
+    for (const auto& key : DoubleArrayParamsKeys) {
+        if (DoubleArrayParams.find(key) == DoubleArrayParams.end()) {
+            throw std::runtime_error("Missing double array parameter: " + key);
+        }
+    }
+    for (const auto& key : QuadArrayParamsKeys) {
+        if (QuadArrayParams.find(key) == QuadArrayParams.end()) {
+            throw std::runtime_error("Missing quad array parameter: " + key);
+        }
+    }
+    for (const auto& key : StrArrayParamsKeys) {
+        if (StrArrayParams.find(key) == StrArrayParams.end()) {
+            throw std::runtime_error("Missing string array parameter: " + key);
+        }
+    }
+
     AISParams params;
     params.nAtoms           = IntParams["natoms"];
     params.cloudRadius      = DoubleParams["sigma"];
