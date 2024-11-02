@@ -212,7 +212,6 @@ std::array<doubleThreeVector, 2> AISKinematicPropagator::CalculateNewPhaseSpaceC
     else
     {
     // define the ode system
-    std::cout << "Calculating new linearized phase space coordinates " << "t0 = " << t0 << " t1 = " << t1 << std::endl;
     FuncLinearizedParams* linearizedParams = new FuncLinearizedParams{pos0, vel0, this};
     gsl_odeiv2_system sys = {funcLinearized, nullptr, 6, linearizedParams};
     // setup the driver
@@ -259,8 +258,8 @@ std::array<doubleThreeVector,2> AISKinematicPropagator::get_dotPhaseSpaceCoordsL
     }};
     // compute the time derivatives (given by the linearized Hamilton's equations)
     doubleThreeVector term1 = matrixAdd(vel0,dUdp);
-    doubleThreeVector term2 = dotProduct(I,matrixAdd(scalarMultiply(vel,1/massSr87),scalarMultiply(vel0,-1/massSr87)));
-    doubleThreeVector term3 = dotProduct(d2Udpdp,matrixAdd(scalarMultiply(vel,1/massSr87),scalarMultiply(vel0,-1/massSr87)));
+    doubleThreeVector term2 = dotProduct(I,matrixAdd(vel, scalarMultiply(vel0,-1)));
+    doubleThreeVector term3 = dotProduct(d2Udpdp,matrixAdd(scalarMultiply(vel,massSr87),scalarMultiply(vel0,-massSr87)));
     doubleThreeVector term4 = dotProduct(transpose(d2Udxdp),matrixAdd(pos,scalarMultiply(pos0,-1)));
     doubleThreeVector dotPos = matrixAdd(term1,matrixAdd(term2,matrixAdd(term3,term4)));
 
@@ -302,7 +301,6 @@ int AISKinematicPropagator::funcLinearized(double t, const double y[], double f[
 {
     // Function to be used by the ODE solver
     // defined such that dy_i/dt = f_i(t, y_1, y_2, ..., y_n)
-    std::cout << "funcLinearized t: " << t << "y[2] = " << y[2] << std::endl;
     (void)(t); /* avoid unused parameter warning */
     FuncLinearizedParams* linearizedParams = static_cast<FuncLinearizedParams*>(params);
     AISKinematicPropagator* propagator = linearizedParams->propagator;
@@ -376,7 +374,7 @@ std::array<double,2> AISKinematicPropagator::get_Scl(const double& t0, const dou
     integrand.function = &get_L_wrapper;
     integrand.params = new LagrangianParams{t0, pos0, vel0, this};
 
-    double epsabs = 1e-12;
+    double epsabs = 1e-9;
     double epsrel = 0.0;
     int key = 1;
 
@@ -395,9 +393,9 @@ std::array<double,2> AISKinematicPropagator::CalculateNewPhaseDouble(const doubl
     double action = scl[0];
     double error = scl[1];
 
-     // divide the action by hbar to get the phase and return result
-     double dphase = action * massSr87overHbar;/// hbar;
-     double dphaseError = error * massSr87overHbar; // / hbar;
+    // divide the action by hbar to get the phase and return result
+    double dphase = action * massSr87overHbar;/// hbar;
+    double dphaseError = error * massSr87overHbar; // / hbar;
 
     return {phase0 + dphase, sqrt(dphaseError * dphaseError + phaseErr * phaseErr)};
 }
