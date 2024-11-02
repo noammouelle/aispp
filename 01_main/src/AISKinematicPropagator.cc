@@ -121,6 +121,12 @@ void AISKinematicPropagator::PropagateWavePacket(std::unique_ptr<AISWavePacket>&
     double newPhaseDouble    = phaseDoubleRes[0];
     double newPhaseDoubleErr = phaseDoubleRes[1];
 
+    // if double phase error above 5e-3 radians, print a warning
+    if(newPhaseDoubleErr > 5e-3)
+    {
+        std::cerr << "Warning: phase error is above 5e-3 radians! (" << newPhaseDoubleErr << " radians)" << std::endl;
+    }
+
     wavePacket->SetPhaseDouble(newPhaseDouble);
     wavePacket->SetPhaseDoubleError(newPhaseDoubleErr);
 
