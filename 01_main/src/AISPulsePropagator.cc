@@ -64,9 +64,16 @@ void AISPulsePropagator::PropagateAtom(std::unique_ptr<AISAtom>& atom)
 
 void AISPulsePropagator::ApplyU1(std::unique_ptr<AISWavePacket>& wavepacket, __float128 t0, __float128 t1)
 {
+    // save the add energy phase flag and set to true
+    bool addEnergyPhase = kinematicPropagator->fAddEnergyPhase;
+    kinematicPropagator->SetAddEnergyPhase(true);
+    
     // U1 is just kinematic propagation from t1 to t0 (note the reverse time order)
     wavepacket->SetTime(t1); // TODO: there must be a better way of doing this
     this->kinematicPropagator->PropagateWavePacket(wavepacket, t0);
+
+    // restore the add energy phase flag
+    kinematicPropagator->SetAddEnergyPhase(addEnergyPhase);
 }
 
 void AISPulsePropagator::ApplyU2(std::unique_ptr<AISWavePacket>& wavepacket, __float128 t0)
