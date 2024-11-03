@@ -35,6 +35,9 @@ public:
 
     // Kinematic parameters
     __float128 detectionTime;
+
+    // Simulation parameters
+    double amplitudeThreshold;
 };
 
 

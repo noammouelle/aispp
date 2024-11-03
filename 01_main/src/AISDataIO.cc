@@ -60,7 +60,7 @@ AISParams readParamsFromFile(std::string fName)
 
     // Define the possible parameter keys using sets
     std::set<std::string> IntParamsKeys = {"natoms"};
-    std::set<std::string> DoubleParamsKeys = {"sigma", "temp"};
+    std::set<std::string> DoubleParamsKeys = {"sigma", "temp", "amplitudethreshold"};
     std::set<std::string> QuadParamsKeys = {"detectiontime"};
     std::set<std::string> StrParamsKeys = {"utype"};
     std::set<std::string> DoubleArrayParamsKeys = {"x0", "v0", "kx", "ky", "kz","rabifreq", "phi0"};
@@ -197,6 +197,8 @@ AISParams readParamsFromFile(std::string fName)
     params.wavefrontTypeVector = StrArrayParams["wtype"];
 
     params.detectionTime = QuadParams["detectiontime"];
+
+    params.amplitudeThreshold = DoubleParams["amplitudethreshold"];
 
     return params;
 }

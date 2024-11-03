@@ -89,7 +89,8 @@ AISDriver::AISDriver(AISParams params)
                                                                             wff,dwff,rff);
 
         // create the propagator
-        auto pulsePropagator = std::make_shared<AISPulsePropagator>(beam, params.initialPulseTimes[i], params.finalPulseTimes[i], kinematicPropagator);
+        auto pulsePropagator = std::make_shared<AISPulsePropagator>(beam, params.initialPulseTimes[i], params.finalPulseTimes[i], kinematicPropagator,
+                                                                   params.amplitudeThreshold);
 
         // add the propagator to the list
         pulsePropagators.push_back(pulsePropagator);

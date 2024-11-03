@@ -26,6 +26,7 @@ public:
     std::shared_ptr<AISKinematicPropagator> kinematicPropagator;
     __float128 initTime, finalTime;
     double initTimeDouble, finalTimeDouble;
+    double amplitudeThreshold;
 
 protected:
     void ApplyU1(std::unique_ptr<AISWavePacket>& wavepacket, __float128 t0, __float128 t1);
@@ -38,7 +39,8 @@ protected:
     double getDelta(doubleThreeVector pos0, doubleThreeVector vel0, double t0, double t1, std::shared_ptr<AISLaserBeam> laserBeam);
 public: 
     AISPulsePropagator(std::shared_ptr<AISLaserBeam> beam, __float128 t0, __float128 t1,
-                       std::shared_ptr<AISKinematicPropagator> kinematicPropagator);
+                       std::shared_ptr<AISKinematicPropagator> kinematicPropagator,
+                       double amplitudeThreshold);
     ~AISPulsePropagator();
 
     void PropagateEnsemble(std::unique_ptr<AISAtomEnsemble>& atomEnsemble);

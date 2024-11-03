@@ -2,9 +2,9 @@
 
 AISPulsePropagator::AISPulsePropagator(std::shared_ptr<AISLaserBeam> beam, 
                                        __float128 t0, __float128 t1,
-                                       std::shared_ptr<AISKinematicPropagator> prop)
+                                       std::shared_ptr<AISKinematicPropagator> prop, double threshold)
     : laserBeam(beam), kinematicPropagator(prop), initTime(t0), finalTime(t1),
-      initTimeDouble(static_cast<double>(t0)), finalTimeDouble(static_cast<double>(t1)) {
+      initTimeDouble(static_cast<double>(t0)), finalTimeDouble(static_cast<double>(t1)), amplitudeThreshold(threshold) {
 }
 
 AISPulsePropagator::~AISPulsePropagator()
@@ -40,9 +40,15 @@ void AISPulsePropagator::PropagateAtom(std::unique_ptr<AISAtom>& atom)
         // Apply U3(t_0,t)
         ApplyU3(wavepacket0, wavepacket1, this->initTime, this->finalTime);
         
-        // add the wavepackets to the vector
-        newWavePackets->push_back(std::move(wavepacket0));
-        newWavePackets->push_back(std::move(wavepacket1));        
+        // add the wavepackets to the vector if the amplitude is above the threshold
+        if(abs(wavepacket0->GetAmplitude()) > this->amplitudeThreshold)
+        {
+            newWavePackets->push_back(std::move(wavepacket0));
+        }
+        if(abs(wavepacket1->GetAmplitude()) > this->amplitudeThreshold)
+        {
+            newWavePackets->push_back(std::move(wavepacket1));
+        }      
     }
 
     // Step 2: perform the inverse transformations
@@ -67,7 +73,7 @@ void AISPulsePropagator::ApplyU1(std::unique_ptr<AISWavePacket>& wavepacket, __f
     // save the add energy phase flag and set to true
     bool addEnergyPhase = kinematicPropagator->fAddEnergyPhase;
     kinematicPropagator->SetAddEnergyPhase(true);
-    
+
     // U1 is just kinematic propagation from t1 to t0 (note the reverse time order)
     wavepacket->SetTime(t1); // TODO: there must be a better way of doing this
     this->kinematicPropagator->PropagateWavePacket(wavepacket, t0);
