@@ -129,7 +129,7 @@ void AISDriver::Run()
 void AISDriver::Detect()
 {   
     // three times the De Broglie wavelength of the cloud
-    double coherenceLength = 0.5 * hbar / sqrt(massSr87 * kB * params.cloudTemperature);//1.0 * sqrt(2 * pi) * hbar / sqrt(massSr87 * kB * params.cloudTemperature);
+    double coherenceLength = 0.5 * hbar / sqrt(massSr87 * kB * params.cloudTemperature);
     // init the detector
     detector = std::make_unique<AISDetector>(atomEnsemble, coherenceLength);
     sampledPortIndices = detector->SampleAllPorts();
