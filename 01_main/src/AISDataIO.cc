@@ -166,6 +166,12 @@ AISParams readParamsFromFile(std::string fName)
         }
     }
 
+    // Sanity checks
+    // detection time > finalPulseTimes[-1]
+    if (QuadParams["detectiontime"] < QuadArrayParams["t1"].back()) {
+        throw std::runtime_error("Detection time must be greater than the final pulse time");
+    }
+
     AISParams params;
     params.nAtoms           = IntParams["natoms"];
     params.cloudRadius      = DoubleParams["sigma"];
