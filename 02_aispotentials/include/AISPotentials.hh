@@ -15,4 +15,9 @@ std::array<std::array<double,3>,3> zeroHess(const std::array<double,3>& pos, con
 double uniformGravityU(const std::array<double,3>& pos, const std::array<double,3>& vel);
 std::array<double,3> uniformGravityGrad(const std::array<double,3>& pos, const std::array<double,3>& vel);
 
+// linear gravity
+double linearGravityU(const std::array<double,3>& pos, const std::array<double,3>& vel);
+std::array<double,3> linearGravityGrad(const std::array<double,3>& pos, const std::array<double,3>& vel);
+std::array<std::array<double,3>,3> linearGravityHess(const std::array<double,3>& pos, const std::array<double,3>& vel);
+
 #endif
