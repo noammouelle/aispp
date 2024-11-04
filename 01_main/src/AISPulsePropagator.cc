@@ -13,7 +13,7 @@ AISPulsePropagator::~AISPulsePropagator()
 
 void AISPulsePropagator::PropagateEnsemble(std::unique_ptr<AISAtomEnsemble>& atomEnsemble)
 {
-    //#pragma omp parallel for
+    #pragma omp parallel for
     for(int i_atom = 0; i_atom < atomEnsemble->GetNumberOfAtoms(); ++i_atom)
     {
         std::unique_ptr<AISAtom>& currentAtom = atomEnsemble->GetAtom(i_atom);

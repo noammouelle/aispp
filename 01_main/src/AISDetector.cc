@@ -5,6 +5,7 @@ AISDetector::AISDetector(std::unique_ptr<AISAtomEnsemble>& pAtomEnsemble, double
     // initialize the port-frame vector and allocate memory
     fpPortFrameVector = std::make_unique<portFrameVector>();
 
+    #pragma omp parallel for
     for(int atomIndex = 0; atomIndex < pAtomEnsemble->GetNumberOfAtoms(); atomIndex++)
     {
         std::unique_ptr<AISAtom>& currentAtom = pAtomEnsemble->GetAtom(atomIndex);
@@ -13,7 +14,11 @@ AISDetector::AISDetector(std::unique_ptr<AISAtomEnsemble>& pAtomEnsemble, double
 
         // create the port-frame object
         std::unique_ptr<AISPortFrame> currentPortFrame(new AISPortFrame(currentAtom, coherenceLength));
-        fpPortFrameVector->push_back(std::move(currentPortFrame));
+        
+        #pragma omp critical
+        {
+            fpPortFrameVector->push_back(std::move(currentPortFrame));
+        }
     }
 }
 
