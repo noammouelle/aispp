@@ -2,6 +2,9 @@
 #include "AISDataIO.hh"
 #include "AISParams.hh"
 
+#include <iostream>
+#include <chrono>
+
 /*
 Main file for this library. Works by calling 
     ais++ -i input_file.aisi -o output_file.h5
@@ -38,12 +41,32 @@ int main(int argc, char* argv[])
     // create the driver
     AISDriver* driver = new AISDriver(params);
     
-    // run the simulation
+    /* RUN THE ATOM PROPAGATION */
+    auto start = std::chrono::high_resolution_clock::now();
+
     driver->Run();
+
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed = end - start;
+    std::cout << "Propagation: " << elapsed.count() << " s" << std::endl;
+
+    /* DETECT THE ATOMS */
+    auto startDetect = std::chrono::high_resolution_clock::now();
+
     driver->Detect();
 
+    auto endDetect = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsedDetect = endDetect - startDetect;
+    std::cout << "Detection: " << elapsedDetect.count() << " s" << std::endl;
+
     // write the detected atoms to file
+    auto startWrite = std::chrono::high_resolution_clock::now();
+
     driver->WriteDetectedAtomsToFile(outputFileName);
+
+    auto endWrite = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsedWrite = endWrite - startWrite;
+    std::cout << "Write: " << elapsedWrite.count() << " s" << std::endl;
 
     // clean up
     delete driver;
