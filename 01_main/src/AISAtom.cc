@@ -34,8 +34,5 @@ void AISAtom::DeleteWavePackets(){
 };
 
 void AISAtom::AddWavePackets(std::unique_ptr<wavePacketVector>& newWavePacketVector){
-    // if the length of the vector is non-zero, add the wavepackets to the atom
-    if(newWavePacketVector->size() > 0){
-        fpWavePacketVector = std::move(newWavePacketVector);
-    }
+    fpWavePacketVector = std::move(newWavePacketVector);
 };
