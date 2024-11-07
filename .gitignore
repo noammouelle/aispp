@@ -3,3 +3,6 @@
 
 # ignore .vscode directory
 /.vscode/
+
+# ignore personalized config file
+myconfig.cmake
