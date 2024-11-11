@@ -26,6 +26,7 @@ public:
     void Detect();
     void WriteDetectedAtomsToFile(std::string fName);
     void WriteWavePacketsToFile(std::string fName);
+    void WritePortsToFile(std::string fName);
 
 //private:
     AISParams params;

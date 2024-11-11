@@ -38,6 +38,9 @@ public:
 
     // Simulation parameters
     double amplitudeThreshold;
+
+    // Output parameters
+    bool printPorts;
 };
 
 

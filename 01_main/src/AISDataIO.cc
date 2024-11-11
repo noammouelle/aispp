@@ -50,6 +50,7 @@ AISParams readParamsFromFile(std::string fName)
     }
 
     // Define the parameter maps
+    std::map<std::string, bool> BoolParams;
     std::map<std::string, int> IntParams;
     std::map<std::string, double> DoubleParams;
     std::map<std::string, __float128> QuadParams;
@@ -59,6 +60,7 @@ AISParams readParamsFromFile(std::string fName)
     std::map<std::string, std::vector<std::string>> StrArrayParams;
 
     // Define the possible parameter keys using sets
+    std::set<std::string> BoolParamsKeys = {"printprobs"};
     std::set<std::string> IntParamsKeys = {"natoms"};
     std::set<std::string> DoubleParamsKeys = {"sigma", "temp", "amplitudethreshold"};
     std::set<std::string> QuadParamsKeys = {"detectiontime"};
@@ -80,7 +82,12 @@ AISParams readParamsFromFile(std::string fName)
         iss >> key;
 
         // Check and insert into the appropriate map
-        if (IntParamsKeys.find(key) != IntParamsKeys.end()) {
+        if (BoolParamsKeys.find(key) != BoolParamsKeys.end()) {
+            bool value;
+            iss >> value;
+            BoolParams[key] = value;
+        }
+        else if (IntParamsKeys.find(key) != IntParamsKeys.end()) {
             int value;
             iss >> value;
             IntParams[key] = value;
@@ -130,6 +137,11 @@ AISParams readParamsFromFile(std::string fName)
     file.close();
 
     // Check for missing parameters
+    for (const auto& key : BoolParamsKeys) {
+        if (BoolParams.find(key) == BoolParams.end()) {
+            throw std::runtime_error("Missing bool parameter: " + key);
+        }
+    }
     for (const auto& key : IntParamsKeys) {
         if (IntParams.find(key) == IntParams.end()) {
             throw std::runtime_error("Missing integer parameter: " + key);
@@ -199,6 +211,8 @@ AISParams readParamsFromFile(std::string fName)
     params.detectionTime = QuadParams["detectiontime"];
 
     params.amplitudeThreshold = DoubleParams["amplitudethreshold"];
+
+    params.printPorts = BoolParams["printprobs"];
 
     return params;
 }
