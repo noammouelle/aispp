@@ -138,10 +138,8 @@ void AISDriver::Run()
 
 void AISDriver::Detect()
 {   
-    // three times the De Broglie wavelength of the cloud
-    double coherenceLength = 0.5 * hbar / sqrt(massSr87 * kB * params.cloudTemperature);
     // init the detector
-    detector = std::make_unique<AISDetector>(atomEnsemble, 10 * coherenceLength); // 10 times the coherence length is the interference limit
+    detector = std::make_unique<AISDetector>(atomEnsemble, params.coherenceLength);
     sampledPortIndices = detector->SampleAllPorts();
 }
 
@@ -261,7 +259,7 @@ void AISDriver::WritePortsToFile(std::string fName)
             doubleThreeVector currentVelocity = port->velocity;
             int currentState = port->state;
             int currentInterferingFlag = static_cast<int>(port->interfering);
-            double currentProbability = abs(port->probabilityAmplitude) * abs(port->probabilityAmplitude);
+            double currentProbability = abs(port->probabilityAmplitude);
             // fill in the data
             for(int i = 0; i < 3; ++i)
             {

@@ -38,6 +38,7 @@ public:
 
     // Simulation parameters
     double amplitudeThreshold;
+    double coherenceLength;
 
     // Output parameters
     bool printPorts;

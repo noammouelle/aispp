@@ -62,7 +62,7 @@ AISParams readParamsFromFile(std::string fName)
     // Define the possible parameter keys using sets
     std::set<std::string> BoolParamsKeys = {"printprobs"};
     std::set<std::string> IntParamsKeys = {"natoms"};
-    std::set<std::string> DoubleParamsKeys = {"sigma", "temp", "amplitudethreshold"};
+    std::set<std::string> DoubleParamsKeys = {"sigma", "temp", "amplitudethreshold", "coherencelength"};
     std::set<std::string> QuadParamsKeys = {"detectiontime"};
     std::set<std::string> StrParamsKeys = {"utype"};
     std::set<std::string> DoubleArrayParamsKeys = {"x0", "v0", "kx", "ky", "kz","rabifreq", "phi0"};
@@ -211,6 +211,7 @@ AISParams readParamsFromFile(std::string fName)
     params.detectionTime = QuadParams["detectiontime"];
 
     params.amplitudeThreshold = DoubleParams["amplitudethreshold"];
+    params.coherenceLength = DoubleParams["coherencelength"];
 
     params.printPorts = BoolParams["printprobs"];
 
