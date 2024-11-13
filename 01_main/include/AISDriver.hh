@@ -23,12 +23,14 @@ public:
     ~AISDriver();
 
     void Run();
+    void RunPathFinder();
+    void RunAll();
     void Detect();
     void WriteDetectedAtomsToFile(std::string fName);
     void WriteWavePacketsToFile(std::string fName);
     void WritePortsToFile(std::string fName);
 
-//private:
+// private:
     AISParams params;
     std::unique_ptr<AISAtomEnsemble> atomEnsemble;
     std::unique_ptr<AISDetector> detector;
@@ -38,6 +40,7 @@ public:
     std::vector<std::unique_ptr<AISLaserBeam>> laserBeams;
 
     std::vector<int> sampledPortIndices;
+    std::vector<std::string> interferingPaths;
 };
 
 #endif

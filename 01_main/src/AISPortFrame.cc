@@ -23,6 +23,26 @@ AISPortFrame::AISPortFrame(std::unique_ptr<AISAtom>& anAtom, double coherenceLen
         }
     }
 
+    // get the indices of the wavepackets that are close enough to interfere
+    std::vector<int> adjacentWavepacketIndices;
+    for(int i = 0; i < uniqueWavePacketIndexGroups.size(); i++)
+    {
+        if (uniqueWavePacketIndexGroups[i].size() > 1)
+        {
+            for(int j = 0; j < uniqueWavePacketIndexGroups[i].size(); j++)
+            {
+                adjacentWavepacketIndices.push_back(uniqueWavePacketIndexGroups[i][j]);
+            }
+        }
+    }
+    
+    // get the paths of the interfering atoms
+    for(int i = 0; i < adjacentWavepacketIndices.size(); i++)
+    {
+        std::unique_ptr<AISWavePacket>& wavePacket = anAtom->GetWavePacket(adjacentWavepacketIndices[i]);
+        interferingPaths.push_back(wavePacket->GetPath());
+    }
+
     // create the port vector
     int numberOfPorts = uniqueWavePacketIndexGroups.size();
     if(numberOfPorts < 1){
@@ -268,4 +288,9 @@ bool AISPortFrame::isValueInVector(int j, const intVector& vector) {
 
 int AISPortFrame::findValueInVector(int j, const intVector& vector) {
     return std::find(vector.begin(), vector.end(), j) - vector.begin();
+}
+
+std::vector<std::string> AISPortFrame::GetInterferingPaths()
+{
+    return interferingPaths;
 }

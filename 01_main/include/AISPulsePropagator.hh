@@ -28,6 +28,11 @@ public:
     double initTimeDouble, finalTimeDouble;
     double amplitudeThreshold;
 
+    std::vector<std::string> interferingPaths = {};
+
+    std::vector<std::string> GetInterferingPaths();
+    void SetInterferingPaths(std::vector<std::string> paths);
+
 protected:
     void ApplyU1(std::unique_ptr<AISWavePacket>& wavepacket, __float128 t0, __float128 t1);
     void ApplyU2(std::unique_ptr<AISWavePacket>& wavepacket, __float128 t0); // in theory could define in terms of t0 and t1 but in practice only need U2(t0,t0).

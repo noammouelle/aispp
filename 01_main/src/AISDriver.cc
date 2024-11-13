@@ -106,6 +106,25 @@ AISDriver::~AISDriver()
 
 void AISDriver::Run()
 {
+    // 1. If required, run the path finder sequence
+    if(params.useMcBranching)
+    {
+        RunPathFinder();
+
+        // set the interferingPaths variable in the pulse propagators
+        for(int i = 0; i < pulsePropagators.size(); ++i)
+        {
+            this->pulsePropagators[i]->SetInterferingPaths(interferingPaths);
+        }
+        // set useMcBranching to true in the initial wavepacket
+        this->atomEnsemble->GetAtom(0)->GetWavePacket(0)->SetUseMcBranching(true);
+    }
+    // 2. Run the main sequence
+    RunAll();
+}
+
+void AISDriver::RunAll()
+{
     __float128 t0, t1;
     // initial propagation, if the initial pulse time is not zero
     if(params.initialPulseTimes[0] != 0.0q)
@@ -134,6 +153,32 @@ void AISDriver::Run()
         kinematicPropagator->SetAddEnergyPhase(false);
         kinematicPropagator->PropagateEnsemble(atomEnsemble, params.detectionTime);
     }
+}
+
+void AISDriver::RunPathFinder()
+{
+    AISParams pathFinderParams = params;
+    // set position and velocity spread to 0
+    pathFinderParams.cloudRadius = 0.0;
+    pathFinderParams.cloudTemperature = 0.0;
+    // set the number of atoms to 1
+    pathFinderParams.nAtoms = 1;
+    // set the useMcBranching flag to false
+    pathFinderParams.useMcBranching = false;
+    // use large cutoff
+    pathFinderParams.amplitudeThreshold = 0.01;
+
+    // create another driver
+    std::unique_ptr<AISDriver> pathFinder = std::make_unique<AISDriver>(pathFinderParams);
+
+    // run the path finder
+    pathFinder->RunAll();
+
+    // create the detector
+    detector = std::make_unique<AISDetector>(pathFinder->atomEnsemble, pathFinderParams.coherenceLength);
+
+    // get the paths of the interfering atoms
+    interferingPaths = detector->GetPortFrame(0)->GetInterferingPaths();
 }
 
 void AISDriver::Detect()

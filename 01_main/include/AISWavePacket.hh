@@ -37,6 +37,12 @@ public:
     int GetWavePacketID();
     void SetWavePacketID(int ID);
 
+    std::string GetPath();
+    void SetPath(std::string path);
+
+    bool GetUseMcBranching();
+    void SetUseMcBranching(bool useMcBranching);
+
 private:
     __float128 fTime = 0.0q;
     double fTime64 = 0.0;
@@ -48,6 +54,9 @@ private:
     double fAmplitude = 1.0;
     int fState = 0;
     int fWavePacketID = 0;
+
+    std::string path = "0";
+    bool useMcBranching = false;
 };
 
 #endif

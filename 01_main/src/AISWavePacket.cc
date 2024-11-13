@@ -69,3 +69,17 @@ int AISWavePacket::GetWavePacketID(){
 void AISWavePacket::SetWavePacketID(int ID){
     fWavePacketID = ID;
 }
+
+std::string AISWavePacket::GetPath(){
+    return path;
+};
+void AISWavePacket::SetPath(std::string aPath){
+    path = aPath;
+};
+
+bool AISWavePacket::GetUseMcBranching(){
+    return useMcBranching;
+};
+void AISWavePacket::SetUseMcBranching(bool useMcBranchingVal){
+    useMcBranching = useMcBranchingVal;
+};

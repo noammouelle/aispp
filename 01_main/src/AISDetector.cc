@@ -29,6 +29,7 @@ AISDetector::~AISDetector()
     fpPortFrameVector.reset();
 }
 
+/*
 intTuple AISDetector::GetAdjacentWavepackets(std::unique_ptr<AISAtom>& anAtom, double coherenceLength)
 {
     intTuple adjacentWavepacketIndices;
@@ -62,7 +63,7 @@ intTuple AISDetector::GetAdjacentWavepackets(std::unique_ptr<AISAtom>& anAtom, d
     }
     return adjacentWavepacketIndices;
 }
-
+*/
 int AISDetector::SamplePort(std::unique_ptr<AISPortFrame>& aPortFrame)
 {
     // compute the cumulative probabilities

@@ -39,6 +39,7 @@ public:
     // Simulation parameters
     double amplitudeThreshold;
     double coherenceLength;
+    bool useMcBranching;
 
     // Output parameters
     bool printPorts;

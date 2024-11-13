@@ -32,6 +32,9 @@ public:
     bool isValueInVector(int value, const intVector& vector);
     int GetNumberOfPorts();
     std::unique_ptr<AISPort>& GetPort(int portIndex);
+
+    std::vector<std::string> interferingPaths = {};
+    std::vector<std::string> GetInterferingPaths();
 };
 
 
