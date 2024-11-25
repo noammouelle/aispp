@@ -45,10 +45,10 @@ AISPortFrame::AISPortFrame(std::unique_ptr<AISAtom>& anAtom, double coherenceLen
 
     // create the port vector
     int numberOfPorts = uniqueWavePacketIndexGroups.size();
-    if(numberOfPorts < 1){
-        std::cout << "No ports found for current atom " << std::endl;
-        exit(1);
-    }
+    //if(numberOfPorts < 1){
+        //std::cout << "No ports found for current atom " << std::endl;
+        //exit(1);
+    //}
     for(int groupIndex = 0; groupIndex < uniqueWavePacketIndexGroups.size(); groupIndex++)
     {
         // create a new port
