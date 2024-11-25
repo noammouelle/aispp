@@ -41,6 +41,38 @@ void writeAtomEnsembleToFile(std::string fName, std::unique_ptr<AISAtomEnsemble>
     outFile.close();
 }
 
+std::vector<std::string> readLinesFromFile(std::string fName)
+{
+    std::ifstream file(fName);
+    if (!file.is_open()) {
+        std::cerr << "File " << fName << " not found. Returning empty vector" << std::endl;
+        return {};
+    }
+
+    std::string line, combinedLine;
+    std::vector<std::string> lines;
+
+    while (std::getline(file, line)) {
+        // Skip comment lines
+        if (line.empty() || line[0] == '#') {
+            continue;
+        }
+
+        // Combine lines that end with a backslash
+        if (line.back() == '\\') {
+            combinedLine += line.substr(0, line.size() - 1);
+        } else {
+            combinedLine += line;
+            lines.push_back(combinedLine);
+            combinedLine.clear();
+        }
+    }
+
+    file.close();
+
+    return lines;    
+}
+
 AISParams readParamsFromFile(std::string fName)
 {
     std::ifstream file(fName);
@@ -48,6 +80,9 @@ AISParams readParamsFromFile(std::string fName)
         std::cerr << "File " << fName << " not found. Returning default params" << std::endl;
         return AISParams();
     }
+
+    // get the lines
+    std::vector<std::string> lines = readLinesFromFile(fName);
 
     // Define the parameter maps
     std::map<std::string, bool> BoolParams;
@@ -100,12 +135,8 @@ AISParams readParamsFromFile(std::string fName)
 
     std::string line;
 
-    while (std::getline(file, line)) {
-        // Skip comment lines
-        if (line.empty() || line[0] == '#') {
-            continue;
-        }
-
+    for (const auto& line : lines) {
+        // Parse the line
         std::istringstream iss(line);
         std::string key;
         iss >> key;

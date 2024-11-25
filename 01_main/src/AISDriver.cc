@@ -75,6 +75,12 @@ AISDriver::AISDriver(AISParams params)
             dwff = std::make_shared<delWavefrontFunctionType>(flatGradientWavefront);
             rff = std::make_shared<rabifreqFunctionType>(flatSquareEnvelope);
         }
+        //else if(params.wavefrontTypeVector[i] == "square_wave")
+        //{
+        //    wff = std::make_shared<wavefrontFunctionType>(flatWavefront);
+        //    dwff = std::make_shared<delWavefrontFunctionType>(flatGradientWavefront);
+        //    rff = std::make_shared<rabifreqFunctionType>(squareWaveModulation);
+        //}
         else{
             std::cerr << "Wavefront type " << params.wavefrontTypeVector[i] << " not recognized. Exiting." << std::endl;
             exit(1);

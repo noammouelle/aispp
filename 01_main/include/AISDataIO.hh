@@ -24,6 +24,7 @@
 
 /* I/O routines */
 void writeAtomEnsembleToFile(std::string fName, std::unique_ptr<AISAtomEnsemble>& atomEnsemble);
+std::vector<std::string> readLinesFromFile(std::string fName);
 AISParams readParamsFromFile(std::string fName);
 
 
