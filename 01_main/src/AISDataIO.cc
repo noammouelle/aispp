@@ -59,15 +59,44 @@ AISParams readParamsFromFile(std::string fName)
     std::map<std::string, std::vector<__float128>> QuadArrayParams;
     std::map<std::string, std::vector<std::string>> StrArrayParams;
 
-    // Define the possible parameter keys using sets
-    std::set<std::string> BoolParamsKeys = {"printprobs","usemcbranching"};
-    std::set<std::string> IntParamsKeys = {"natoms"};
-    std::set<std::string> DoubleParamsKeys = {"sigma", "temp", "amplitudethreshold", "coherencelength"};
-    std::set<std::string> QuadParamsKeys = {"detectiontime"};
-    std::set<std::string> StrParamsKeys = {"utype"};
-    std::set<std::string> DoubleArrayParamsKeys = {"x0", "v0", "kx", "ky", "kz","rabifreq", "phi0"};
-    std::set<std::string> QuadArrayParamsKeys = {"t0", "t1", "omega"};
-    std::set<std::string> StrArrayParamsKeys = {"wtype"};
+    // Define the mandatory parameter keys
+    std::set<std::string> MandatoryBoolParamsKeys = {"printprobs","usemcbranching"};
+    std::set<std::string> MandatoryIntParamsKeys = {"natoms"};
+    std::set<std::string> MandatoryDoubleParamsKeys = {"sigma", "temp", "amplitudethreshold", "coherencelength"};
+    std::set<std::string> MandatoryQuadParamsKeys = {"detectiontime"};
+    std::set<std::string> MandatoryStrParamsKeys = {"utype"};
+    std::set<std::string> MandatoryDoubleArrayParamsKeys = {"x0", "v0", "kx", "ky", "kz","rabifreq", "phi0"};
+    std::set<std::string> MandatoryQuadArrayParamsKeys = {"t0", "t1", "omega"};
+    std::set<std::string> MandatoryStrArrayParamsKeys = {"wtype"};
+
+    // Define the optional keys
+    std::set<std::string> OptBoolParamsKeys = {};
+    std::set<std::string> OptIntParamsKeys = {};
+    std::set<std::string> OptDoubleParamsKeys = {};
+    std::set<std::string> OptQuadParamsKeys = {};
+    std::set<std::string> OptStrParamsKeys = {};
+    std::set<std::string> OptDoubleArrayParamsKeys = {};
+    std::set<std::string> OptQuadArrayParamsKeys = {"beta"};
+    std::set<std::string> OptStrArrayParamsKeys = {};
+
+    // Define the possible parameters combining the mandatory and optional keys
+    std::set<std::string> BoolParamsKeys;
+    std::set<std::string> IntParamsKeys;
+    std::set<std::string> DoubleParamsKeys;
+    std::set<std::string> QuadParamsKeys;
+    std::set<std::string> StrParamsKeys;
+    std::set<std::string> DoubleArrayParamsKeys;
+    std::set<std::string> QuadArrayParamsKeys;
+    std::set<std::string> StrArrayParamsKeys;
+
+    std::set_union(MandatoryBoolParamsKeys.begin(), MandatoryBoolParamsKeys.end(), OptBoolParamsKeys.begin(), OptBoolParamsKeys.end(), std::inserter(BoolParamsKeys, BoolParamsKeys.begin()));
+    std::set_union(MandatoryIntParamsKeys.begin(), MandatoryIntParamsKeys.end(), OptIntParamsKeys.begin(), OptIntParamsKeys.end(), std::inserter(IntParamsKeys, IntParamsKeys.begin()));
+    std::set_union(MandatoryDoubleParamsKeys.begin(), MandatoryDoubleParamsKeys.end(), OptDoubleParamsKeys.begin(), OptDoubleParamsKeys.end(), std::inserter(DoubleParamsKeys, DoubleParamsKeys.begin()));
+    std::set_union(MandatoryQuadParamsKeys.begin(), MandatoryQuadParamsKeys.end(), OptQuadParamsKeys.begin(), OptQuadParamsKeys.end(), std::inserter(QuadParamsKeys, QuadParamsKeys.begin()));
+    std::set_union(MandatoryStrParamsKeys.begin(), MandatoryStrParamsKeys.end(), OptStrParamsKeys.begin(), OptStrParamsKeys.end(), std::inserter(StrParamsKeys, StrParamsKeys.begin()));
+    std::set_union(MandatoryDoubleArrayParamsKeys.begin(), MandatoryDoubleArrayParamsKeys.end(), OptDoubleArrayParamsKeys.begin(), OptDoubleArrayParamsKeys.end(), std::inserter(DoubleArrayParamsKeys, DoubleArrayParamsKeys.begin()));
+    std::set_union(MandatoryQuadArrayParamsKeys.begin(), MandatoryQuadArrayParamsKeys.end(), OptQuadArrayParamsKeys.begin(), OptQuadArrayParamsKeys.end(), std::inserter(QuadArrayParamsKeys, QuadArrayParamsKeys.begin()));
+    std::set_union(MandatoryStrArrayParamsKeys.begin(), MandatoryStrArrayParamsKeys.end(), OptStrArrayParamsKeys.begin(), OptStrArrayParamsKeys.end(), std::inserter(StrArrayParamsKeys, StrArrayParamsKeys.begin()));
 
     std::string line;
 
@@ -137,42 +166,42 @@ AISParams readParamsFromFile(std::string fName)
     file.close();
 
     // Check for missing parameters
-    for (const auto& key : BoolParamsKeys) {
+    for (const auto& key : MandatoryBoolParamsKeys) {
         if (BoolParams.find(key) == BoolParams.end()) {
             throw std::runtime_error("Missing bool parameter: " + key);
         }
     }
-    for (const auto& key : IntParamsKeys) {
+    for (const auto& key : MandatoryIntParamsKeys) {
         if (IntParams.find(key) == IntParams.end()) {
             throw std::runtime_error("Missing integer parameter: " + key);
         }
     }
-    for (const auto& key : DoubleParamsKeys) {
+    for (const auto& key : MandatoryDoubleParamsKeys) {
         if (DoubleParams.find(key) == DoubleParams.end()) {
             throw std::runtime_error("Missing double parameter: " + key);
         }
     }
-    for (const auto& key : QuadParamsKeys) {
+    for (const auto& key : MandatoryQuadParamsKeys) {
         if (QuadParams.find(key) == QuadParams.end()) {
             throw std::runtime_error("Missing quad parameter: " + key);
         }
     }
-    for (const auto& key : StrParamsKeys) {
+    for (const auto& key : MandatoryStrParamsKeys) {
         if (StrParams.find(key) == StrParams.end()) {
             throw std::runtime_error("Missing string parameter: " + key);
         }
     }
-    for (const auto& key : DoubleArrayParamsKeys) {
+    for (const auto& key : MandatoryDoubleArrayParamsKeys) {
         if (DoubleArrayParams.find(key) == DoubleArrayParams.end()) {
             throw std::runtime_error("Missing double array parameter: " + key);
         }
     }
-    for (const auto& key : QuadArrayParamsKeys) {
+    for (const auto& key : MandatoryQuadArrayParamsKeys) {
         if (QuadArrayParams.find(key) == QuadArrayParams.end()) {
             throw std::runtime_error("Missing quad array parameter: " + key);
         }
     }
-    for (const auto& key : StrArrayParamsKeys) {
+    for (const auto& key : MandatoryStrArrayParamsKeys) {
         if (StrArrayParams.find(key) == StrArrayParams.end()) {
             throw std::runtime_error("Missing string array parameter: " + key);
         }
@@ -207,6 +236,7 @@ AISParams readParamsFromFile(std::string fName)
     params.phi0 = DoubleArrayParams["phi0"];
     params.omegaVector = QuadArrayParams["omega"];
     params.wavefrontTypeVector = StrArrayParams["wtype"];
+    params.betaVector = QuadArrayParams["beta"];
 
     params.detectionTime = QuadParams["detectiontime"];
 

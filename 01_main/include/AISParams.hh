@@ -32,6 +32,7 @@ public:
     std::vector<double> kZVector;
     std::vector<__float128> omegaVector;
     std::vector<std::string> wavefrontTypeVector;
+    std::vector<__float128> betaVector;
 
     // Kinematic parameters
     __float128 detectionTime;

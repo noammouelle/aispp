@@ -7,6 +7,7 @@
 #include <array>
 #include <vector>
 #include <set>
+#include <algorithm>
 #include <map>
 #include <cmath>
 #include <string>
