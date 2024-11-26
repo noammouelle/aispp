@@ -40,6 +40,7 @@ public:
     double amplitudeThreshold;
     double coherenceLength;
     bool useMcBranching;
+    bool ignoreDetuning;
 
     // Output parameters
     bool printPorts;

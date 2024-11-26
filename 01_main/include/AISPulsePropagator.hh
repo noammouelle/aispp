@@ -28,6 +28,9 @@ public:
     double initTimeDouble, finalTimeDouble;
     double amplitudeThreshold;
 
+    bool ignoreDetuning;
+    void SetIgnoreDetuning(bool ignoreDetuning);
+
     std::vector<std::string> interferingPaths = {};
 
     std::vector<std::string> GetInterferingPaths();

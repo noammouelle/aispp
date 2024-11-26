@@ -242,6 +242,12 @@ int AISPulsePropagator::funcU3(double t, const double y[], double f[], void *par
     double imComplexAmplitdueGround = y[2];
     double imComplexAmplitdueExcited = y[3];
 
+    // detuning factor
+    if (pulsePropagator->ignoreDetuning)
+    {
+        delta = 0.0;
+    }
+
     // define the f vector
     f[0] =   RabiFreq / 2 * imComplexAmplitdueExcited;
     f[1] =   delta * imComplexAmplitdueExcited + RabiFreq / 2 * imComplexAmplitdueGround;
@@ -359,4 +365,9 @@ std::vector<std::string> AISPulsePropagator::GetInterferingPaths()
 void AISPulsePropagator::SetInterferingPaths(std::vector<std::string> paths)
 {
     interferingPaths = paths;
+}
+
+void AISPulsePropagator::SetIgnoreDetuning(bool ignoreDetuning)
+{
+    this->ignoreDetuning = ignoreDetuning;
 }
