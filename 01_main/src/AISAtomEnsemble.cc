@@ -4,18 +4,22 @@
 #include "AISAtomEnsemble.hh"
 
 AISAtomEnsemble::AISAtomEnsemble(int nAtoms, double temperature, double width,
-                                 doubleThreeVector initialPosition, doubleThreeVector initialVelocity)
+                                 doubleThreeVector initialPosition, doubleThreeVector initialVelocity,
+                                 double seed)
 {
     // Isotropic Gaussian distrib, can be changed later by
     // implementing a generator class
-
+    std::random_device rd;
+    std::mt19937 gen;
+    if (seed == -1) {
+        gen.seed(rd());
+    } else {
+        gen.seed(seed);
+    }
     doubleThreeVector centralPos = initialPosition;
     double stdPos = width;
     doubleThreeVector centralVel = initialVelocity;
     double stdVel = sqrt(temperature * kB / massSr87);
-
-    std::random_device rd;
-    std::mt19937 gen(rd());
 
     std::normal_distribution<double> posDistributionX(centralPos[0], stdPos); // X
     std::normal_distribution<double> velDistributionX(centralVel[0], stdVel);

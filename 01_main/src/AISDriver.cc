@@ -4,7 +4,8 @@ AISDriver::AISDriver(AISParams params)
 {   
     // create the atom ensemble
     atomEnsemble = std::make_unique<AISAtomEnsemble>(params.nAtoms, params.cloudTemperature, params.cloudRadius,
-                                                     params.initialPosition, params.initialVelocity);
+                                                     params.initialPosition, params.initialVelocity,
+                                                     params.seed);
     // create the detector
     //detector = std::make_unique<AISDetector>(atomEnsemble, coherenceLength);
     std::unique_ptr<AISDetector> detector;
