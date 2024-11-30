@@ -44,6 +44,7 @@ public:
 
     // Output parameters
     bool printPorts;
+    bool printWavePackets;
 };
 
 

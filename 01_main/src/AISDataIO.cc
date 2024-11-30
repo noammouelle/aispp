@@ -60,7 +60,7 @@ AISParams readParamsFromFile(std::string fName)
     std::map<std::string, std::vector<std::string>> StrArrayParams;
 
     // Define the possible parameter keys using sets
-    std::set<std::string> BoolParamsKeys = {"printprobs","usemcbranching","ignoredetuning"};
+    std::set<std::string> BoolParamsKeys = {"printprobs","usemcbranching","ignoredetuning","printwavepackets"};
     std::set<std::string> IntParamsKeys = {"natoms"};
     std::set<std::string> DoubleParamsKeys = {"sigma", "temp", "amplitudethreshold", "coherencelength"};
     std::set<std::string> QuadParamsKeys = {"detectiontime"};
@@ -216,6 +216,7 @@ AISParams readParamsFromFile(std::string fName)
     params.printPorts = BoolParams["printprobs"];
     params.useMcBranching = BoolParams["usemcbranching"];
     params.ignoreDetuning = BoolParams["ignoredetuning"];
+    params.printWavePackets = BoolParams["printwavepackets"];
 
     return params;
 }

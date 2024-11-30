@@ -69,6 +69,10 @@ int main(int argc, char* argv[])
     std::string portFileName = outputFileName.substr(0, outputFileName.find_last_of('.')) + "_PROB.h5";
     driver->WritePortsToFile(portFileName);
     }
+    if (driver->params.printWavePackets) {
+    std::string waveFileName = outputFileName.substr(0, outputFileName.find_last_of('.')) + "_WPK.txt";
+    driver->WriteWavePacketsToFile(waveFileName);
+    }
 
     auto endWrite = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsedWrite = endWrite - startWrite;
