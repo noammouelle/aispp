@@ -48,9 +48,14 @@ public:
                                                                   const doubleThreeVector& pos0, const doubleThreeVector& vel0);
 
     std::array<doubleThreeVector, 2> CalculateNewPhaseSpaceCoordsLinearized(const double& t0, const double& t1, 
-                                                                            const doubleThreeVector& pos0, const doubleThreeVector& vel0); 
+                                                                            const doubleThreeVector& pos0, const doubleThreeVector& vel0,
+                                                                            const doubleThreeVector& posStar, const doubleThreeVector& velStar); 
     std::array<doubleThreeVector, 2> get_dotPhaseSpaceCoordsLinearized(const double& t0, const double& t1, 
-                                                                            const doubleThreeVector& pos0, const doubleThreeVector& vel0);
+                                                                       const doubleThreeVector& posPrime, const doubleThreeVector& velPrime,
+                                                                       const doubleThreeVector& posStar, const doubleThreeVector& velStar);
+
+    std::tuple<double3x3Matrix, double3x3Matrix, doubleThreeVector> get_ABXi(const double& t0, const double& t1, 
+                                                                             const doubleThreeVector& posStar, const doubleThreeVector& velStar);
     
     // These member functions return the Lagrangian and the action divided by m/hbar
     static double get_L_wrapper(double t, void *params); 
@@ -87,8 +92,8 @@ struct LagrangianParams {
 };
 
 struct FuncLinearizedParams {
-    doubleThreeVector pos0; // phase space coordinates around which the Hamiltonian is expanded
-    doubleThreeVector vel0;
+    doubleThreeVector posStar; // phase space coordinates around which the Hamiltonian is expanded
+    doubleThreeVector velStar;
     AISKinematicPropagator* propagator;
 };
 

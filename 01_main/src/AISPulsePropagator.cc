@@ -33,6 +33,10 @@ void AISPulsePropagator::PropagateAtom(std::unique_ptr<AISAtom>& atom)
         std::unique_ptr<AISWavePacket>& wavepacket0 = atom->GetWavePacket(wavePacketIndex);
         std::unique_ptr<AISWavePacket> wavepacket1(new AISWavePacket());
 
+        // Set the position and velocity about which to linearize the operators
+        wavepacket0->SetPosStar(wavepacket0->GetPosition());
+        wavepacket0->SetVelStar(wavepacket0->GetVelocity());
+
         // get the useMcBranching flag
         bool useMcBranching = wavepacket0->GetUseMcBranching();
 
@@ -145,12 +149,13 @@ void AISPulsePropagator::ApplyU2(std::unique_ptr<AISWavePacket>& wavepacket, __f
         __float128 currentPhaseQuad = wavepacket->GetPhaseQuad();
         
         doubleThreeVector pos = wavepacket->GetPosition();
+        doubleThreeVector posStar = wavepacket->GetPosStar();
         doubleThreeVector k = laserBeam->GetK();
         __float128 omega = laserBeam->GetOmega();
-        double phi = laserBeam->GetPhi(pos);
-        doubleThreeVector gradPhi = laserBeam->GetDelPhi(pos);
+        double phi = laserBeam->GetPhi(posStar);
+        doubleThreeVector gradPhi = laserBeam->GetDelPhi(posStar);
 
-        double dPhaseDouble = - dotProduct(matrixAdd(k,gradPhi),pos) - phi;
+        double dPhaseDouble = - dotProduct(matrixAdd(k,gradPhi),pos) - phi + dotProduct(posStar,gradPhi);
         __float128 dPhaseQuad = omega * t0;
 
         wavepacket->SetPhaseDouble(currentPhaseDouble + dPhaseDouble);
@@ -172,33 +177,51 @@ void AISPulsePropagator::ApplyU2Dagger(std::unique_ptr<AISWavePacket>& wavepacke
         
         doubleThreeVector pos = wavepacket->GetPosition();
         doubleThreeVector vel = wavepacket->GetVelocity();
+        doubleThreeVector posStar = wavepacket->GetPosStar();
+        doubleThreeVector velStar = wavepacket->GetVelStar();
         doubleThreeVector k = laserBeam->GetK();
         __float128 omega = laserBeam->GetOmega();
-        double phi = laserBeam->GetPhi(pos);
-        doubleThreeVector gradPhi = laserBeam->GetDelPhi(pos);
+        double phi = laserBeam->GetPhi(posStar);
+        doubleThreeVector gradPhi = laserBeam->GetDelPhi(posStar);
+        doubleThreeVector kPrime = matrixAdd(k,gradPhi);
+
+        // Get the A and B matrices and the Xi vector
+        std::tuple<double3x3Matrix, double3x3Matrix, doubleThreeVector> ABXi = kinematicPropagator->get_ABXi(t0,t1,posStar,velStar);
+        double3x3Matrix A = std::get<0>(ABXi);
+        double3x3Matrix B = std::get<1>(ABXi);
+        doubleThreeVector Xi = std::get<2>(ABXi);
 
         double t0Double = static_cast<double>(t0);
         double t1Double = static_cast<double>(t1);
-        std::array<doubleThreeVector,2> newCoordsLinearized = kinematicPropagator->CalculateNewPhaseSpaceCoordsLinearized(t0Double,t1Double,pos,vel);
-        doubleThreeVector posLin = newCoordsLinearized[0];
-        doubleThreeVector velLin = newCoordsLinearized[1];
 
-        double dPhaseDouble = phi + dotProduct(matrixAdd(k,gradPhi),posLin);
+        doubleThreeVector AdotPos = dotProduct(A,pos);
+        doubleThreeVector AdotKPrime = dotProduct(A,kPrime);
+        AdotKPrime = scalarMultiply(AdotKPrime,-hbar/(2*massSr87));
+        doubleThreeVector BdotAdotKPrime = dotProduct(B,AdotKPrime);
+        double propTerm = dotProduct(kPrime, 
+                                     matrixAdd(matrixAdd(AdotPos, BdotAdotKPrime), Xi));
+
+
+        double dPhaseDouble = phi - dotProduct(posStar,gradPhi) + propTerm;
         __float128 dPhaseQuad = - (omega - omegaSr87) * t1 - omegaSr87*t0;
 
         wavepacket->SetPhaseDouble(currentPhaseDouble + dPhaseDouble);
         wavepacket->SetPhaseQuad(currentPhaseQuad + dPhaseQuad);
 
-        // shift the central momentum
-        wavepacket->SetVelocity(matrixAdd(vel,scalarMultiply(matrixAdd(k,gradPhi),hbar/massSr87)));
+        // shift the central phase space coordinates
+        doubleThreeVector dPos = scalarMultiply(dotProduct(transpose(B), kPrime), -hbar/massSr87);
+        doubleThreeVector dVel = scalarMultiply(dotProduct(transpose(A), kPrime), hbar/massSr87);
+        
+        wavepacket->SetVelocity(matrixAdd(vel,dVel));
+        wavepacket->SetPosition(matrixAdd(pos,dPos));
     }
 }
 
-double AISPulsePropagator::getDelta(doubleThreeVector pos0, doubleThreeVector vel0, double t0, double t1, std::shared_ptr<AISLaserBeam> laserBeam)
+double AISPulsePropagator::getDelta(doubleThreeVector posPrime, doubleThreeVector velPrime, doubleThreeVector posStar, doubleThreeVector velStar, double t0, double t1, std::shared_ptr<AISLaserBeam> laserBeam)
 {
     // get the effective wavevector
     doubleThreeVector k = laserBeam->GetK();
-    doubleThreeVector gradPhi = laserBeam->GetDelPhi(pos0);
+    doubleThreeVector gradPhi = laserBeam->GetDelPhi(posStar);
     doubleThreeVector kPrime = matrixAdd(k,gradPhi);
 
     // get the detuning
@@ -210,7 +233,7 @@ double AISPulsePropagator::getDelta(doubleThreeVector pos0, doubleThreeVector ve
     double recoilTerm = dotProduct(kPrime,kPrime) * hbar / (2 * massSr87);
 
     // compute the time derivative of R hat '
-    std::array<doubleThreeVector,2> dotCoordsPrime = kinematicPropagator->get_dotPhaseSpaceCoordsLinearized(t0,t1,pos0,vel0);
+    std::array<doubleThreeVector,2> dotCoordsPrime = kinematicPropagator->get_dotPhaseSpaceCoordsLinearized(t0,t1,posPrime,velPrime,posStar,velStar);
     doubleThreeVector posDotPrime = dotCoordsPrime[0];
 
     // compute the detuning
@@ -223,18 +246,25 @@ int AISPulsePropagator::funcU3(double t, const double y[], double f[], void *par
 {
     // extract the params
     U3Params* u3Params = static_cast<U3Params*>(params);
-    doubleThreeVector pos,vel;
+    doubleThreeVector pos0,vel0,posStar,velStar;
     std::shared_ptr<AISLaserBeam> laserBeam = u3Params->laserBeam;
-    pos = u3Params->pos;
-    vel = u3Params->vel;
+    pos0 = u3Params->pos0;
+    vel0 = u3Params->vel0;
+    posStar = u3Params->posStar;
+    velStar = u3Params->velStar;
     AISPulsePropagator* pulsePropagator = u3Params->pulsePropagator;
     double t0 = u3Params->t0;
 
+    // Compute the linearly propagated phase space coordinates
+    std::array<doubleThreeVector,2> newCoordsLinearized = pulsePropagator->kinematicPropagator->CalculateNewPhaseSpaceCoordsLinearized(t0,t,pos0,vel0,posStar,velStar);
+    doubleThreeVector posPrime = newCoordsLinearized[0];
+    doubleThreeVector velPrime = newCoordsLinearized[1];
+
     // compute the detuning 
-    double delta = pulsePropagator->getDelta(pos,vel,t0,t,laserBeam);
+    double delta = pulsePropagator->getDelta(posPrime,velPrime, posStar, velStar, t0,t,laserBeam);
 
     // compute the Rabi frequency
-    double RabiFreq = laserBeam->GetRabiFreq(pos,t0,t);
+    double RabiFreq = laserBeam->GetRabiFreq(posPrime,t0,t);
 
      // start by computing dU/dx and dU/dp
     double reComplexAmplitdueGround = y[0];
@@ -263,7 +293,10 @@ void AISPulsePropagator::ApplyU3(std::unique_ptr<AISWavePacket>& wavepacket0, st
     // define the params
     double t0Double = static_cast<double>(t0);
     double t1Double = static_cast<double>(t1);
-    U3Params* params = new U3Params{t0Double, wavepacket0->GetPosition(), wavepacket0->GetVelocity(), laserBeam, this};
+    U3Params* params = new U3Params{t0Double, 
+                                    wavepacket0->GetPosition(), wavepacket0->GetVelocity(), 
+                                    wavepacket0->GetPosStar(), wavepacket0->GetVelStar(),
+                                    laserBeam, this};
     // define the ode system
     gsl_odeiv2_system sys = {funcU3, nullptr, 4, params};
     // setup the driver
@@ -319,11 +352,15 @@ void AISPulsePropagator::ApplyU3(std::unique_ptr<AISWavePacket>& wavepacket0, st
         __float128 currentPhaseQuad = wavepacket0->GetPhaseQuad();
         doubleThreeVector pos = wavepacket0->GetPosition();
         doubleThreeVector vel = wavepacket0->GetVelocity();
+        doubleThreeVector posStar = wavepacket0->GetPosStar();
+        doubleThreeVector velStar = wavepacket0->GetVelStar();
         std::string path = wavepacket0->GetPath();
 
         wavepacket0->SetAmplitude(amplitudeGround);
         wavepacket0->SetPhaseDouble(currentPhaseDouble+phaseGround);
         wavepacket0->SetPath(path + "0"); // append a 0 to the path
+        wavepacket0->SetPosStar(posStar); // ensures the expansions are about the correct point for the next unitary transformation
+        wavepacket0->SetVelStar(velStar);
   
         wavepacket1->SetAmplitude(amplitudeExcited);
         wavepacket1->SetPhaseDouble(currentPhaseDouble+phaseExcited);
@@ -332,6 +369,8 @@ void AISPulsePropagator::ApplyU3(std::unique_ptr<AISWavePacket>& wavepacket0, st
         wavepacket1->SetPosition(pos);
         wavepacket1->SetVelocity(vel);
         wavepacket1->SetPath(path + "1"); // append a 1 to the path
+        wavepacket1->SetPosStar(posStar); // ensures the expansions are about the correct point for the next unitary transformation
+        wavepacket1->SetVelStar(velStar);
     }
     else
     {
@@ -339,11 +378,15 @@ void AISPulsePropagator::ApplyU3(std::unique_ptr<AISWavePacket>& wavepacket0, st
         __float128 currentPhaseQuad = wavepacket0->GetPhaseQuad();
         doubleThreeVector pos = wavepacket0->GetPosition();
         doubleThreeVector vel = wavepacket0->GetVelocity();
+        doubleThreeVector posStar = wavepacket0->GetPosStar();
+        doubleThreeVector velStar = wavepacket0->GetVelStar();
         std::string path = wavepacket0->GetPath();
 
         wavepacket0->SetAmplitude(amplitudeExcited);
         wavepacket0->SetPhaseDouble(currentPhaseDouble+phaseExcited);
         wavepacket0->SetPath(path + "1"); // append a 1 to the path
+        wavepacket0->SetPosStar(posStar); // ensures the expansions are about the correct point for the next unitary transformation
+        wavepacket0->SetVelStar(velStar);
 
         wavepacket1->SetAmplitude(amplitudeGround);
         wavepacket1->SetPhaseDouble(currentPhaseDouble+phaseGround);
@@ -352,6 +395,8 @@ void AISPulsePropagator::ApplyU3(std::unique_ptr<AISWavePacket>& wavepacket0, st
         wavepacket1->SetPosition(pos);
         wavepacket1->SetVelocity(vel);
         wavepacket1->SetPath(path + "0"); // append a 0 to the path
+        wavepacket1->SetPosStar(posStar); // ensures the expansions are about the correct point for the next unitary transformation
+        wavepacket1->SetVelStar(velStar);
     }
 
     // free the params

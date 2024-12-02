@@ -44,7 +44,8 @@ protected:
 
     static int funcU3(double t, const double y[], double f[], void *params);
 
-    double getDelta(doubleThreeVector pos0, doubleThreeVector vel0, double t0, double t1, std::shared_ptr<AISLaserBeam> laserBeam);
+    double getDelta(doubleThreeVector posPrime, doubleThreeVector velPrime, doubleThreeVector posStar, doubleThreeVector velStar,
+                    double t0, double t1, std::shared_ptr<AISLaserBeam> laserBeam);
 public: 
     AISPulsePropagator(std::shared_ptr<AISLaserBeam> beam, __float128 t0, __float128 t1,
                        std::shared_ptr<AISKinematicPropagator> kinematicPropagator,
@@ -58,7 +59,7 @@ public:
 struct U3Params
 {
     double t0;
-    doubleThreeVector pos, vel;
+    doubleThreeVector pos0, vel0, posStar, velStar;
     std::shared_ptr<AISLaserBeam> laserBeam;
     AISPulsePropagator* pulsePropagator;
 };
