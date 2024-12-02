@@ -83,3 +83,19 @@ bool AISWavePacket::GetUseMcBranching(){
 void AISWavePacket::SetUseMcBranching(bool useMcBranchingVal){
     useMcBranching = useMcBranchingVal;
 };
+
+doubleThreeVector AISWavePacket::GetPosStar(){
+    return posStar;
+};
+
+void AISWavePacket::SetPosStar(doubleThreeVector posStarVal){
+    posStar = posStarVal;
+};
+
+doubleThreeVector AISWavePacket::GetVelStar(){
+    return velStar;
+};
+
+void AISWavePacket::SetVelStar(doubleThreeVector velStarVal){
+    velStar = velStarVal;
+};

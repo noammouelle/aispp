@@ -43,6 +43,12 @@ public:
     bool GetUseMcBranching();
     void SetUseMcBranching(bool useMcBranching);
 
+    doubleThreeVector GetPosStar();
+    void SetPosStar(doubleThreeVector posStar);
+
+    doubleThreeVector GetVelStar();
+    void SetVelStar(doubleThreeVector velStar);
+
 private:
     __float128 fTime = 0.0q;
     double fTime64 = 0.0;
@@ -57,6 +63,9 @@ private:
 
     std::string path = "0";
     bool useMcBranching = false;
+
+    doubleThreeVector posStar;
+    doubleThreeVector velStar;
 };
 
 #endif
