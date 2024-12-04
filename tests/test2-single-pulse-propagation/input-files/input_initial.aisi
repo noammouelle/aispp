@@ -1,0 +1,34 @@
+# Cloud parameters
+natoms 10
+sigma 0.0001
+temp 1e-08
+x0 0.0 0.0 0.0
+v0 0.0 0.0 1.0
+
+# Potential parameters
+utype zero_pot
+
+# Sequence parameters
+detectiontime 0.0
+
+# Simulation parameters
+amplitudethreshold 0
+coherencelength 0
+usemcbranching 0
+ignoredetuning 0
+seed 0
+
+# I/O parameters
+printprobs 0
+printwavepackets 1
+# Pulse parameters
+t0 0 
+t1 0
+rabifreq 
+wtype 
+phi0 
+kx 
+ky 
+kz 
+omega 
+
