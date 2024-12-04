@@ -218,13 +218,12 @@ def get_errors(a,b):
 
 def check_propagator_result(filename_initial, filename_final, tol, dt, acceleration):
     # load the initial and final states
-    _,_,x0list,y0list,z0list,vx0list,vy0list,vz0list,_,_,_,_=np.loadtxt(filename_initial, unpack=True,skiprows=1,delimiter=',')
-    _,_,x1list,y1list,z1list,vx1list,vy1list,vz1list,phase_double_list,phase_err_list,_,_=np.loadtxt(filename_final, unpack=True,skiprows=1,delimiter=',')
+    _,_,_,x0list,y0list,z0list,vx0list,vy0list,vz0list,_,_,_,_=np.loadtxt(filename_initial, unpack=True,skiprows=1,delimiter=',')
+    _,_,_,x1list,y1list,z1list,vx1list,vy1list,vz1list,phase_double_list,phase_err_list,_,_=np.loadtxt(filename_final, unpack=True,skiprows=1,delimiter=',')
     # loop over the data and compare to analytical calculations
     abs_error_x, abs_error_y, abs_error_z, abs_error_vx, abs_error_vy, abs_error_vz, abs_error_phase_double = [], [], [], [], [], [], []
     rel_error_x, rel_error_y, rel_error_z, rel_error_vx, rel_error_vy, rel_error_vz, rel_error_phase_double = [], [], [], [], [], [], []
     for x0,y0,z0,vx0,vy0,vz0,x1,y1,z1,vx1,vy1,vz1,phase_double,phase_err in zip(x0list,y0list,z0list,vx0list,vy0list,vz0list,x1list,y1list,z1list,vx1list,vy1list,vz1list,phase_double_list,phase_err_list):
-        print("x0 = ", x0, "y0 = ", y0, "z0 = ", z0, "vx0 = ", vx0, "vy0 = ", vy0, "vz0 = ", vz0)
         # propagate the initial state
         x1a, y1a, z1a, vx1a, vy1a, vz1a = analytical_propagate(x0, y0, z0, vx0, vy0, vz0, dt, acceleration)
         phase_double_a = S(x0,y0,z0,vx0,vy0,vz0,dt,acceleration) / hbar
