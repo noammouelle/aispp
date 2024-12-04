@@ -130,7 +130,7 @@ void AISKinematicPropagator::PropagateWavePacket(std::unique_ptr<AISWavePacket>&
     wavePacket->SetPhaseDouble(newPhaseDouble);
     wavePacket->SetPhaseDoubleError(newPhaseDoubleErr);
 
-    if(fAddEnergyPhase && wavePacket->GetState() == 1)
+    if(wavePacket->GetState() == 1)
     {
         wavePacket->SetPhaseQuad(CalculateNewPhaseQuad(wavePacket->GetPhaseQuad(), t0, t1));
     };
