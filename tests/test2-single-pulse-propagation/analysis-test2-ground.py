@@ -248,11 +248,11 @@ def check_sim_results(filename_initial, filename_final, filename_input, tol_kin,
                 raise ValueError('Unknown key')
 
 def main():
-    print("TEST 2: SINGLE PULSE PROPAGATION")
+    print("TEST 2: SINGLE PULSE PROPAGATION (INITIALSTATE=0)")
     tol_kin = 1e-9
     tol_phase = 1e-6
     tol_amplitude = 1e-6
-    check_sim_results('output-files/initial_WPK.txt', 'output-files/final_WPK.txt',  'input-files/input_final.aisi', tol_kin, tol_phase, tol_amplitude)
+    check_sim_results('output-files/ground_initial_WPK.txt', 'output-files/ground_final_WPK.txt',  'input-files/input_ground_final.aisi', tol_kin, tol_phase, tol_amplitude)
 
     print('All tests passed!')
 
