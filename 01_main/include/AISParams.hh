@@ -13,6 +13,7 @@ public:
     ~AISParams();
 
     // Cloud parameters
+    int initialState = 0;
     int nAtoms = 0;
     double cloudRadius = 0.0;
     double cloudTemperature = 0.0;

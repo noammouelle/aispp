@@ -11,7 +11,8 @@ using wavePacketVector = std::vector<std::unique_ptr<AISWavePacket>>;
 
 class AISAtom{
 public:
-    AISAtom(doubleThreeVector initialPos, doubleThreeVector initialVel, __float128 initialTime);
+    AISAtom(doubleThreeVector initialPos, doubleThreeVector initialVel, __float128 initialTime,
+            int initialState);
     ~AISAtom();
 
     int GetNumberOfWavePackets();

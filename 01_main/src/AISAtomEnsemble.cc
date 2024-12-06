@@ -5,7 +5,7 @@
 
 AISAtomEnsemble::AISAtomEnsemble(int nAtoms, double temperature, double width,
                                  doubleThreeVector initialPosition, doubleThreeVector initialVelocity,
-                                 double seed)
+                                 double seed, int initialState)
 {
     // Isotropic Gaussian distrib, can be changed later by
     // implementing a generator class
@@ -49,7 +49,7 @@ AISAtomEnsemble::AISAtomEnsemble(int nAtoms, double temperature, double width,
     for(int atom_i = 0; atom_i < nAtoms; ++atom_i){
         std::unique_ptr<AISAtom> currentAtom(new AISAtom(sampledPos[atom_i],
                                                          sampledVel[atom_i],
-                                                         0.0q));
+                                                         0.0q, initialState));
         fpAtomVector->push_back(std::move(currentAtom));
     }
 };

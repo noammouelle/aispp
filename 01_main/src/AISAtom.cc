@@ -1,11 +1,13 @@
 #include "AISAtom.hh"
 
-AISAtom::AISAtom(doubleThreeVector initialPos, doubleThreeVector initialVel, __float128 initialTime)
+AISAtom::AISAtom(doubleThreeVector initialPos, doubleThreeVector initialVel, __float128 initialTime, 
+                 int initialState)
 {
     std::unique_ptr<AISWavePacket> initialWavePacket(new AISWavePacket());
     initialWavePacket->SetPosition(initialPos);
     initialWavePacket->SetVelocity(initialVel);
     initialWavePacket->SetTime(initialTime);
+    initialWavePacket->SetState(initialState);
 
     // init wavepacket vector
     fpWavePacketVector = std::make_unique<wavePacketVector>();

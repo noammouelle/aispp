@@ -18,7 +18,7 @@ private:
 public:
     AISAtomEnsemble(int nAtoms, double temperature, double width,
                     doubleThreeVector initialPosition, doubleThreeVector initialVelocity,
-                    double seed);
+                    double seed, int initialState);
     ~AISAtomEnsemble();
 
     __float128 omega0 = 2 * pi128 * c / 689 * pow(10, 9);

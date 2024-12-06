@@ -62,7 +62,7 @@ AISParams readParamsFromFile(std::string fName)
 
     // Define the possible parameter keys using sets
     std::set<std::string> BoolParamsKeys = {"printprobs","usemcbranching","ignoredetuning","printwavepackets"};
-    std::set<std::string> IntParamsKeys = {"natoms"};
+    std::set<std::string> IntParamsKeys = {"natoms","initialstate"};
     std::set<std::string> DoubleParamsKeys = {"sigma", "temp", "amplitudethreshold", "coherencelength", "seed"};
     std::set<std::string> QuadParamsKeys = {"detectiontime"};
     std::set<std::string> StrParamsKeys = {"utype"};
@@ -184,9 +184,14 @@ AISParams readParamsFromFile(std::string fName)
     if (QuadParams["detectiontime"] < QuadArrayParams["t1"].back()) {
         throw std::runtime_error("Detection time must be greater than the final pulse time");
     }
+    // initialState is 0 or 1
+    if ((IntParams["initialstate"] != 0) && (IntParams["initialstate"] != 1)) {
+        throw std::runtime_error("Initial State of the atom must be 0 or 1");
+    }
 
     AISParams params;
     params.nAtoms           = IntParams["natoms"];
+    params.initialState     = IntParams["initialstate"];
     params.cloudRadius      = DoubleParams["sigma"];
     params.cloudTemperature = DoubleParams["temp"];
     params.potentialType    = StrParams["utype"];
