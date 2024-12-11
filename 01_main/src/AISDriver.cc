@@ -119,7 +119,10 @@ void AISDriver::Run()
             this->pulsePropagators[i]->SetInterferingPaths(interferingPaths);
         }
         // set useMcBranching to true in the initial wavepacket
-        this->atomEnsemble->GetAtom(0)->GetWavePacket(0)->SetUseMcBranching(true);
+        for(int i = 0; i < this->atomEnsemble->GetNumberOfAtoms(); ++i)
+        {
+            this->atomEnsemble->GetAtom(i)->GetWavePacket(0)->SetUseMcBranching(true);
+        }
     }
     // 2. Run the main sequence
     RunAll();
