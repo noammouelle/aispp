@@ -184,6 +184,13 @@ void AISDriver::RunPathFinder()
 
     // get the paths of the interfering atoms
     interferingPaths = detector->GetPortFrame(0)->GetInterferingPaths();
+
+    // get the final positions of all wavepackets
+    for(int i = 0; i < pathFinder->atomEnsemble->GetAtom(0)->GetNumberOfWavePackets(); ++i)
+    {
+        std::unique_ptr<AISWavePacket>& currentWavePacket = pathFinder->atomEnsemble->GetAtom(0)->GetWavePacket(i);
+        pathToFinalPosMap[currentWavePacket->GetPath()] = currentWavePacket->GetPosition();
+    }
 }
 
 void AISDriver::Detect()

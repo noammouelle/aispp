@@ -44,6 +44,7 @@ public:
     bool useMcBranching;
     bool ignoreDetuning;
     double xDetMin, xDetMax, yDetMin, yDetMax, zDetMin, zDetMax;
+    bool useDetVolSelection;
 
     // Output parameters
     bool printPorts;

@@ -41,6 +41,7 @@ public:
 
     std::vector<int> sampledPortIndices;
     std::vector<std::string> interferingPaths;
+    std::map<std::string, doubleThreeVector> pathToFinalPosMap;
 };
 
 #endif

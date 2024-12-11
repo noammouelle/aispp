@@ -24,6 +24,7 @@ public:
 
 private:
     std::unique_ptr<wavePacketVector> fpWavePacketVector;
+    std::vector<std::string> detectablePaths;
 
 };
 
