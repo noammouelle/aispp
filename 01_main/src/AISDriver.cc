@@ -167,7 +167,7 @@ void AISDriver::RunPathFinder()
     pathFinderParams.nAtoms = 1;
     // set the useMcBranching flag to false
     pathFinderParams.useMcBranching = false;
-    // use large cutoff
+    // use large cutoff, as we are only interested in the central (interfering) wavepackets
     pathFinderParams.amplitudeThreshold = 0.01;
 
     // create another driver

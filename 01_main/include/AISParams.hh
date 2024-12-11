@@ -43,6 +43,7 @@ public:
     double seed;
     bool useMcBranching;
     bool ignoreDetuning;
+    double xDetMin, xDetMax, yDetMin, yDetMax, zDetMin, zDetMax;
 
     // Output parameters
     bool printPorts;

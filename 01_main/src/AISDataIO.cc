@@ -66,7 +66,7 @@ AISParams readParamsFromFile(std::string fName)
     std::set<std::string> DoubleParamsKeys = {"sigma", "temp", "amplitudethreshold", "coherencelength", "seed"};
     std::set<std::string> QuadParamsKeys = {"detectiontime"};
     std::set<std::string> StrParamsKeys = {"utype"};
-    std::set<std::string> DoubleArrayParamsKeys = {"x0", "v0", "kx", "ky", "kz","rabifreq", "phi0"};
+    std::set<std::string> DoubleArrayParamsKeys = {"x0", "v0", "kx", "ky", "kz","rabifreq", "phi0", "xdet", "ydet", "zdet"};
     std::set<std::string> QuadArrayParamsKeys = {"t0", "t1", "omega"};
     std::set<std::string> StrArrayParamsKeys = {"wtype"};
 
@@ -224,6 +224,13 @@ AISParams readParamsFromFile(std::string fName)
     params.useMcBranching = BoolParams["usemcbranching"];
     params.ignoreDetuning = BoolParams["ignoredetuning"];
     params.printWavePackets = BoolParams["printwavepackets"];
+
+    params.xDetMin = DoubleArrayParams["xdet"][0];
+    params.xDetMax = DoubleArrayParams["xdet"][1];
+    params.yDetMin = DoubleArrayParams["ydet"][0];
+    params.yDetMax = DoubleArrayParams["ydet"][1];
+    params.zDetMin = DoubleArrayParams["zdet"][0];
+    params.zDetMax = DoubleArrayParams["zdet"][1];
 
     return params;
 }
