@@ -40,14 +40,18 @@ public:
     std::string GetPath();
     void SetPath(std::string path);
 
-    bool GetUseMcBranching();
-    void SetUseMcBranching(bool useMcBranching);
+    bool GetWillInterfere();
+    void SetWillInterfere(bool willInterfere);
 
     doubleThreeVector GetPosStar();
     void SetPosStar(doubleThreeVector posStar);
 
     doubleThreeVector GetVelStar();
     void SetVelStar(doubleThreeVector velStar);
+
+    std::vector<std::string> GetDetectablePaths();
+    void SetDetectablePaths(std::vector<std::string> detectablePaths);
+
 
 private:
     __float128 fTime = 0.0q;
@@ -62,7 +66,8 @@ private:
     int fWavePacketID = 0;
 
     std::string path = "0";
-    bool useMcBranching = false;
+    bool willInterfere = true;
+    std::vector<std::string> detectablePaths;
 
     doubleThreeVector posStar;
     doubleThreeVector velStar;

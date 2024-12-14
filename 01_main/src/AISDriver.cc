@@ -6,6 +6,7 @@ AISDriver::AISDriver(AISParams params)
     atomEnsemble = std::make_unique<AISAtomEnsemble>(params.nAtoms, params.cloudTemperature, params.cloudRadius,
                                                      params.initialPosition, params.initialVelocity,
                                                      params.seed, params.initialState);
+
     // create the detector
     //detector = std::make_unique<AISDetector>(atomEnsemble, coherenceLength);
     std::unique_ptr<AISDetector> detector;
@@ -109,23 +110,50 @@ AISDriver::~AISDriver()
 void AISDriver::Run()
 {
     // 1. If required, run the path finder sequence
-    if(params.useMcBranching)
+    if(params.useMcBranching or params.useDetVolSelection)
     {
+        std::cout<<"Running path finder sequence..."<<std::endl;
+        // start the timer
+        auto start = std::chrono::high_resolution_clock::now();
         RunPathFinder();
+        // stop the timer
+        auto stop = std::chrono::high_resolution_clock::now();
 
         // set the interferingPaths variable in the pulse propagators
         for(int i = 0; i < pulsePropagators.size(); ++i)
         {
+            if(params.useMcBranching)
+            {
             this->pulsePropagators[i]->SetInterferingPaths(interferingPaths);
+            this->pulsePropagators[i]->SetUseMcBranching(true);
+            }
+            if(params.useDetVolSelection)
+            {
+                this->pulsePropagators[i]->SetUseDetVolSelection(true);
+            }
         }
-        // set useMcBranching to true in the initial wavepacket
-        //for(int i = 0; i < this->atomEnsemble->GetNumberOfAtoms(); ++i)
-        //{
-        //    this->atomEnsemble->GetAtom(i)->GetWavePacket(0)->SetUseMcBranching(true);
-        //}
     }
+    // if using detection volume selection, set the detectable paths for each wavepacket
+    if(params.useDetVolSelection)
+    {
+        for(int i = 0; i < params.nAtoms; ++i)
+        {
+            std::unique_ptr<AISWavePacket>& currentWavePacket = this->atomEnsemble->GetAtom(i)->GetWavePacket(0);
+            currentWavePacket->SetDetectablePaths(GetDetectablePaths(currentWavePacket->GetPosition(), currentWavePacket->GetVelocity()));
+        }
+    }
+
     // 2. Run the main sequence
+    std::cout<<"Running main sequence..."<<std::endl;
     RunAll();
+
+    // printout the total number of wavepackets
+    int n = 0;
+    for(int i = 0; i < atomEnsemble->GetNumberOfAtoms(); ++i)
+    {
+        n += atomEnsemble->GetAtom(i)->GetNumberOfWavePackets();
+    }
+    std::cout<<"Total number of wavepackets: "<<n<<std::endl;
 }
 
 void AISDriver::RunAll()
@@ -356,4 +384,39 @@ void AISDriver::WritePortsToFile(std::string fName)
 
     // close the file
     file.close();
+}
+
+std::vector<std::string> AISDriver::GetDetectablePaths(doubleThreeVector pos0, doubleThreeVector vel0)
+{
+    std::vector<std::string> detectablePaths;
+    // compute the delta with central position/velocity of the cloud
+    doubleThreeVector cloudPos0 = params.initialPosition;
+    doubleThreeVector cloudVel0 = params.initialVelocity;
+    doubleThreeVector dPos = {pos0[0] - cloudPos0[0], pos0[1] - cloudPos0[1], pos0[2] - cloudPos0[2]};
+    doubleThreeVector dVel = {vel0[0] - cloudVel0[0], vel0[1] - cloudVel0[1], vel0[2] - cloudVel0[2]};
+    // loop over the path map
+    for(auto const& pathToFinalPos : pathToFinalPosMap)
+    {
+        // get the path
+        std::string path = pathToFinalPos.first;
+        // get the final position
+        doubleThreeVector finalPos = pathToFinalPos.second;
+        
+        // linearly propagate the final position of the wavepacket to the detection time
+        doubleThreeVector translatedFinalPos = finalPos;
+        for(int i = 0; i < 3; ++i)
+        {
+            translatedFinalPos[i] += dPos[i] + dVel[i] * params.detectionTime;
+        }
+
+        // now check if the translated final position is within the detection volume
+        if( translatedFinalPos[0] > params.xDetMin && translatedFinalPos[0] < params.xDetMax &&
+            translatedFinalPos[1] > params.yDetMin && translatedFinalPos[1] < params.yDetMax &&
+            translatedFinalPos[2] > params.zDetMin && translatedFinalPos[2] < params.zDetMax)
+        {
+            detectablePaths.push_back(path);
+        }
+    }
+
+    return detectablePaths;
 }

@@ -37,9 +37,6 @@ void AISPulsePropagator::PropagateAtom(std::unique_ptr<AISAtom>& atom)
         wavepacket0->SetPosStar(wavepacket0->GetPosition());
         wavepacket0->SetVelStar(wavepacket0->GetVelocity());
 
-        // get the useMcBranching flag
-        bool useMcBranching = wavepacket0->GetUseMcBranching();
-
         // Apply U1(t_0,t_0) transformation (do nothing)
         // Apply U2(t_0,t_0) transformation
         ApplyU2(wavepacket0, this->initTime);
@@ -47,67 +44,29 @@ void AISPulsePropagator::PropagateAtom(std::unique_ptr<AISAtom>& atom)
         // Apply U3(t_0,t)
         ApplyU3(wavepacket0, wavepacket1, this->initTime, this->finalTime);
 
-        // Apply the MC branching scheme
-        if (this->interferingPaths.size() == 0)
-        {
-            // add the wavepackets to the vector if the amplitude is above the threshold
-            if(abs(wavepacket0->GetAmplitude()) > this->amplitudeThreshold)
-            {
-                newWavePackets->push_back(std::move(wavepacket0));
-            }
-            if(abs(wavepacket1->GetAmplitude()) > this->amplitudeThreshold)
-            {
-                newWavePackets->push_back(std::move(wavepacket1));
-            }
-        }
-        else if (useMcBranching == false)
-        {
-            // check if any of the paths are incompatible with the interfering paths
-            for (int i = 0; i < this->interferingPaths.size(); i++)
-            {
-                std::string interferingPath = this->interferingPaths[i];
-                std::string wavepacket0Path = wavepacket0->GetPath();
-                std::string wavepacket1Path = wavepacket1->GetPath();
+        // add the wavepackets to a temporary vector
+        std::unique_ptr<wavePacketVector> newWavePacketsTemp(new wavePacketVector);
+        newWavePacketsTemp->push_back(std::move(wavepacket0));
+        newWavePacketsTemp->push_back(std::move(wavepacket1));
 
-                if (interferingPath.substr(0, wavepacket0Path.size()) != wavepacket0Path)
-                {
-                    wavepacket0->SetUseMcBranching(true);
-                }
-                if (interferingPath.substr(0, wavepacket1Path.size()) != wavepacket1Path)
-                {
-                    wavepacket1->SetUseMcBranching(true);
-                }
-            }
+        // Apply the MC branching scheme if needed
+        if(this->useMcBranching)
+        {
+            ApplyMCBranching(newWavePacketsTemp);
+        }
+        if(this->useDetVolSelection)
+        {
+            ApplyDetVolSelection(newWavePacketsTemp);
+        }
+        
+        // add the wavepackets to the vector if the amplitude is above the threshold
+        ApplyCutoff(newWavePacketsTemp);
 
-            // add the wavepackets to the vector if the amplitude is above the threshold
-            if(abs(wavepacket0->GetAmplitude()) > this->amplitudeThreshold)
-            {
-                newWavePackets->push_back(std::move(wavepacket0));
-            }
-            if(abs(wavepacket1->GetAmplitude()) > this->amplitudeThreshold)
-            {
-                newWavePackets->push_back(std::move(wavepacket1));
-            }
-        }
-        else if (useMcBranching == true)
-        {   
-            // compute the (non normalized) probability of each path
-            double prob0_ = wavepacket0->GetAmplitude() * wavepacket0->GetAmplitude();
-            double prob1_ = wavepacket1->GetAmplitude() * wavepacket1->GetAmplitude();
-            // normalize the probabilities
-            double prob0 = prob0_ / (prob0_ + prob1_);
-            double prob1 = prob1_ / (prob0_ + prob1_);
-            // sample which wavepacket to keep
-            double r = static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
-            if (r < prob0)
-            {
-                newWavePackets->push_back(std::move(wavepacket0));
-            }
-            else
-            {
-                newWavePackets->push_back(std::move(wavepacket1));
-            }
-        }
+        // add the wavepackets to the new wavepacket vector
+        for(int i = 0; i < newWavePacketsTemp->size(); ++i)
+        {
+            newWavePackets->push_back(std::move(newWavePacketsTemp->at(i)));
+        }      
     }
 
     // Step 2: perform the inverse transformations
@@ -355,12 +314,16 @@ void AISPulsePropagator::ApplyU3(std::unique_ptr<AISWavePacket>& wavepacket0, st
         doubleThreeVector posStar = wavepacket0->GetPosStar();
         doubleThreeVector velStar = wavepacket0->GetVelStar();
         std::string path = wavepacket0->GetPath();
+        std::vector<std::string> detectablePaths = wavepacket0->GetDetectablePaths();
+        bool willInterfere = wavepacket0->GetWillInterfere();
 
         wavepacket0->SetAmplitude(amplitudeGround);
         wavepacket0->SetPhaseDouble(currentPhaseDouble+phaseGround);
         wavepacket0->SetPath(path + "0"); // append a 0 to the path
         wavepacket0->SetPosStar(posStar); // ensures the expansions are about the correct point for the next unitary transformation
         wavepacket0->SetVelStar(velStar);
+        wavepacket0->SetDetectablePaths(detectablePaths);
+        wavepacket0->SetWillInterfere(willInterfere);
   
         wavepacket1->SetAmplitude(amplitudeExcited);
         wavepacket1->SetPhaseDouble(currentPhaseDouble+phaseExcited);
@@ -371,6 +334,8 @@ void AISPulsePropagator::ApplyU3(std::unique_ptr<AISWavePacket>& wavepacket0, st
         wavepacket1->SetPath(path + "1"); // append a 1 to the path
         wavepacket1->SetPosStar(posStar); // ensures the expansions are about the correct point for the next unitary transformation
         wavepacket1->SetVelStar(velStar);
+        wavepacket1->SetDetectablePaths(detectablePaths);
+        wavepacket1->SetWillInterfere(willInterfere);
     }
     else
     {
@@ -381,12 +346,16 @@ void AISPulsePropagator::ApplyU3(std::unique_ptr<AISWavePacket>& wavepacket0, st
         doubleThreeVector posStar = wavepacket0->GetPosStar();
         doubleThreeVector velStar = wavepacket0->GetVelStar();
         std::string path = wavepacket0->GetPath();
+        std::vector<std::string> detectablePaths = wavepacket0->GetDetectablePaths();
+        bool willInterfere = wavepacket0->GetWillInterfere();
 
         wavepacket0->SetAmplitude(amplitudeExcited);
         wavepacket0->SetPhaseDouble(currentPhaseDouble+phaseExcited);
         wavepacket0->SetPath(path + "1"); // append a 1 to the path
         wavepacket0->SetPosStar(posStar); // ensures the expansions are about the correct point for the next unitary transformation
         wavepacket0->SetVelStar(velStar);
+        wavepacket0->SetDetectablePaths(detectablePaths);
+        wavepacket0->SetWillInterfere(willInterfere);
 
         wavepacket1->SetAmplitude(amplitudeGround);
         wavepacket1->SetPhaseDouble(currentPhaseDouble+phaseGround);
@@ -397,6 +366,8 @@ void AISPulsePropagator::ApplyU3(std::unique_ptr<AISWavePacket>& wavepacket0, st
         wavepacket1->SetPath(path + "0"); // append a 0 to the path
         wavepacket1->SetPosStar(posStar); // ensures the expansions are about the correct point for the next unitary transformation
         wavepacket1->SetVelStar(velStar);
+        wavepacket1->SetDetectablePaths(detectablePaths);
+        wavepacket1->SetWillInterfere(willInterfere);
     }
 
     // free the params
@@ -415,4 +386,132 @@ void AISPulsePropagator::SetInterferingPaths(std::vector<std::string> paths)
 void AISPulsePropagator::SetIgnoreDetuning(bool ignoreDetuning)
 {
     this->ignoreDetuning = ignoreDetuning;
+}
+
+void AISPulsePropagator::ApplyMCBranching(std::unique_ptr<wavePacketVector>& newWavePackets)
+{
+    // check if the wavepackets are children of an interfering wavepacket
+    if (newWavePackets->at(0)->GetWillInterfere())
+    {
+        // check if the new wavepackets are on interfering paths, update willInterfere flag
+        for (int i = 0; i < this->interferingPaths.size(); i++)
+        {
+            std::string interferingPath = this->interferingPaths[i];
+            std::string wavepacket0Path = newWavePackets->at(0)->GetPath();
+            std::string wavepacket1Path = newWavePackets->at(1)->GetPath();
+
+            if (interferingPath.substr(0, wavepacket0Path.size()) == wavepacket0Path)
+            {
+            newWavePackets->at(0)->SetWillInterfere(true);
+            break;
+            }
+            else
+            {
+            newWavePackets->at(0)->SetWillInterfere(false);
+            }
+        }
+
+        for (int i = 0; i < this->interferingPaths.size(); i++)
+        {
+            std::string interferingPath = this->interferingPaths[i];
+            std::string wavepacket1Path = newWavePackets->at(1)->GetPath();
+
+            if (interferingPath.substr(0, wavepacket1Path.size()) == wavepacket1Path)
+            {
+            newWavePackets->at(1)->SetWillInterfere(true);
+            break;
+            }
+            else
+            {
+            newWavePackets->at(1)->SetWillInterfere(false);
+            }
+        }
+    }
+    else
+    {
+        // the wavepackets are children of a non-interfering wavepacket
+        // apply the MC branching scheme
+        std::unique_ptr<AISWavePacket>& wavepacket0 = newWavePackets->at(0);
+        std::unique_ptr<AISWavePacket>& wavepacket1 = newWavePackets->at(1);
+        // compute the (non normalized) probability of each path
+        double prob0_ = wavepacket0->GetAmplitude() * wavepacket0->GetAmplitude();
+        double prob1_ = wavepacket1->GetAmplitude() * wavepacket1->GetAmplitude();
+        // normalize the probabilities
+        double prob0 = prob0_ / (prob0_ + prob1_);
+        double prob1 = prob1_ / (prob0_ + prob1_);
+        // sample which wavepacket to keep
+        double r = static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+        if (r < prob0)
+        {
+            // delete wavepacket 1
+            newWavePackets->erase(newWavePackets->begin() + 1);
+        }
+        else
+        {
+            // delete wavepacket 0
+            newWavePackets->erase(newWavePackets->begin());
+        }
+    }
+
+}
+
+void AISPulsePropagator::ApplyCutoff(std::unique_ptr<wavePacketVector>& newWavePackets)
+{
+    // loop over wavepackets
+    for(int i = 0; i < newWavePackets->size(); ++i)
+    {
+        // if the amplitude is below the threshold, delete the wavepacket
+        std::unique_ptr<AISWavePacket>& currentWavepacket = newWavePackets->at(i);
+        if(abs(currentWavepacket->GetAmplitude()) < this->amplitudeThreshold)
+        {
+            newWavePackets->erase(newWavePackets->begin() + i);
+        }
+    }
+}
+
+void AISPulsePropagator::ApplyDetVolSelection(std::unique_ptr<wavePacketVector>& newWavePackets)
+{
+    // loop over wavepackets
+    for(int i = 0; i < newWavePackets->size(); ++i)
+    {
+        // if the wavepacket is not on a detectable path, delete the wavepacket
+        std::unique_ptr<AISWavePacket>& currentWavepacket = newWavePackets->at(i);
+        std::vector<std::string> detectablePaths = currentWavepacket->GetDetectablePaths();
+        std::string currentPath = currentWavepacket->GetPath();
+        // loop over detectable paths
+        bool isDetectable = false;
+        for(int j = 0; j < detectablePaths.size(); ++j)
+        {
+            if(detectablePaths[j].substr(0,currentPath.size()) == currentPath)
+            {
+                isDetectable = true;
+                break;
+            }
+        }
+        // if the wavepacket is not detectable, delete the wavepacket
+        if(!isDetectable)
+        {
+            newWavePackets->erase(newWavePackets->begin() + i);
+        }
+    }
+}
+
+bool AISPulsePropagator::GetUseMcBranching()
+{
+    return useMcBranching;
+}
+
+void AISPulsePropagator::SetUseMcBranching(bool useMcBranchingVal)
+{
+    useMcBranching = useMcBranchingVal;
+}
+
+bool AISPulsePropagator::GetUseDetVolSelection()
+{
+    return useDetVolSelection;
+}
+
+void AISPulsePropagator::SetUseDetVolSelection(bool useDetVolSelectionVal)
+{
+    useDetVolSelection = useDetVolSelectionVal;
 }

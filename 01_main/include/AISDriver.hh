@@ -15,6 +15,8 @@
 
 //hdf5
 #include "H5Cpp.h"
+// time
+#include <chrono>
 
 class AISDriver
 {
@@ -29,6 +31,8 @@ public:
     void WriteDetectedAtomsToFile(std::string fName);
     void WriteWavePacketsToFile(std::string fName);
     void WritePortsToFile(std::string fName);
+
+    std::vector<std::string> GetDetectablePaths(doubleThreeVector pos0, doubleThreeVector vel0);
 
 // private:
     AISParams params;

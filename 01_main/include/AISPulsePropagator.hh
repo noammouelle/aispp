@@ -32,15 +32,26 @@ public:
     void SetIgnoreDetuning(bool ignoreDetuning);
 
     std::vector<std::string> interferingPaths = {};
+    bool useMcBranching = false;
+    bool useDetVolSelection = false;
+
+    bool GetUseMcBranching();
+    void SetUseMcBranching(bool useMcBranching);
 
     std::vector<std::string> GetInterferingPaths();
     void SetInterferingPaths(std::vector<std::string> paths);
+
+    bool GetUseDetVolSelection();
+    void SetUseDetVolSelection(bool useDetVolSelection);
 
 protected:
     void ApplyU1(std::unique_ptr<AISWavePacket>& wavepacket, __float128 t0, __float128 t1);
     void ApplyU2(std::unique_ptr<AISWavePacket>& wavepacket, __float128 t0); // in theory could define in terms of t0 and t1 but in practice only need U2(t0,t0).
     void ApplyU2Dagger(std::unique_ptr<AISWavePacket>& wavepacket, __float128 t0, __float128 t1);
     void ApplyU3(std::unique_ptr<AISWavePacket>& wavepacket0, std::unique_ptr<AISWavePacket>& wavepacket1, __float128 t0, __float128 t1);
+    void ApplyMCBranching(std::unique_ptr<wavePacketVector>& newWavePackets);
+    void ApplyDetVolSelection(std::unique_ptr<wavePacketVector>& newWavePackets);
+    void ApplyCutoff(std::unique_ptr<wavePacketVector>& newWavePackets);
 
     static int funcU3(double t, const double y[], double f[], void *params);
 

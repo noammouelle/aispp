@@ -77,11 +77,11 @@ void AISWavePacket::SetPath(std::string aPath){
     path = aPath;
 };
 
-bool AISWavePacket::GetUseMcBranching(){
-    return useMcBranching;
+bool AISWavePacket::GetWillInterfere(){
+    return willInterfere;
 };
-void AISWavePacket::SetUseMcBranching(bool useMcBranchingVal){
-    useMcBranching = useMcBranchingVal;
+void AISWavePacket::SetWillInterfere(bool willInterfereVal){
+    willInterfere = willInterfereVal;
 };
 
 doubleThreeVector AISWavePacket::GetPosStar(){
@@ -98,4 +98,12 @@ doubleThreeVector AISWavePacket::GetVelStar(){
 
 void AISWavePacket::SetVelStar(doubleThreeVector velStarVal){
     velStar = velStarVal;
+};
+
+std::vector<std::string> AISWavePacket::GetDetectablePaths(){
+    return detectablePaths;
+};
+
+void AISWavePacket::SetDetectablePaths(std::vector<std::string> detectablePathsVal){
+    detectablePaths = detectablePathsVal;
 };
