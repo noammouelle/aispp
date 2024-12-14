@@ -8,3 +8,7 @@ ais++ -i input-files/input_quadratic_pot_final.aisi -o output-files/quadratic_po
 
 # Compare analytical and numerical results with python script
 python analysis-test1.py
+
+# delete the output files
+rm output-files/*.h5
+rm output-files/*.txt

@@ -18,6 +18,10 @@ coherencelength 0
 usemcbranching 0
 ignoredetuning 0
 seed 0
+usedetvolselection 0
+xdet 0 0
+ydet 0 0
+zdet 0 0
 
 # I/O parameters
 printprobs 0

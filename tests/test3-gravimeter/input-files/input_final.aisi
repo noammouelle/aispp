@@ -7,7 +7,7 @@
 #
 # AISI file
 # Created by ASIFlow
-# Created on 2024-12-08 16:40:17
+# Created on 2024-12-14 18:14:46
 
 # Cloud parameters
 natoms 1
@@ -26,7 +26,10 @@ coherencelength 3.740463112189228e-06
 usemcbranching 0
 ignoredetuning 0
 seed 0
-
+usedetvolselection 0
+xdet 0 0
+ydet 0 0
+zdet 0 0
 
 # Sequence parameters
 detectiontime 2.000001

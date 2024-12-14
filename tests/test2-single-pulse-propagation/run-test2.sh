@@ -7,3 +7,7 @@ ais++ -i input-files/input_excited_final.aisi -o output-files/excited_final.h5
 # Compare analytical and numerical results with python script
 python analysis-test2-ground.py
 python analysis-test2-excited.py
+
+# Clean up
+rm output-files/*.h5
+rm output-files/*.txt
