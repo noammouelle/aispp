@@ -7,7 +7,7 @@
 #
 # AISI file
 # Created by ASIFlow
-# Created on 2024-12-14 18:14:46
+# Created on 2024-12-18 16:54:17
 
 # Cloud parameters
 natoms 1
@@ -32,15 +32,15 @@ ydet 0 0
 zdet 0 0
 
 # Sequence parameters
-detectiontime 2.000001
+detectiontime 0.002001
 
 # IO parameters
 printprobs 0
 printwavepackets 1
 
 # Pulse parameters
-t0 0.0 1.00000025 2.00000075 
-t1 0.00000025 1.00000075 2.000001 
+t0 0.0 0.00100025 0.00200075 
+t1 0.00000025 0.00100075 0.002001 
 kx 0 0 0 
 ky 0 0 0 
 kz 8995953.759573193126991319278832995 8995953.759573193126991319278832995 8995953.759573193126991319278832995 

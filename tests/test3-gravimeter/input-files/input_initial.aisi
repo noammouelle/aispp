@@ -10,7 +10,7 @@ v0 0.0 0.0 0.0
 utype linear_pot
 
 # Sequence parameters
-detectiontime 2.000001
+detectiontime 0.002001
 
 # Simulation parameters
 amplitudethreshold 0
