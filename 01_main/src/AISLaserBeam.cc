@@ -12,24 +12,52 @@ AISLaserBeam::AISLaserBeam(doubleThreeVector aK, __float128 aOmega, double aRabi
 AISLaserBeam::~AISLaserBeam()
 {}
 
-doubleThreeVector AISLaserBeam::GetK()
+doubleThreeVector AISLaserBeam::GetK(__float128 t)
 {
-    return this->k;
+    return matrixAdd(this->k,scalarMultiply(this->kChirp,0.5 * static_cast<double>(t)));
 }
 
-void AISLaserBeam::SetK(doubleThreeVector k)
+void AISLaserBeam::SetK(doubleThreeVector kValue)
 {
-    this->k = k;
+    k = kValue;
 }
 
-__float128 AISLaserBeam::GetOmega()
+doubleThreeVector AISLaserBeam::GetKChirp()
 {
-    return this->omega;
+    return kChirp;
+}
+void AISLaserBeam::SetKChirp(doubleThreeVector kChirpValue)
+{
+    kChirp = kChirpValue;
 }
 
-void AISLaserBeam::SetOmega(__float128 omega)
+/**
+ * @brief Calculates the laser frequency at a given time.
+ *
+ * This function computes the angular frequency (omega) at a specific time (t)
+ * by adding the initial angular frequency (omega) to the product of the 
+ * frequency chirp rate and the time.
+ *
+ * @param t The time at which to calculate the angular frequency.
+ * @return The angular frequency at time t.
+ */
+__float128 AISLaserBeam::GetOmega(__float128 t)
 {
-    this->omega=omega;
+    return omega + 0.5q * frequencyChirp * t;
+}
+
+void AISLaserBeam::SetOmega(__float128 omegaValue)
+{
+    this->omega=omegaValue;
+}
+
+__float128 AISLaserBeam::GetFrequencyChirp()
+{
+    return frequencyChirp;
+}
+void AISLaserBeam::SetFrequencyChirp(__float128 frequencyChirpValue)
+{
+    frequencyChirp=frequencyChirpValue;
 }
 
 double AISLaserBeam::GetPhi(const doubleThreeVector& pos)

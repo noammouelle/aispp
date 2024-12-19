@@ -25,17 +25,24 @@ public:
     doubleThreeVector GetDelPhi(const doubleThreeVector& pos);
     double GetRabiFreq(const doubleThreeVector& pos, const __float128& t0, const __float128& t);
     
-    doubleThreeVector GetK();
+    doubleThreeVector GetK(__float128 t);
     void SetK(doubleThreeVector k);
 
-    __float128 GetOmega();
+    __float128 GetOmega(__float128 t);
     void SetOmega(__float128 omega);
+
+    __float128 GetFrequencyChirp();
+    void SetFrequencyChirp(__float128 frequencyChirp);
+
+    doubleThreeVector GetKChirp();
+    void SetKChirp(doubleThreeVector kChirp);
 
 private:
     double rabiFreq; // central rabi frequency
 
     doubleThreeVector k;
-    __float128 omega;
+    __float128 omega, frequencyChirp;
+    doubleThreeVector kChirp;
     double phi0;
 
     std::shared_ptr<wavefrontFunctionType> wavefrontFunction;

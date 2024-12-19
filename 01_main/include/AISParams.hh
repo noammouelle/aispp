@@ -28,9 +28,11 @@ public:
     std::vector<double> phi0;
     std::vector<__float128> initialPulseTimes;
     std::vector<__float128> finalPulseTimes;
+    std::vector<__float128> frequencyChirpVector;
     std::vector<double> kXVector;
     std::vector<double> kYVector;
     std::vector<double> kZVector;
+    std::vector<double> kXChirpVector, kYChirpVector, kZChirpVector;
     std::vector<__float128> omegaVector;
     std::vector<std::string> wavefrontTypeVector;
 

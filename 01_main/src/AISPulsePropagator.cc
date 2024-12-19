@@ -109,20 +109,20 @@ void AISPulsePropagator::ApplyU2(std::unique_ptr<AISWavePacket>& wavepacket, __f
         
         doubleThreeVector pos = wavepacket->GetPosition();
         doubleThreeVector posStar = wavepacket->GetPosStar();
-        doubleThreeVector k = laserBeam->GetK();
-        __float128 omega = laserBeam->GetOmega();
+        doubleThreeVector kT0 = laserBeam->GetK(t0);
+        __float128 omegaT0 = laserBeam->GetOmega(t0);
         double phi = laserBeam->GetPhi(posStar);
         doubleThreeVector gradPhi = laserBeam->GetDelPhi(posStar);
 
-        double dPhaseDouble = - dotProduct(matrixAdd(k,gradPhi),pos) - phi + dotProduct(posStar,gradPhi);
-        __float128 dPhaseQuad = omega * t0;
+        double dPhaseDouble = - dotProduct(matrixAdd(kT0,gradPhi),pos) - phi + dotProduct(posStar,gradPhi);
+        __float128 dPhaseQuad = omegaT0 * t0;
 
         wavepacket->SetPhaseDouble(currentPhaseDouble + dPhaseDouble);
         wavepacket->SetPhaseQuad(currentPhaseQuad + dPhaseQuad);
 
         // shift the central momentum
         doubleThreeVector vel  = wavepacket->GetVelocity();
-        doubleThreeVector dvel = scalarMultiply(matrixAdd(k,gradPhi),-hbar/massSr87);
+        doubleThreeVector dvel = scalarMultiply(matrixAdd(kT0,gradPhi),-hbar/massSr87);
         wavepacket->SetVelocity(matrixAdd(vel,dvel));
     }
 }
@@ -138,11 +138,11 @@ void AISPulsePropagator::ApplyU2Dagger(std::unique_ptr<AISWavePacket>& wavepacke
         doubleThreeVector vel = wavepacket->GetVelocity();
         doubleThreeVector posStar = wavepacket->GetPosStar();
         doubleThreeVector velStar = wavepacket->GetVelStar();
-        doubleThreeVector k = laserBeam->GetK();
-        __float128 omega = laserBeam->GetOmega();
+        doubleThreeVector kT1 = laserBeam->GetK(t1);
+        __float128 omegaT1 = laserBeam->GetOmega(t1);
         double phi = laserBeam->GetPhi(posStar);
         doubleThreeVector gradPhi = laserBeam->GetDelPhi(posStar);
-        doubleThreeVector kPrime = matrixAdd(k,gradPhi);
+        doubleThreeVector kPrime = matrixAdd(kT1,gradPhi);
 
         // Get the A and B matrices and the Xi vector
         std::tuple<double3x3Matrix, double3x3Matrix, doubleThreeVector> ABXi = kinematicPropagator->get_ABXi(t0,t1,posStar,velStar);
@@ -162,7 +162,7 @@ void AISPulsePropagator::ApplyU2Dagger(std::unique_ptr<AISWavePacket>& wavepacke
 
 
         double dPhaseDouble = phi - dotProduct(posStar,gradPhi) + propTerm;
-        __float128 dPhaseQuad = - (omega - omegaSr87) * t1 - omegaSr87*t0;
+        __float128 dPhaseQuad = - (omegaT1 - omegaSr87) * t1 - omegaSr87*t0;
 
         wavepacket->SetPhaseDouble(currentPhaseDouble + dPhaseDouble);
         wavepacket->SetPhaseQuad(currentPhaseQuad + dPhaseQuad);
@@ -179,13 +179,15 @@ void AISPulsePropagator::ApplyU2Dagger(std::unique_ptr<AISWavePacket>& wavepacke
 double AISPulsePropagator::getDelta(doubleThreeVector posPrime, doubleThreeVector velPrime, doubleThreeVector posStar, doubleThreeVector velStar, double t0, double t1, std::shared_ptr<AISLaserBeam> laserBeam)
 {
     // get the effective wavevector
-    doubleThreeVector k = laserBeam->GetK();
+    doubleThreeVector kT1 = laserBeam->GetK(t1);
+    doubleThreeVector kChirp = laserBeam->GetKChirp();
     doubleThreeVector gradPhi = laserBeam->GetDelPhi(posStar);
-    doubleThreeVector kPrime = matrixAdd(k,gradPhi);
+    doubleThreeVector kPrime = matrixAdd(kT1,gradPhi);
 
     // get the detuning
-    __float128 omega = laserBeam->GetOmega();
-    __float128 dOmega = omega - omegaSr87;
+    __float128 omega   = laserBeam->GetOmega(0.0q);
+    __float128 dOmega  = omega - omegaSr87;
+    __float128 omegaChirp = laserBeam->GetFrequencyChirp();
     double dOmegaDouble = static_cast<double>(dOmega);
 
     // compute the recoil term
@@ -195,8 +197,14 @@ double AISPulsePropagator::getDelta(doubleThreeVector posPrime, doubleThreeVecto
     std::array<doubleThreeVector,2> dotCoordsPrime = kinematicPropagator->get_dotPhaseSpaceCoordsLinearized(t0,t1,posPrime,velPrime,posStar,velStar);
     doubleThreeVector posDotPrime = dotCoordsPrime[0];
 
+    // compute the wavevector chirp term
+    double kChirpTerm = 0.5 * dotProduct(kChirp,posPrime);
+
+    // compute the frequency chirp term
+    double omegaChirpTerm = - omegaChirp * t1;
+
     // compute the detuning
-    double delta = dotProduct(kPrime,posDotPrime) - dOmegaDouble + recoilTerm;
+    double delta = dotProduct(kPrime,posDotPrime) - dOmegaDouble + recoilTerm + kChirpTerm + omegaChirpTerm;
 
     return delta;
 }
@@ -256,6 +264,7 @@ void AISPulsePropagator::ApplyU3(std::unique_ptr<AISWavePacket>& wavepacket0, st
                                     wavepacket0->GetPosition(), wavepacket0->GetVelocity(), 
                                     wavepacket0->GetPosStar(), wavepacket0->GetVelStar(),
                                     laserBeam, this};
+
     // define the ode system
     gsl_odeiv2_system sys = {funcU3, nullptr, 4, params};
     // setup the driver

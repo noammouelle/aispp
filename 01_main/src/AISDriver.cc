@@ -65,8 +65,8 @@ AISDriver::AISDriver(AISParams params)
     std::shared_ptr<delWavefrontFunctionType> dwff;
     std::shared_ptr<rabifreqFunctionType> rff;
 
-    __float128 omega_;
-    doubleThreeVector k_;
+    __float128 omega_, omegaChirp_;
+    doubleThreeVector k_, kChirp_;
     double rabiFreq_, phi0_;
 
     for(int i = 0; i < params.rabiFrequencies.size(); ++i)
@@ -86,9 +86,16 @@ AISDriver::AISDriver(AISParams params)
         omega_    = params.omegaVector[i];
         rabiFreq_ = params.rabiFrequencies[i];
         phi0_     = params.phi0[i];
+        kChirp_   = {params.kXChirpVector[i], params.kYChirpVector[i], params.kZChirpVector[i]};
+        omegaChirp_ = params.frequencyChirpVector[i];
+        
 
         std::shared_ptr<AISLaserBeam> beam = std::make_shared<AISLaserBeam>(k_,omega_,rabiFreq_, phi0_,
                                                                             wff,dwff,rff);
+
+        beam->SetKChirp(kChirp_);
+        beam->SetFrequencyChirp(omegaChirp_);
+                                                                            
 
         // create the propagator
         auto pulsePropagator = std::make_shared<AISPulsePropagator>(beam, params.initialPulseTimes[i], params.finalPulseTimes[i], kinematicPropagator,

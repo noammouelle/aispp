@@ -66,8 +66,9 @@ AISParams readParamsFromFile(std::string fName)
     std::set<std::string> DoubleParamsKeys = {"sigma", "temp", "amplitudethreshold", "coherencelength", "seed"};
     std::set<std::string> QuadParamsKeys = {"detectiontime"};
     std::set<std::string> StrParamsKeys = {"utype"};
-    std::set<std::string> DoubleArrayParamsKeys = {"x0", "v0", "kx", "ky", "kz","rabifreq", "phi0", "xdet", "ydet", "zdet"};
-    std::set<std::string> QuadArrayParamsKeys = {"t0", "t1", "omega"};
+    std::set<std::string> DoubleArrayParamsKeys = {"x0", "v0", "kx", "ky", "kz","rabifreq", "phi0", "xdet", "ydet", "zdet",
+                                                   "kxchirp", "kychirp", "kzchirp"};
+    std::set<std::string> QuadArrayParamsKeys = {"t0", "t1", "omega","frequencychirp"};
     std::set<std::string> StrArrayParamsKeys = {"wtype"};
 
     std::string line;
@@ -213,6 +214,11 @@ AISParams readParamsFromFile(std::string fName)
     params.phi0 = DoubleArrayParams["phi0"];
     params.omegaVector = QuadArrayParams["omega"];
     params.wavefrontTypeVector = StrArrayParams["wtype"];
+
+    params.frequencyChirpVector = QuadArrayParams["frequencychirp"];
+    params.kXChirpVector = DoubleArrayParams["kxchirp"];
+    params.kYChirpVector = DoubleArrayParams["kychirp"];
+    params.kZChirpVector = DoubleArrayParams["kzchirp"];
 
     params.detectionTime = QuadParams["detectiontime"];
 

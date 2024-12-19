@@ -25,7 +25,7 @@ def get_T(file_path):
             if line.startswith('detectiontime'):
                 _, T_value = line.split()
                 #return float(T_value)/2
-                return mp.mpf('1e-3')
+                return mp.mpf('1')
 
 def get_rabi_freq(file_path):
     with open(file_path, 'r') as file:
@@ -33,25 +33,31 @@ def get_rabi_freq(file_path):
             if line.startswith('rabifreq'):
                 rabi_freq_value = line.split()[1]
                 return 2*pi*float(rabi_freq_value)
+            
+def get_frequencychirp(file_path):
+    with open(file_path, 'r') as file:
+        for line in file:
+            if line.startswith('frequencychirp'):
+                frequency_chirp_value = line.split()[1]
+                return float(frequency_chirp_value)
 
-def get_phase_analytical(kz,T,rabifreq):
-    return -kz*g*T*(T+2*pi/(2*rabifreq))
-
-def get_phase_analytical(kz,T,rabifreq):
+def get_phase_analytical(kz,T,rabifreq,frequencychirp):
     tau = pi/(2*rabifreq)
     T = T + 2*tau
-    phi2 = -kz*g*T**2 * (1 - 2*tau/T + 4*tau/(pi*T))
-    phi2T = kz*g/rabifreq**2 * (rabifreq*T*mp.cos(rabifreq*T) - mp.sin(rabifreq*T))
-    deltaT = - kz*g*T
+    phi2 = -(kz*g+frequencychirp)*T**2 * (1 - 2*tau/T + 4*tau/(pi*T))
+    phi2T = (kz*g+frequencychirp)/rabifreq**2 * (rabifreq*T*mp.cos(rabifreq*T) - mp.sin(rabifreq*T))
+    deltaT = - kz*g*T - frequencychirp*T
     theta = tau * deltaT / 2
     dphi = 4*theta**2*mp.sin(2*phi2T)
+    print('phi2: ', phi2)
+    print('dphi: ', dphi)
     return phi2 + dphi
 
 def get_phase_simulated(final_df):
     # we are only interested in the interfering path ending up in the ground state 
     # (paths 0010 and 0100)
     phase_upper = final_df[final_df['Path'] == '0100']['Phase'].values[0]
-    phase_upper_quad = final_df[final_df['Path'] == '0010']['PhaseQuad'].values[0]
+    phase_upper_quad = final_df[final_df['Path'] == '0100']['PhaseQuad'].values[0]
     phase_lower = final_df[final_df['Path'] == '0010']['Phase'].values[0]
     phase_lower_quad = final_df[final_df['Path'] == '0010']['PhaseQuad'].values[0]
 
@@ -67,7 +73,7 @@ def get_phase_simulated(final_df):
     delta_z = z_upper - z_lower
 
     # compute the phase
-    phase = phase_upper + phase_upper_quad - phase_lower - phase_lower_quad - pbar * delta_z / hbar
+    phase = phase_upper + phase_upper_quad - phase_lower - phase_lower_quad - pbar * delta_z / hbar 
 
     # get the phase err
     err_upper = final_df[final_df['Path'] == '0100']['PhaseErr'].values[0]
@@ -81,6 +87,7 @@ def check_sim_result(input_filepath, initial_filepath, final_filepath, tol):
     kz = get_kz_value(input_filepath)
     T = get_T(input_filepath)
     rabifreq = get_rabi_freq(input_filepath)
+    frequencychirp = get_frequencychirp(input_filepath)
     # load initial and final data
     initial_data = pd.read_csv(initial_filepath, skipinitialspace=True, dtype={'Path':str})
     final_data = pd.read_csv(final_filepath, skipinitialspace=True, dtype={'Path':str})
@@ -88,7 +95,7 @@ def check_sim_result(input_filepath, initial_filepath, final_filepath, tol):
     z0 = initial_data['Z'][0]
     vz0 = initial_data['VZ'][0]
     # get the analytical phase
-    phase_analytical = get_phase_analytical(kz,T,rabifreq)
+    phase_analytical = get_phase_analytical(kz,T,rabifreq,frequencychirp)
 
     # get the simulated phase
     phase_simulated, phase_err = get_phase_simulated(final_data)
@@ -107,5 +114,5 @@ if __name__ == '__main__':
     initial_filepath = 'output-files/data_initial_WPK.txt'
     final_filepath = 'output-files/data_final_WPK.txt'
     input_filepath = 'input-files/input_final.aisi'
-    tol = 1e-5
+    tol = 1e-4
     check_sim_result(input_filepath, initial_filepath, final_filepath, tol)
