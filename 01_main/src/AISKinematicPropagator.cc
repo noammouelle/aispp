@@ -387,7 +387,7 @@ double AISKinematicPropagator::get_dL(const double& t, void *params)
     double dxDotD2Udxdx = dotProduct(dx,dotProduct(get_d2Udxdx(newPosTilde,newVelTilde),dx));
 
     // compute and sum the perturbations up to second order(divided by m)
-    double dL = - dxDotDUdx/massSr87 - dvDotDUdp + 0.5 * (dvDotDv + dvDotD2UdvdvDotDv) 
+    double dL = - dxDotDUdx/massSr87 - dvDotDUdp + 0.5 * (dvDotDv - dvDotD2UdvdvDotDv) 
                 - 0.5 * dxDotD2UdxdvDotDv/massSr87 - 0.5 * dvDotD2UdvdxDotDx/massSr87
                 - 0.5 * dxDotD2Udxdx/massSr87;
 
