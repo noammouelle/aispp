@@ -6,6 +6,8 @@ AISAtom::AISAtom(doubleThreeVector initialPos, doubleThreeVector initialVel, __f
     std::unique_ptr<AISWavePacket> initialWavePacket(new AISWavePacket());
     initialWavePacket->SetPosition(initialPos);
     initialWavePacket->SetVelocity(initialVel);
+    initialWavePacket->SetPos0(initialPos);
+    initialWavePacket->SetVel0(initialVel);
     initialWavePacket->SetTime(initialTime);
     initialWavePacket->SetState(initialState);
 

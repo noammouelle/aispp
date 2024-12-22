@@ -52,6 +52,12 @@ public:
     std::vector<std::string> GetDetectablePaths();
     void SetDetectablePaths(std::vector<std::string> detectablePaths);
 
+    doubleThreeVector GetPos0();
+    void SetPos0(doubleThreeVector pos0);
+
+    doubleThreeVector GetVel0();
+    void SetVel0(doubleThreeVector vel0);
+
 
 private:
     __float128 fTime = 0.0q;
@@ -71,6 +77,9 @@ private:
 
     doubleThreeVector posStar;
     doubleThreeVector velStar;
+
+    doubleThreeVector pos0; // initial position and velocity of the atom that the wave packet is associated with
+    doubleThreeVector vel0;
 };
 
 #endif

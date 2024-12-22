@@ -105,6 +105,9 @@ void AISKinematicPropagator::PropagateWavePacket(std::unique_ptr<AISWavePacket>&
 
     __float128 t0 = wavePacket->GetTime();
 
+    doubleThreeVector atomInitialPos = wavePacket->GetPos0();
+    doubleThreeVector atomInitialVel = wavePacket->GetVel0();
+
     // convert t0 and t1 to double (static cast)
     double t0_double = (double)t0;
     double t1_double = (double)t1;
@@ -117,7 +120,9 @@ void AISKinematicPropagator::PropagateWavePacket(std::unique_ptr<AISWavePacket>&
     wavePacket->SetPosition(newPos);
     wavePacket->SetVelocity(newVel);
 
-    std::array<double,2> phaseDoubleRes = CalculateNewPhaseDouble(currentPhaseDouble, currentPhaseDoubleErr, currentPos, currentVel, t0_double, t1_double);
+    std::array<double,2> phaseDoubleRes = CalculateNewPhaseDouble(currentPhaseDouble, currentPhaseDoubleErr, currentPos, currentVel,
+                                                                  atomInitialPos, atomInitialVel,
+                                                                  t0_double, t1_double);
     double newPhaseDouble    = phaseDoubleRes[0];
     double newPhaseDoubleErr = phaseDoubleRes[1];
 
@@ -344,7 +349,7 @@ int AISKinematicPropagator::funcLinearized(double t, const double y[], double f[
     return GSL_SUCCESS;
 }
 
-double AISKinematicPropagator::get_L(const double& t, void *params)
+double AISKinematicPropagator::get_dL(const double& t, void *params)
 {   
     // get the Lagrangian parameters
     LagrangianParams *p = (LagrangianParams *) params;
@@ -352,23 +357,57 @@ double AISKinematicPropagator::get_L(const double& t, void *params)
     doubleThreeVector pos0 = p->pos0;
     doubleThreeVector vel0 = p->vel0;
 
-    // compute the Lagrangian
+    // get the initial kinematics of the atom
+    doubleThreeVector atomInitialPos = p->atomInitialPos;
+    doubleThreeVector atomInitialVel = p->atomInitialVel;
+
+    // compute the exact trajectory of the wavepacket and the unperturbed
+    // atom trajectory in a quadratic Hamiltonian
     std::array<doubleThreeVector, 2> newPosVel = CalculateNewPhaseSpaceCoords(t0, t, pos0, vel0);
+    std::cout<<"IN DL: "<<std::endl;
+    std::array<doubleThreeVector, 2> newPosVelTilde = CalculateNewPhaseSpaceCoordsLinearized(t0, t, atomInitialPos, atomInitialVel, atomInitialPos, atomInitialVel);
     doubleThreeVector newPos = newPosVel[0];
     doubleThreeVector newVel = newPosVel[1];
-    double U = get_U(newPos, newVel);
-    double T = 0.5 * (newVel[0] * newVel[0] + newVel[1] * newVel[1] + newVel[2] * newVel[2]); // * massSr87;
-    return T - U;
+    doubleThreeVector newPosTilde = newPosVelTilde[0];
+    doubleThreeVector newVelTilde = newPosVelTilde[1];
+
+    // compute the perturbations around the unperturbed atom trajectory in a quadratic Hamiltonian
+    doubleThreeVector dx = matrixAdd(newPos,scalarMultiply(newPosTilde,-1));
+    doubleThreeVector dv = matrixAdd(newVel,scalarMultiply(newVelTilde,-1));
+
+    std::cout << "newPos: " << newPos[0] << " " << newPos[1] << " " << newPos[2] << std::endl;
+    std::cout << "newPosTilde: " << newPosTilde[0] << " " << newPosTilde[1] << " " << newPosTilde[2] << std::endl;
+    std::cout << "AtomInitialPos: " << atomInitialPos[0] << " " << atomInitialPos[1] << " " << atomInitialPos[2] << std::endl;
+    std::cout<<"AtomInitialVel: "<<atomInitialVel[0]<<" "<<atomInitialVel[1]<<" "<<atomInitialVel[2]<<std::endl;
+
+    // compute the terms in the perturbations about unperturbed trajectory's Lagrangian
+    double dxDotDUdx = dotProduct(dx,get_dUdx(newPosTilde,newVelTilde)); // first order perturbations
+    double dvDotDUdp = dotProduct(dv,get_dUdp(newPosTilde,newVelTilde));
+    double dvDotDv   = dotProduct(dv,dv);
+    double dvDotD2UdvdvDotDv = dotProduct(dv,dotProduct(get_d2Udpdp(newPosTilde,newVelTilde),dv));
+    double dxDotD2UdxdvDotDv = dotProduct(dx,dotProduct(get_d2Udxdp(newPosTilde,newVelTilde),dv));
+    double dvDotD2UdvdxDotDx = dotProduct(dv,dotProduct(transpose(get_d2Udxdp(newPosTilde,newVelTilde)),dx));
+    double dxDotD2Udxdx = dotProduct(dx,dotProduct(get_d2Udxdx(newPosTilde,newVelTilde),dx));
+
+    // compute and sum the perturbations up to second order(divided by m)
+    double dL = - dxDotDUdx/massSr87 - dvDotDUdp + 0.5 * (dvDotDv + dvDotD2UdvdvDotDv) 
+                - 0.5 * dxDotD2UdxdvDotDv/massSr87 - 0.5 * dvDotD2UdvdxDotDx/massSr87
+                - 0.5 * dxDotD2Udxdx/massSr87;
+
+    std::cout << "dL: " << dL << std::endl;
+
+    return dL;
 }
 
-double AISKinematicPropagator::get_L_wrapper(double t, void *params)
+double AISKinematicPropagator::get_dL_wrapper(double t, void *params)
 {
     LagrangianParams *lagrangianParams = static_cast<LagrangianParams*>(params);
     AISKinematicPropagator* propagator = lagrangianParams->propagator;
-    return propagator->get_L(t,params);
+    return propagator->get_dL(t,params);
 }
 
-std::array<double,2> AISKinematicPropagator::get_Scl(const double& t0, const double& t1, const doubleThreeVector& pos0, const doubleThreeVector& vel0)
+std::array<double,2> AISKinematicPropagator::get_dScl(const double& t0, const double& t1, const doubleThreeVector& pos0, const doubleThreeVector& vel0,
+                                                     const doubleThreeVector& atomInitialPos, const doubleThreeVector& atomInitialVel)
 {
     // compute the action by integrating the Lagrangian between t0 and t1
     double workspace_size = 1000; // max number of subintervals
@@ -377,11 +416,11 @@ std::array<double,2> AISKinematicPropagator::get_Scl(const double& t0, const dou
     double result, error;
 
     gsl_function integrand;
-    integrand.function = &get_L_wrapper;
-    integrand.params = new LagrangianParams{t0, pos0, vel0, this};
+    integrand.function = &get_dL_wrapper;
+    integrand.params = new LagrangianParams{t0, pos0, vel0, atomInitialPos, atomInitialVel, this};
 
     double epsabs = 1e-9;
-    double epsrel = 0.0;
+    double epsrel = 1e-14;
     int key = 1;
 
     gsl_integration_qag (&integrand, t0, t1, epsabs, epsrel, workspace_size, 
@@ -440,9 +479,10 @@ std::tuple<double3x3Matrix, double3x3Matrix, doubleThreeVector> AISKinematicProp
 }
 
 std::array<double,2> AISKinematicPropagator::CalculateNewPhaseDouble(const double& phase0, const double& phaseErr, const doubleThreeVector& pos0, const doubleThreeVector& vel0,
-                                                                          const double t0, const double t1)
+                                                                     const doubleThreeVector& atomInitialPos, const doubleThreeVector& atomInitialVel,
+                                                                     const double t0, const double t1)
 {
-    std::array<double,2> scl = get_Scl(t0, t1, pos0, vel0); // action and error
+    std::array<double,2> scl = get_dScl(t0, t1, pos0, vel0, atomInitialPos, atomInitialVel); // action and error
     double action = scl[0];
     double error = scl[1];
 
