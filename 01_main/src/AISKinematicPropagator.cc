@@ -380,15 +380,16 @@ double AISKinematicPropagator::get_dL(const double& t, void *params)
     // compute the terms in the perturbations about unperturbed trajectory's Lagrangian
     double dxDotDUdx = dotProduct(dx,get_dUdx(newPosTilde,newVelTilde)); // first order perturbations
     double dvDotDUdp = dotProduct(dv,get_dUdp(newPosTilde,newVelTilde));
+    double dvDotVTilde = dotProduct(dv,newVelTilde);
     double dvDotDv   = dotProduct(dv,dv);
     double dvDotD2UdvdvDotDv = dotProduct(dv,dotProduct(get_d2Udpdp(newPosTilde,newVelTilde),dv));
     double dxDotD2UdxdvDotDv = dotProduct(dx,dotProduct(get_d2Udxdp(newPosTilde,newVelTilde),dv));
-    double dvDotD2UdvdxDotDx = dotProduct(dv,dotProduct(transpose(get_d2Udxdp(newPosTilde,newVelTilde)),dx));
     double dxDotD2Udxdx = dotProduct(dx,dotProduct(get_d2Udxdx(newPosTilde,newVelTilde),dx));
 
     // compute and sum the perturbations up to second order(divided by m)
-    double dL = - dxDotDUdx/massSr87 - dvDotDUdp + 0.5 * (dvDotDv - dvDotD2UdvdvDotDv) 
-                - 0.5 * dxDotD2UdxdvDotDv/massSr87 - 0.5 * dvDotD2UdvdxDotDx/massSr87
+    double dL = - dxDotDUdx/massSr87 + (dvDotVTilde - dvDotDUdp)
+                + 0.5 * (dvDotDv - dvDotD2UdvdvDotDv) 
+                - dxDotD2UdxdvDotDv/massSr87
                 - 0.5 * dxDotD2Udxdx/massSr87;
 
     return dL;
