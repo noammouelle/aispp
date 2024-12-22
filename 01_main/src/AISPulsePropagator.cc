@@ -33,9 +33,10 @@ void AISPulsePropagator::PropagateAtom(std::unique_ptr<AISAtom>& atom)
         std::unique_ptr<AISWavePacket>& wavepacket0 = atom->GetWavePacket(wavePacketIndex);
         std::unique_ptr<AISWavePacket> wavepacket1(new AISWavePacket());
 
-        // Set pos0 and vel0 (initial pos and vel of atom) for the new wavepacket
+        // Set pos0 and vel0 and t0 (initial pos and vel of atom) for the new wavepacket
         wavepacket1->SetPos0(wavepacket0->GetPos0());
         wavepacket1->SetVel0(wavepacket0->GetVel0());
+        wavepacket1->SetT0(wavepacket0->GetT0());
 
         // Set the position and velocity about which to linearize the operators
         wavepacket0->SetPosStar(wavepacket0->GetPosition());

@@ -9,6 +9,7 @@ AISAtom::AISAtom(doubleThreeVector initialPos, doubleThreeVector initialVel, __f
     initialWavePacket->SetPos0(initialPos);
     initialWavePacket->SetVel0(initialVel);
     initialWavePacket->SetTime(initialTime);
+    initialWavePacket->SetT0(initialTime);
     initialWavePacket->SetState(initialState);
 
     // init wavepacket vector

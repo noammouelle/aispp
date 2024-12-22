@@ -42,7 +42,7 @@ public:
 
     std::array<double,2> CalculateNewPhaseDouble(const double& phase0, const double& phaseErr, const doubleThreeVector& pos0, const doubleThreeVector& vel0,
                                                  const doubleThreeVector& atomInitialPos, const doubleThreeVector& atomInitialVel,
-                                                 const double t0, const double t1);
+                                                 const double t0, const double t1, const __float128& atomInitialTime);
     __float128 CalculateNewPhaseQuad(const __float128& phase0, const __float128& t0, const __float128 t1);
 
     std::array<doubleThreeVector, 2> CalculateNewPhaseSpaceCoords(const double& t0, const double& t1, 
@@ -62,7 +62,8 @@ public:
     static double get_dL_wrapper(double t, void *params); 
     double get_dL(const double& t, void *params);
     std::array<double,2> get_dScl(const double& t0, const double& t1, const doubleThreeVector& pos0, const doubleThreeVector& vel0,
-                                 const doubleThreeVector& atomInitialPos, const doubleThreeVector& atomInitialVel);
+                                 const doubleThreeVector& atomInitialPos, const doubleThreeVector& atomInitialVel,
+                                 const __float128& atomInitialTime);
 
     static int func(double t, const double y[], double f[], void *params);
     static int funcLinearized(double t, const double y[], double f[], void *params);
@@ -92,6 +93,7 @@ struct LagrangianParams {
     doubleThreeVector vel0;
     doubleThreeVector atomInitialPos;
     doubleThreeVector atomInitialVel;
+    __float128 atomInitialTime;
     AISKinematicPropagator* propagator;
 };
 
