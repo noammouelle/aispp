@@ -277,7 +277,6 @@ def check_propagator_result(filename_initial, filename_final, tol, dt, accelerat
     print('vz: max abs err =', f'{max(abs_error_vz):.3g}', 'mean abs err =', f'{np.mean(abs_error_vz):.3g}', 'max rel err =', f'{max(rel_error_vz):.3g}', 'mean rel err =', f'{np.mean(rel_error_vz):.3g}')
     print('phase_double: max abs err =', f'{max(abs_error_phase_double):.3g}', 'mean abs err =', f'{np.mean(abs_error_phase_double):.3g}', 'max rel err =', f'{max(rel_error_phase_double):.3g}', 'mean rel err =', f'{np.mean(rel_error_phase_double):.3g}')   
 
-
     for x0,y0,z0,vx0,vy0,vz0,x1,y1,z1,vx1,vy1,vz1,phase_double,phase_err in zip(x0list,y0list,z0list,vx0list,vy0list,vz0list,x1list,y1list,z1list,vx1list,vy1list,vz1list,phase_double_list,phase_err_list):
         x1a, y1a, z1a, vx1a, vy1a, vz1a = analytical_propagate(x0, y0, z0, vx0, vy0, vz0, dt, acceleration)
         phase_double_a = S(x0,y0,z0,vx0,vy0,vz0,dt,acceleration) / hbar
@@ -289,8 +288,6 @@ def check_propagator_result(filename_initial, filename_final, tol, dt, accelerat
         assert isclose(vy1, vy1a, abs_tol=tol)
         assert isclose(vz1, vz1a, abs_tol=tol)
         assert isclose(phase_double, phase_double_a, abs_tol=tol)
-
-    print('\nAll tests passed!')
 
 def main():
     print("TEST 1: KINEMATIC PROPAGATION")

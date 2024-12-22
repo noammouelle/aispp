@@ -107,3 +107,27 @@ std::vector<std::string> AISWavePacket::GetDetectablePaths(){
 void AISWavePacket::SetDetectablePaths(std::vector<std::string> detectablePathsVal){
     detectablePaths = detectablePathsVal;
 };
+
+doubleThreeVector AISWavePacket::GetPos0(){
+    return pos0;
+};
+
+void AISWavePacket::SetPos0(doubleThreeVector pos0Val){
+    pos0 = pos0Val;
+};
+
+doubleThreeVector AISWavePacket::GetVel0(){
+    return vel0;
+};
+
+void AISWavePacket::SetVel0(doubleThreeVector vel0Val){
+    vel0 = vel0Val;
+};
+
+__float128 AISWavePacket::GetT0(){
+    return t0;
+};
+
+void AISWavePacket::SetT0(__float128 t0Val){
+    t0 = t0Val;
+};
