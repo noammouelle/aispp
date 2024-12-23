@@ -62,7 +62,7 @@ void AISLaserBeam::SetFrequencyChirp(__float128 frequencyChirpValue)
 
 double AISLaserBeam::GetPhi(const doubleThreeVector& pos)
 {
-    return phi0 + (*wavefrontFunction)(pos);
+    return phi0 + (*wavefrontFunction)(pos, k[2], w0);
 }
 
 doubleThreeVector AISLaserBeam::GetDelPhi(const doubleThreeVector& pos)
@@ -72,10 +72,19 @@ doubleThreeVector AISLaserBeam::GetDelPhi(const doubleThreeVector& pos)
         std::cerr << "Error: delWavefrontFunction is not initialized!" << std::endl;
         throw std::runtime_error("delWavefrontFunction is not initialized");
     }
-    return (*delWavefrontFunction)(pos);
+    return (*delWavefrontFunction)(pos, k[2], w0);
 }
 
 double AISLaserBeam::GetRabiFreq(const doubleThreeVector& pos, const __float128& t0, const __float128& t)
 {
-    return this->rabiFreq * (*rabifreqFunction)(pos, t0, t); // central rabi freq times envelope
+    return this->rabiFreq * (*rabifreqFunction)(pos, w0, t0, t); // central rabi freq times envelope
+}
+
+double AISLaserBeam::GetW0()
+{
+    return w0;
+}
+void AISLaserBeam::SetW0(double w0Value)
+{
+    w0 = w0Value;
 }

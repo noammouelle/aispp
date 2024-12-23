@@ -35,6 +35,7 @@ public:
     std::vector<double> kXChirpVector, kYChirpVector, kZChirpVector;
     std::vector<__float128> omegaVector;
     std::vector<std::string> wavefrontTypeVector;
+    std::vector<double> waistVector;
 
     // Kinematic parameters
     __float128 detectionTime;

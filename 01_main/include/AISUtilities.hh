@@ -38,6 +38,10 @@ using doubleVector = std::vector<double>;
 using quadVector = std::vector<__float128>;
 using boolVector = std::vector<bool>;
 
+using wavefrontFunctionType = double(*)(const doubleThreeVector&, const double&, const double&);
+using delWavefrontFunctionType = doubleThreeVector(*)(const doubleThreeVector&, const double&, const double&);
+using rabifreqFunctionType  = double(*)(const doubleThreeVector&, const double&, const __float128&,const  __float128&);
+
 // complex number routines
 double complexAbs(complexDouble z);
 double complexArg(complexDouble z);

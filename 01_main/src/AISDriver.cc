@@ -57,17 +57,13 @@ AISDriver::AISDriver(AISParams params)
     kinematicPropagator = std::make_shared<AISKinematicPropagator>(U,dUdx,dUdp,d2Udxdx,d2Udxdp,d2Udpdp);
 
     // create the pulse propagators
-    using wavefrontFunctionType = double(*)(const doubleThreeVector&);
-    using delWavefrontFunctionType = doubleThreeVector(*)(const doubleThreeVector&);
-    using rabifreqFunctionType  = double(*)(const doubleThreeVector&, const __float128&,const  __float128&);
-
     std::shared_ptr<wavefrontFunctionType> wff;
     std::shared_ptr<delWavefrontFunctionType> dwff;
     std::shared_ptr<rabifreqFunctionType> rff;
 
     __float128 omega_, omegaChirp_;
     doubleThreeVector k_, kChirp_;
-    double rabiFreq_, phi0_;
+    double rabiFreq_, phi0_, w0_;
 
     for(int i = 0; i < params.rabiFrequencies.size(); ++i)
     {   
@@ -76,6 +72,12 @@ AISDriver::AISDriver(AISParams params)
             wff = std::make_shared<wavefrontFunctionType>(flatWavefront);
             dwff = std::make_shared<delWavefrontFunctionType>(flatGradientWavefront);
             rff = std::make_shared<rabifreqFunctionType>(flatSquareEnvelope);
+        }
+        else if(params.wavefrontTypeVector[i] == "gaussian")
+        {
+            wff = std::make_shared<wavefrontFunctionType>(gaussianWavefront);
+            dwff = std::make_shared<delWavefrontFunctionType>(gaussianGradientWavefront);
+            rff = std::make_shared<rabifreqFunctionType>(gaussianEnvelope);
         }
         else{
             std::cerr << "Wavefront type " << params.wavefrontTypeVector[i] << " not recognized. Exiting." << std::endl;
@@ -88,6 +90,7 @@ AISDriver::AISDriver(AISParams params)
         phi0_     = params.phi0[i];
         kChirp_   = {params.kXChirpVector[i], params.kYChirpVector[i], params.kZChirpVector[i]};
         omegaChirp_ = params.frequencyChirpVector[i];
+        w0_ = params.waistVector[i];
         
 
         std::shared_ptr<AISLaserBeam> beam = std::make_shared<AISLaserBeam>(k_,omega_,rabiFreq_, phi0_,
@@ -95,6 +98,7 @@ AISDriver::AISDriver(AISParams params)
 
         beam->SetKChirp(kChirp_);
         beam->SetFrequencyChirp(omegaChirp_);
+        beam->SetW0(w0_);
                                                                             
 
         // create the propagator

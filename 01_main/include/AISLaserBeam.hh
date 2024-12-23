@@ -9,10 +9,6 @@
 class AISLaserBeam
 {
 public:
-    using wavefrontFunctionType = double(*)(const doubleThreeVector&);
-    using delWavefrontFunctionType = doubleThreeVector(*)(const doubleThreeVector&);
-    using rabifreqFunctionType  = double(*)(const doubleThreeVector&, const __float128&, const __float128&);
-
     AISLaserBeam(doubleThreeVector k, __float128 omega, double rabiFreq, double phi0,
                  std::shared_ptr<wavefrontFunctionType> wavefrontFunction,
                  std::shared_ptr<delWavefrontFunctionType> delWavefrontFunction,
@@ -37,12 +33,16 @@ public:
     doubleThreeVector GetKChirp();
     void SetKChirp(doubleThreeVector kChirp);
 
+    double GetW0();
+    void SetW0(double w0);
+
 private:
     double rabiFreq; // central rabi frequency
 
     doubleThreeVector k;
     __float128 omega, frequencyChirp;
     doubleThreeVector kChirp;
+    double w0;
     double phi0;
 
     std::shared_ptr<wavefrontFunctionType> wavefrontFunction;
