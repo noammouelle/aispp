@@ -40,20 +40,56 @@ def get_frequencychirp(file_path):
             if line.startswith('frequencychirp'):
                 frequency_chirp_value = line.split()[1]
                 return float(frequency_chirp_value)
-            
-def get_vz0(file_path):
-    df = pd.read_csv(file_path, skipinitialspace=True)
-    return df['VZ'][0]
 
-def get_phase_analytical(kz,T,rabifreq,frequencychirp,vz0):
+def get_phase_analytical(kz,T,rabifreq,frequencychirp,z0,vz0):
     tau = pi/(2*rabifreq)
     T = T + 2*tau
-    phi2 = -(kz*g+frequencychirp)*T**2 * (1 - 2*tau/T + 4*tau/(pi*T))
-    phi2T_term1 = kz*vz0/rabifreq
-    phi2T_term2 = (kz*g*T - kz*vz0 + frequencychirp*T)*mp.cos(rabifreq*T)/rabifreq
-    phi2T_term3 = - (g*kz + frequencychirp)*mp.sin(rabifreq*T)/rabifreq**2
-    phi2T = phi2T_term1 + phi2T_term2 + phi2T_term3
-    deltaT = - kz*g*T - frequencychirp*T + kz*vz0
+    eta = tau/T
+    vr = hbar * kz / m
+    vm = vz0 + vr/2
+    gamma = 2*g/R
+    # leading order phase
+    phi2 = -(kz*g+frequencychirp-kz*gamma*z0)*T**2 * (1 - 2*eta + 4*eta/pi) \
+           +kz*gamma*T**3 * (vm*(1 - 2*eta + 4*eta/pi) -g*T*(7/12 - 4/3*eta + 8/(3*pi)*eta))
+    # Bertoldi corrections
+    phi2T_term1 = -kz*vz0*gamma/rabifreq**3
+    phi2T_term2 = kz*vz0/rabifreq
+    phi2T_term3 = -g*kz*T*gamma*mp.cos(rabifreq*T)/rabifreq**3
+    phi2T_term4 = kz*vz0*gamma*mp.cos(rabifreq*T)/rabifreq**3
+    phi2T_term5 = g*kz*T*mp.cos(rabifreq*T)/rabifreq
+    phi2T_term6 = -kz*vz0*mp.cos(rabifreq*T)/rabifreq
+    phi2T_term7 = T*frequencychirp*mp.cos(rabifreq*T)/rabifreq
+    phi2T_term8 = g*kz*T**3*gamma*mp.cos(rabifreq*T)/(6*rabifreq)
+    phi2T_term9 = -kz*vz0*T**2*gamma*mp.cos(rabifreq*T)/(2*rabifreq)
+    phi2T_term10 = -kz*T*z0*gamma*mp.cos(rabifreq*T)/rabifreq
+    phi2T_term11 = g*kz*gamma*mp.sin(rabifreq*T)/rabifreq**4
+    phi2T_term12 = -g*kz*mp.sin(rabifreq*T)/rabifreq**2
+    phi2T_term13 = -frequencychirp*mp.sin(rabifreq*T)/rabifreq**2
+    phi2T_term14 = -g*kz*T**2*gamma*mp.sin(rabifreq*T)/(2*rabifreq**2)
+    phi2T_term15 = kz*vz0*T*gamma*mp.sin(rabifreq*T)/rabifreq**2
+    phi2T_term16 = kz*z0*gamma*mp.sin(rabifreq*T)/rabifreq**2
+
+    phi2T = phi2T_term1 + phi2T_term2 + phi2T_term3 + phi2T_term4 + phi2T_term5 + phi2T_term6 + phi2T_term7 + phi2T_term8 + phi2T_term9 + phi2T_term10 + phi2T_term11 + phi2T_term12 + phi2T_term13 + phi2T_term14 + phi2T_term15 + phi2T_term16
+    '''
+    print("term1: ", phi2T_term1)
+    print("term2: ", phi2T_term2)
+    print("term3: ", phi2T_term3)
+    print("term4: ", phi2T_term4)
+    print("term5: ", phi2T_term5)
+    print("term6: ", phi2T_term6)
+    print("term7: ", phi2T_term7)
+    print("term8: ", phi2T_term8)
+    print("term9: ", phi2T_term9)
+    print("term10: ", phi2T_term10)
+    print("term11: ", phi2T_term11)
+    print("term12: ", phi2T_term12)
+    print("term13: ", phi2T_term13)
+    print("term14: ", phi2T_term14)
+    print("term15: ", phi2T_term15)
+    print("term16: ", phi2T_term16)
+    '''
+    deltaT = - kz*g*T - frequencychirp*T + kz*vz0*(1+gamma*T**2/2) \
+             + kz*gamma*T*(z0-T**2*g/6)
     theta = tau * deltaT / 2
     dphi = 4*theta**2*mp.sin(2*phi2T)
     print('phi2: ', phi2)
@@ -102,7 +138,7 @@ def check_sim_result(input_filepath, initial_filepath, final_filepath, tol):
     z0 = initial_data['Z'][0]
     vz0 = initial_data['VZ'][0]
     # get the analytical phase
-    phase_analytical = get_phase_analytical(kz,T,rabifreq,frequencychirp,vz0)
+    phase_analytical = get_phase_analytical(kz,T,rabifreq,frequencychirp,z0,vz0)
 
     # get the simulated phase
     phase_simulated, phase_err = get_phase_simulated(final_data)

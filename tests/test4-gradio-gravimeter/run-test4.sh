@@ -7,7 +7,7 @@ for i in $(seq 0 $N); do
 done
 
 # run analysis
-python analysis_test3.py
+python analysis_test4.py
 
 # Clean up
 rm output-files/*.h5

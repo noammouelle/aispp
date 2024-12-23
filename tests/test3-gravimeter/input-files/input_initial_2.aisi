@@ -10,14 +10,14 @@ v0 0.0 0.0 0.0
 utype linear_pot
 
 # Sequence parameters
-detectiontime 2.000001
+detectiontime 0
 
 # Simulation parameters
 amplitudethreshold 0
 coherencelength 3.740463112189228e-06
 usemcbranching 0
 ignoredetuning 0
-seed 0
+seed 2
 usedetvolselection 0
 xdet 0 0
 ydet 0 0

@@ -7,7 +7,7 @@
 #
 # AISI file
 # Created by ASIFlow
-# Created on 2024-12-19 19:14:27
+# Created on 2024-12-23 12:33:39
 
 # Cloud parameters
 natoms 1
@@ -18,14 +18,14 @@ x0 0.0 0.0 0.0
 v0 0.0 0.0 0.0
 
 # Potential parameters
-utype linear_pot
+utype quadratic_pot
 
 # Simulation parameters
 amplitudethreshold 0
 coherencelength 3.740463112189228e-06
 usemcbranching 0
 ignoredetuning 0
-seed 0
+seed 6
 usedetvolselection 0
 xdet 0 0
 ydet 0 0
@@ -50,5 +50,5 @@ wtype flat_square flat_square flat_square
 phi0 0 0 0.0
 kxchirp 0 0 0 
 kychirp 0 0 0 
-kzchirp 0 0 0
+kzchirp 0.0 0.0 0.0 
 frequencychirp -88250306.38044334911185166588023942 -88250306.38044334911185166588023942 -88250306.38044334911185166588023942 
