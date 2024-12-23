@@ -194,8 +194,8 @@ std::array<doubleThreeVector, 2> AISKinematicPropagator::CalculateNewPhaseSpaceC
     // define the ode system
     gsl_odeiv2_system sys = {func, nullptr, 6, this};
     // setup the driver
-    double reltol = 0.0;
-    double abstol = 1e-9;
+    double reltol = 1e-15;
+    double abstol = 1e-15;
     double hstart = (t1 - t0) / 10.0;
     gsl_odeiv2_driver * d =
     gsl_odeiv2_driver_alloc_y_new (&sys, gsl_odeiv2_step_rk8pd,
@@ -230,8 +230,8 @@ std::array<doubleThreeVector, 2> AISKinematicPropagator::CalculateNewPhaseSpaceC
     FuncLinearizedParams* linearizedParams = new FuncLinearizedParams{posStar, velStar, this};
     gsl_odeiv2_system sys = {funcLinearized, nullptr, 6, linearizedParams};
     // setup the driver
-    double reltol = 0.0;
-    double abstol = 1e-9;
+    double reltol = 1e-15;
+    double abstol = 1e-15;
     double hstart = (t1 - t0) / 10.0;   
     gsl_odeiv2_driver * d =
     gsl_odeiv2_driver_alloc_y_new (&sys, gsl_odeiv2_step_rk8pd,
