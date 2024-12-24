@@ -19,4 +19,6 @@ double gaussianEnvelope(const std::array<double, 3>& pos,
     double w   = w0 * sqrt(1 + (z/zR)*(z/zR));
 
     double envelope = exp(- r * r / (w * w)) * w0 / w;
+
+    return envelope;
 }
