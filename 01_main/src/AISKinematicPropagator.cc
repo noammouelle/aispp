@@ -194,8 +194,8 @@ std::array<doubleThreeVector, 2> AISKinematicPropagator::CalculateNewPhaseSpaceC
     // define the ode system
     gsl_odeiv2_system sys = {func, nullptr, 6, this};
     // setup the driver
-    double reltol = 1e-15;
-    double abstol = 1e-15;
+    double reltol = odeRelTol;
+    double abstol = odeAbsTol;
     double hstart = (t1 - t0) / 10.0;
     gsl_odeiv2_driver * d =
     gsl_odeiv2_driver_alloc_y_new (&sys, gsl_odeiv2_step_rk8pd,
@@ -230,8 +230,8 @@ std::array<doubleThreeVector, 2> AISKinematicPropagator::CalculateNewPhaseSpaceC
     FuncLinearizedParams* linearizedParams = new FuncLinearizedParams{posStar, velStar, this};
     gsl_odeiv2_system sys = {funcLinearized, nullptr, 6, linearizedParams};
     // setup the driver
-    double reltol = 1e-15;
-    double abstol = 1e-15;
+    double reltol = odeRelTol;
+    double abstol = odeAbsTol;
     double hstart = (t1 - t0) / 10.0;   
     gsl_odeiv2_driver * d =
     gsl_odeiv2_driver_alloc_y_new (&sys, gsl_odeiv2_step_rk8pd,
@@ -416,8 +416,8 @@ std::array<double,2> AISKinematicPropagator::get_dScl(const double& t0, const do
     integrand.function = &get_dL_wrapper;
     integrand.params = new LagrangianParams{t0, pos0, vel0, atomInitialPos, atomInitialVel, atomInitialTime, this};
 
-    double epsabs = 1e-13;
-    double epsrel = 1e-13;
+    double epsabs = qagAbsTol;
+    double epsrel = qagRelTol;
     int key = 6;
 
     gsl_integration_qag (&integrand, t0, t1, epsabs, epsrel, workspace_size, 

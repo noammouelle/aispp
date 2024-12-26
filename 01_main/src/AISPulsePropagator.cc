@@ -273,8 +273,8 @@ void AISPulsePropagator::ApplyU3(std::unique_ptr<AISWavePacket>& wavepacket0, st
     // define the ode system
     gsl_odeiv2_system sys = {funcU3, nullptr, 4, params};
     // setup the driver
-    double reltol = 1e-15;
-    double abstol = 1e-15;
+    double reltol = this->relTol;
+    double abstol = this->absTol;
     double hstart = (t1Double - t0Double) / 10.0;
     gsl_odeiv2_driver * d =
     gsl_odeiv2_driver_alloc_y_new (&sys, gsl_odeiv2_step_rk8pd,

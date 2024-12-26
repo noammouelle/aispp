@@ -65,6 +65,10 @@ public:
 
     void PropagateEnsemble(std::unique_ptr<AISAtomEnsemble>& atomEnsemble);
     void PropagateAtom(std::unique_ptr<AISAtom>& atom);
+
+    // ode tolerances
+    double relTol = 0.0;
+    double absTol = 1e-9;
 };
 
 struct U3Params

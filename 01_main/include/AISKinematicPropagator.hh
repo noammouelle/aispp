@@ -84,6 +84,12 @@ public:
     std::shared_ptr<potentialFunctionType> U;
     std::shared_ptr<gradPotentialFunctionType> dUdx, dUdp;
     std::shared_ptr<hessianPotentialFunctionType> d2Udxdx, d2Udxdp, d2Udpdp;
+
+    // tolerance for the integration and the ODE solvers
+    double qagAbsTol = 1e-12;
+    double qagRelTol = 1e-12;
+    double odeAbsTol = 1e-9;
+    double odeRelTol = 0.0;
 };
 
 // struct for the Lagrangian parameters

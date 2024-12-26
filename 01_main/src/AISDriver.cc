@@ -55,6 +55,10 @@ AISDriver::AISDriver(AISParams params)
 
     // create the kinematic propagator
     kinematicPropagator = std::make_shared<AISKinematicPropagator>(U,dUdx,dUdp,d2Udxdx,d2Udxdp,d2Udpdp);
+    kinematicPropagator->odeRelTol = params.gslKinRelError;
+    kinematicPropagator->odeAbsTol = params.gslKinAbsError;
+    kinematicPropagator->qagRelTol = params.gslQagRelError;
+    kinematicPropagator->qagAbsTol = params.gslQagAbsError;
 
     // create the pulse propagators
     std::shared_ptr<wavefrontFunctionType> wff;
@@ -105,6 +109,8 @@ AISDriver::AISDriver(AISParams params)
         auto pulsePropagator = std::make_shared<AISPulsePropagator>(beam, params.initialPulseTimes[i], params.finalPulseTimes[i], kinematicPropagator,
                                                                    params.amplitudeThreshold);
         pulsePropagator->SetIgnoreDetuning(params.ignoreDetuning);
+        pulsePropagator->relTol = params.gslPulseRelError;
+        pulsePropagator->absTol = params.gslPulseAbsError;
 
         // add the propagator to the list
         pulsePropagators.push_back(pulsePropagator);
@@ -251,6 +257,7 @@ void AISDriver::WriteDetectedAtomsToFile(std::string filename)
     std::vector<int> states(numSamples);
     std::vector<int> interferingFlag(numSamples);
     std::vector<double> phaseShifts(numSamples);
+    std::vector<double> phaseShiftErrors(numSamples);
 
     // loop over the samples to fill in the data
     int sampleIndex = 0;
@@ -269,6 +276,7 @@ void AISDriver::WriteDetectedAtomsToFile(std::string filename)
             int currentState = port->state;
             int currentInterferingFlag = static_cast<int>(port->interfering);
             double currentPhaseShift = port->phaseShift;
+            double currentPhaseShiftError = port->phaseShiftError;
             // fill in the data
             for(int i = 0; i < 3; ++i)
             {
@@ -278,6 +286,7 @@ void AISDriver::WriteDetectedAtomsToFile(std::string filename)
             states[sampleIndex] = currentState;
             interferingFlag[sampleIndex] = currentInterferingFlag;
             phaseShifts[sampleIndex] = currentPhaseShift;
+            phaseShiftErrors[sampleIndex] = currentPhaseShiftError;
 
             sampleIndex++;
         }        
@@ -289,24 +298,28 @@ void AISDriver::WriteDetectedAtomsToFile(std::string filename)
     hsize_t dim_states[1] = {numSamplesHsize};
     hsize_t dim_interferingFlag[1] = {numSamplesHsize};
     hsize_t dim_phaseShifts[1] = {numSamplesHsize};
+    hsize_t dim_phaseShiftErrors[1] = {numSamplesHsize};
     // create the dataspace
     H5::DataSpace dataspace_positions(2, dim_positions);
     H5::DataSpace dataspace_velocities(2, dim_velocities);
     H5::DataSpace dataspace_states(1, dim_states);
     H5::DataSpace dataspace_interferingFlag(1, dim_interferingFlag);
     H5::DataSpace dataspace_phaseShifts(1, dim_phaseShifts);
+    H5::DataSpace dataspace_phaseShiftErrors(1, dim_phaseShiftErrors);
     // create the datasets
     H5::DataSet dataset_positions = file.createDataSet("positions", H5::PredType::NATIVE_DOUBLE, dataspace_positions);
     H5::DataSet dataset_velocities = file.createDataSet("velocities", H5::PredType::NATIVE_DOUBLE, dataspace_velocities);
     H5::DataSet dataset_states = file.createDataSet("states", H5::PredType::NATIVE_INT, dataspace_states);
     H5::DataSet dataset_interferingFlag = file.createDataSet("interferingFlag", H5::PredType::NATIVE_INT, dataspace_interferingFlag);
     H5::DataSet dataset_phaseShifts = file.createDataSet("phaseShifts", H5::PredType::NATIVE_DOUBLE, dataspace_phaseShifts);
+    H5::DataSet dataset_phaseShiftErrors = file.createDataSet("phaseShiftErrors", H5::PredType::NATIVE_DOUBLE, dataspace_phaseShiftErrors);
     // write the data
     dataset_positions.write(positions.data(), H5::PredType::NATIVE_DOUBLE);
     dataset_velocities.write(velocities.data(), H5::PredType::NATIVE_DOUBLE);
     dataset_states.write(states.data(), H5::PredType::NATIVE_INT);
     dataset_interferingFlag.write(interferingFlag.data(), H5::PredType::NATIVE_INT);
     dataset_phaseShifts.write(phaseShifts.data(), H5::PredType::NATIVE_DOUBLE);
+    dataset_phaseShiftErrors.write(phaseShiftErrors.data(), H5::PredType::NATIVE_DOUBLE);
 
     // close the file
     file.close();

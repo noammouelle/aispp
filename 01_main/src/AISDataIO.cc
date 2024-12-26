@@ -63,7 +63,10 @@ AISParams readParamsFromFile(std::string fName)
     // Define the possible parameter keys using sets
     std::set<std::string> BoolParamsKeys = {"printprobs","usemcbranching","ignoredetuning","printwavepackets","usedetvolselection"};
     std::set<std::string> IntParamsKeys = {"natoms","initialstate"};
-    std::set<std::string> DoubleParamsKeys = {"sigma", "temp", "amplitudethreshold", "coherencelength", "seed"};
+    std::set<std::string> DoubleParamsKeys = {"sigma", "temp", "amplitudethreshold", "coherencelength", "seed",
+                                              "gslqagabserr", "gslqagrelerr", 
+                                              "gslkinodeabserr", "gslkinoderelerr", 
+                                              "gslpulseodeabserr", "gslpulseoderelerr",};
     std::set<std::string> QuadParamsKeys = {"detectiontime"};
     std::set<std::string> StrParamsKeys = {"utype"};
     std::set<std::string> DoubleArrayParamsKeys = {"x0", "v0", "kx", "ky", "kz","rabifreq", "phi0", "xdet", "ydet", "zdet",
@@ -240,6 +243,13 @@ AISParams readParamsFromFile(std::string fName)
     params.zDetMin = DoubleArrayParams["zdet"][0];
     params.zDetMax = DoubleArrayParams["zdet"][1];
     params.useDetVolSelection = BoolParams["usedetvolselection"];
+
+    params.gslQagAbsError = DoubleParams["gslqagabserr"];
+    params.gslQagRelError = DoubleParams["gslqagrelerr"];
+    params.gslKinAbsError = DoubleParams["gslkinodeabserr"];
+    params.gslKinRelError = DoubleParams["gslkinoderelerr"];
+    params.gslPulseAbsError = DoubleParams["gslpulseodeabserr"];
+    params.gslPulseRelError = DoubleParams["gslpulseoderelerr"];
 
     return params;
 }

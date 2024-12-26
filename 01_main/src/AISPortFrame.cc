@@ -166,6 +166,7 @@ void AISPortFrame::setPortParameters(std::unique_ptr<AISAtom>& anAtom)
             port->velocity = wavePacket->GetVelocity();
 
             port->phaseShift = 0.0;
+            port->phaseShiftError = 0.0;
 
             port->probabilityAmplitude = pow(wavePacket->GetAmplitude(), 2);
         }
@@ -254,6 +255,8 @@ void AISPortFrame::setPortParameters(std::unique_ptr<AISAtom>& anAtom)
                 doubleThreeVector v2 = wavePacket2->GetVelocity();
                 double phi1 = wavePacket1->GetPhaseDouble();
                 double phi2 = wavePacket2->GetPhaseDouble();
+                double error1 = wavePacket1->GetPhaseDoubleError();
+                double error2 = wavePacket2->GetPhaseDoubleError();
                 __float128 phi1Quad = wavePacket1->GetPhaseQuad();
                 __float128 phi2Quad = wavePacket2->GetPhaseQuad();
 
@@ -261,11 +264,16 @@ void AISPortFrame::setPortParameters(std::unique_ptr<AISAtom>& anAtom)
                 doubleThreeVector meanV  = matrixAdd(v1, v2);
                 meanV = scalarMultiply(meanV, 0.5);
                 double dphi = phi1 - phi2 + phi1Quad - phi2Quad + dotProduct(meanV, deltaX) / hbar * massSr87;
+                double dphiError = sqrt(pow(error1, 2) + pow(error2, 2));
                 port->phaseShift = dphi;
+                port->phaseShiftError = dphiError;
 
             } else
             {
+                std::cout << "Error: more than two wavepackets in a port" << std::endl;
+                std::cout << "Number of wavepackets: " << port->getNumberOfWavePackets() << std::endl;
                 port->phaseShift = 0.0;
+                port->phaseShiftError = 0.0;
             }
 
         } 
