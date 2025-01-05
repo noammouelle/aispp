@@ -36,6 +36,12 @@ public:
     double GetW0();
     void SetW0(double w0);
 
+    double GetZLaser();
+    void SetZLaser(double zLaser);
+
+    double GetFocalLength();
+    void SetFocalLength(double focalLength);
+
 private:
     double rabiFreq; // central rabi frequency
 
@@ -44,6 +50,8 @@ private:
     doubleThreeVector kChirp;
     double w0;
     double phi0;
+    double zLaser;
+    double focalLength;
 
     std::shared_ptr<wavefrontFunctionType> wavefrontFunction;
     std::shared_ptr<delWavefrontFunctionType> delWavefrontFunction;

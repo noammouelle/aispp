@@ -36,6 +36,8 @@ public:
     std::vector<__float128> omegaVector;
     std::vector<std::string> wavefrontTypeVector;
     std::vector<double> waistVector;
+    std::vector<double> zLaserVector; // z position of the laser source
+    std::vector<double> focalLengthVector; // focal length of the lenses
 
     // Kinematic parameters
     __float128 detectionTime;
