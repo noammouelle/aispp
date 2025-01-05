@@ -67,7 +67,7 @@ AISDriver::AISDriver(AISParams params)
 
     __float128 omega_, omegaChirp_;
     doubleThreeVector k_, kChirp_;
-    double rabiFreq_, phi0_, w0_;
+    double rabiFreq_, phi0_, w0_, zLaser_, focalLength_;
 
     for(int i = 0; i < params.rabiFrequencies.size(); ++i)
     {   
@@ -95,6 +95,8 @@ AISDriver::AISDriver(AISParams params)
         kChirp_   = {params.kXChirpVector[i], params.kYChirpVector[i], params.kZChirpVector[i]};
         omegaChirp_ = params.frequencyChirpVector[i];
         w0_ = params.waistVector[i];
+        zLaser_ = params.zLaserVector[i];
+        focalLength_ = params.focalLengthVector[i];
         
 
         std::shared_ptr<AISLaserBeam> beam = std::make_shared<AISLaserBeam>(k_,omega_,rabiFreq_, phi0_,
@@ -103,7 +105,8 @@ AISDriver::AISDriver(AISParams params)
         beam->SetKChirp(kChirp_);
         beam->SetFrequencyChirp(omegaChirp_);
         beam->SetW0(w0_);
-                                                                            
+        beam->SetZLaser(zLaser_);
+        beam->SetFocalLength(focalLength_);                                  
 
         // create the propagator
         auto pulsePropagator = std::make_shared<AISPulsePropagator>(beam, params.initialPulseTimes[i], params.finalPulseTimes[i], kinematicPropagator,
@@ -216,7 +219,10 @@ void AISDriver::RunPathFinder()
     // set the useMcBranching flag to false
     pathFinderParams.useMcBranching = false;
     // use large cutoff, as we are only interested in the central (interfering) wavepackets
-    pathFinderParams.amplitudeThreshold = 0.01;
+    if(pathFinderParams.amplitudeThreshold < 0.001)
+    {
+        pathFinderParams.amplitudeThreshold = 0.001; // keep the same as in the main sequence otherwise
+    }
 
     // create another driver
     std::unique_ptr<AISDriver> pathFinder = std::make_unique<AISDriver>(pathFinderParams);

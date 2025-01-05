@@ -220,7 +220,8 @@ void AISPortFrame::setPortParameters(std::unique_ptr<AISAtom>& anAtom)
                     doubleThreeVector deltaX = matrixAdd(r2, scalarMultiply(r1, -1.0)); // note the inverted order
                     doubleThreeVector meanV  = matrixAdd(v1, v2);
                     meanV = scalarMultiply(meanV, 0.5);
-                    double dphi = phi1 - phi2 + phi1Quad - phi2Quad + dotProduct(meanV, deltaX) / hbar * massSr87;
+                    double separationPhase = dotProduct(meanV, deltaX) / hbar * massSr87;
+                    double dphi = phi1 - phi2 + phi1Quad - phi2Quad + separationPhase;
 
                     offDiagonalContribution += 2*A1*A2*cos(dphi);
                 }
@@ -272,8 +273,14 @@ void AISPortFrame::setPortParameters(std::unique_ptr<AISAtom>& anAtom)
             {
                 std::cout << "Error: more than two wavepackets in a port" << std::endl;
                 std::cout << "Number of wavepackets: " << port->getNumberOfWavePackets() << std::endl;
-                port->phaseShift = 0.0;
-                port->phaseShiftError = 0.0;
+                // print the median amplitude in the port
+                std::vector<double> amplitudes;
+                for(int wavePacketIndex : port->wavePacketIndices)
+                {
+                    amplitudes.push_back(anAtom->GetWavePacket(wavePacketIndex)->GetAmplitude());
+                }
+                std::sort(amplitudes.begin(), amplitudes.end());
+                std::cout << "Median amplitude: " << amplitudes[amplitudes.size()/2] << std::endl;
             }
 
         } 

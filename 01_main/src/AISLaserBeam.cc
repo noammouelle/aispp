@@ -62,7 +62,18 @@ void AISLaserBeam::SetFrequencyChirp(__float128 frequencyChirpValue)
 
 double AISLaserBeam::GetPhi(const doubleThreeVector& pos)
 {
-    return phi0 + (*wavefrontFunction)(pos, k[2], w0);
+    double zShift;
+    if (k[2] > 0)
+    {
+        zShift = focalLength + zLaser;
+    }
+    else
+    {
+        zShift = - focalLength + zLaser;
+    }
+    doubleThreeVector shiftedPos = {pos[0], pos[1], pos[2] - zShift}; // shift the position to account for position of the lens
+                                                                      // and the laser focal length
+    return phi0 + (*wavefrontFunction)(shiftedPos, k[2], w0);
 }
 
 doubleThreeVector AISLaserBeam::GetDelPhi(const doubleThreeVector& pos)
@@ -72,11 +83,33 @@ doubleThreeVector AISLaserBeam::GetDelPhi(const doubleThreeVector& pos)
         std::cerr << "Error: delWavefrontFunction is not initialized!" << std::endl;
         throw std::runtime_error("delWavefrontFunction is not initialized");
     }
-    return (*delWavefrontFunction)(pos, k[2], w0);
+    double zShift;
+    if (k[2] > 0)
+    {
+        zShift = focalLength + zLaser;
+    }
+    else
+    {
+        zShift = - focalLength + zLaser;
+    }
+    doubleThreeVector shiftedPos = {pos[0], pos[1], pos[2] - zShift}; // shift the position to account for position of the lens
+                                                                      // and the laser focal length
+    return (*delWavefrontFunction)(shiftedPos, k[2], w0);
 }
 
 double AISLaserBeam::GetRabiFreq(const doubleThreeVector& pos, const __float128& t0, const __float128& t)
 {
+    double zShift;
+    if (k[2] > 0)
+    {
+        zShift = focalLength + zLaser;
+    }
+    else
+    {
+        zShift = - focalLength + zLaser;
+    }
+    doubleThreeVector shiftedPos = {pos[0], pos[1], pos[2] - zShift}; // shift the position to account for position of the lens
+                                                                    // and the laser focal length
     return this->rabiFreq * (*rabifreqFunction)(pos, w0, t0, t); // central rabi freq times envelope
 }
 
@@ -87,4 +120,22 @@ double AISLaserBeam::GetW0()
 void AISLaserBeam::SetW0(double w0Value)
 {
     w0 = w0Value;
+}
+
+double AISLaserBeam::GetZLaser()
+{
+    return zLaser;
+}
+void AISLaserBeam::SetZLaser(double zLaserValue)
+{
+    zLaser = zLaserValue;
+}
+
+double AISLaserBeam::GetFocalLength()
+{
+    return focalLength;
+}
+void AISLaserBeam::SetFocalLength(double focalLengthValue)
+{
+    focalLength = focalLengthValue;
 }
