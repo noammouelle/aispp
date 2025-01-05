@@ -110,7 +110,7 @@ double AISLaserBeam::GetRabiFreq(const doubleThreeVector& pos, const __float128&
     }
     doubleThreeVector shiftedPos = {pos[0], pos[1], pos[2] - zShift}; // shift the position to account for position of the lens
                                                                     // and the laser focal length
-    return this->rabiFreq * (*rabifreqFunction)(pos, w0, t0, t); // central rabi freq times envelope
+    return this->rabiFreq * (*rabifreqFunction)(shiftedPos, w0, t0, t); // central rabi freq times envelope
 }
 
 double AISLaserBeam::GetW0()
