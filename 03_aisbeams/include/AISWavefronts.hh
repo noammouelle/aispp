@@ -3,6 +3,7 @@
 
 #include <array>
 #include <cmath>
+#include <iostream>
 #include "AISConstants.hh"
 
 // flat wavefront and gradient wavefront

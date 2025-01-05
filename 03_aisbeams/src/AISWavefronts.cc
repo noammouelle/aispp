@@ -19,7 +19,20 @@ double gaussianWavefront(const std::array<double, 3>& pos, const double& kz,cons
     double zR  = pi * w0 * w0 / lambdaSr87;
     double RInv = z / (z*z + zR*zR);
 
-    return kz * r * r * RInv / 2.0 - atan(z/zR);
+    // if the wavevector is negative, invert the sign phase
+    double sign;
+    if(kz < 0)
+    {
+        sign = -1.0;
+    }
+    else
+    {
+        sign = 1.0;
+    }
+
+    double phase = abs(kz) * r * r * RInv / 2.0 - atan(z/zR);
+
+    return sign*phase;
 }
 
 std::array<double,3> gaussianGradientWavefront(const std::array<double, 3>& pos, const double& kz, const double& w0)
@@ -31,9 +44,21 @@ std::array<double,3> gaussianGradientWavefront(const std::array<double, 3>& pos,
     double zR  = pi * w0 * w0 / lambdaSr87;
     double RInv = z / (z*z + zR*zR);
 
-    double dWdX = kz * x * RInv;
-    double dWdY = kz * y * RInv;
-    double dWdZ = r * r * RInv * RInv / 2.0 - zR / (z*z + zR*zR);
+    double sign;
+    if(kz < 0)
+    {
+        sign = -1.0; // invert the sign of the gouy phase if the wavevector is negative (see gaussianWavefront)
+    }
+    else
+    {
+        sign = 1.0;
+    }
 
-    return {dWdX, dWdY, dWdZ};
+    double dWdX = abs(kz) * x * RInv;
+    double dWdY = abs(kz) * y * RInv;
+    double dWdZ = - 1.0 / (zR*(1 + (z/zR)*(z/zR))) - abs(kz) * r * r * RInv * RInv + abs(kz) * r * r * RInv / (2.0*z);
+
+    std::array<double,3> gradient = {sign * dWdX, sign * dWdY, sign * dWdZ};
+
+    return gradient;
 }
