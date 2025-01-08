@@ -471,20 +471,29 @@ void AISPulsePropagator::ApplyMCBranching(std::unique_ptr<wavePacketVector>& new
 
 void AISPulsePropagator::ApplyCutoff(std::unique_ptr<wavePacketVector>& newWavePackets)
 {
-    // loop over wavepackets
+    // create a new wavepacket vector
+    std::unique_ptr<wavePacketVector> newWavePacketsTemp(new wavePacketVector);
+
+    // loop over wavepackets in reverse order
     for(int i = 0; i < newWavePackets->size(); ++i)
     {
-        // if the amplitude is below the threshold, delete the wavepacket
+        // if the amplitude is above the threshold, add the wavepacket to the new vector
         std::unique_ptr<AISWavePacket>& currentWavepacket = newWavePackets->at(i);
-        if(abs(currentWavepacket->GetAmplitude()) < this->amplitudeThreshold)
+        if(abs(currentWavepacket->GetAmplitude()) > this->amplitudeThreshold)
         {
-            newWavePackets->erase(newWavePackets->begin() + i);
+            newWavePacketsTemp->push_back(std::move(currentWavepacket));
         }
     }
+
+    // update the wavepacket vector
+    newWavePackets = std::move(newWavePacketsTemp);
 }
 
 void AISPulsePropagator::ApplyDetVolSelection(std::unique_ptr<wavePacketVector>& newWavePackets)
 {
+    // create a new wavepacket vector
+    std::unique_ptr<wavePacketVector> newWavePacketsTemp(new wavePacketVector);
+
     // loop over wavepackets
     for(int i = 0; i < newWavePackets->size(); ++i)
     {
@@ -502,12 +511,15 @@ void AISPulsePropagator::ApplyDetVolSelection(std::unique_ptr<wavePacketVector>&
                 break;
             }
         }
-        // if the wavepacket is not detectable, delete the wavepacket
-        if(!isDetectable)
+        // if the wavepacket is  detectable, keep the wavepacket
+        if(isDetectable)
         {
-            newWavePackets->erase(newWavePackets->begin() + i);
+            newWavePacketsTemp->push_back(std::move(currentWavepacket));
         }
     }
+
+    // update the wavepacket vector
+    newWavePackets = std::move(newWavePacketsTemp);
 }
 
 bool AISPulsePropagator::GetUseMcBranching()
