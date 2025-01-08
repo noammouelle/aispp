@@ -3,6 +3,8 @@
 
 #include <array>
 #include <cmath>
+#include <iostream>
+
 #include "AISConstants.hh"
 
 // square pulse and flat envelope
