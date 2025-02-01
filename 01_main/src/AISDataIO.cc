@@ -145,6 +145,7 @@ AISParams readParamsFromFile(std::string fName)
             while (iss >> value) {
                 values.push_back(value);
             }
+            zernikeIndexToCoeffMap[zernikeIndex] = values;
         }
         else {
             std::cerr << "Unknown key: " << key << " Aborting." << std::endl;

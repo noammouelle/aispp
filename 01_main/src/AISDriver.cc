@@ -114,13 +114,6 @@ AISDriver::AISDriver(AISParams params)
         beam->SetFocalLength(focalLength_);        
         beam->SetZernikeCoeffs(zernikeCoeffs_);
 
-        // printout to validate everything is working properly
-        std::cout<<"Beam "<<i<<": "<<std::endl;
-        for(const auto& [key, value] : zernikeCoeffs_)
-        {
-            std::cout<<"    Zernike coeff "<<key<<": "<<value<<std::endl;
-        }
-
         // create the propagator
         auto pulsePropagator = std::make_shared<AISPulsePropagator>(beam, params.initialPulseTimes[i], params.finalPulseTimes[i], kinematicPropagator,
                                                                    params.amplitudeThreshold);
