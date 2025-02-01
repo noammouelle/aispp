@@ -141,3 +141,12 @@ void AISLaserBeam::SetFocalLength(double focalLengthValue)
 {
     focalLength = focalLengthValue;
 }
+
+void AISLaserBeam::SetZernikeCoeffs(std::map<int, double> zernikeCoeffsValue)
+{
+    zernikeCoeffs = zernikeCoeffsValue;
+}
+std::map<int, double> AISLaserBeam::GetZernikeCoeffs()
+{
+    return zernikeCoeffs;
+}

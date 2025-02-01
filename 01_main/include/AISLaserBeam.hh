@@ -5,6 +5,7 @@
 #include "AISUtilities.hh"
 
 #include <memory>
+#include <map>
 
 class AISLaserBeam
 {
@@ -42,6 +43,9 @@ public:
     double GetFocalLength();
     void SetFocalLength(double focalLength);
 
+    void SetZernikeCoeffs(std::map<int, double> zernikeCoeffs);
+    std::map<int, double> GetZernikeCoeffs();
+
 private:
     double rabiFreq; // central rabi frequency
 
@@ -52,6 +56,8 @@ private:
     double phi0;
     double zLaser;
     double focalLength;
+
+    std::map<int, double> zernikeCoeffs;
 
     std::shared_ptr<wavefrontFunctionType> wavefrontFunction;
     std::shared_ptr<delWavefrontFunctionType> delWavefrontFunction;

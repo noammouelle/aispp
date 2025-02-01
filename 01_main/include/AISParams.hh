@@ -5,6 +5,7 @@
 #include <vector>
 #include <set>
 #include <quadmath.h> // For __float128
+#include <map>
 
 class AISParams
 {
@@ -38,6 +39,7 @@ public:
     std::vector<double> waistVector;
     std::vector<double> zLaserVector; // z position of the laser source
     std::vector<double> focalLengthVector; // focal length of the lenses
+    std::map<int, std::vector<double>> zernikeCoeff; // index -> coeff map
 
     // Kinematic parameters
     __float128 detectionTime;

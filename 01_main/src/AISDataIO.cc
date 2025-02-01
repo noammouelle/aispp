@@ -59,6 +59,7 @@ AISParams readParamsFromFile(std::string fName)
     std::map<std::string, std::vector<double>> DoubleArrayParams;
     std::map<std::string, std::vector<__float128>> QuadArrayParams;
     std::map<std::string, std::vector<std::string>> StrArrayParams;
+    std::map<int, std::vector<double>> zernikeIndexToCoeffMap;
 
     // Define the possible parameter keys using sets
     std::set<std::string> BoolParamsKeys = {"printprobs","usemcbranching","ignoredetuning","printwavepackets","usedetvolselection"};
@@ -132,6 +133,18 @@ AISParams readParamsFromFile(std::string fName)
                 values.push_back(value);
             }
             StrArrayParams[key] = values;
+        } 
+        // for zernike coeffs, check if line starts with zernikecoeff_
+        else if (key.find("zernikecoeff_") == 0) {
+            // param goes as zernikecoeff_[n] where n is the zernike index, so we need to extract the index
+            std::string zernikeIndexStr = key.substr(13);
+            int zernikeIndex = std::stoi(zernikeIndexStr);
+            // add all the coeffs to the vector indexed by zernikeIndex
+            std::vector<double> values;
+            double value;
+            while (iss >> value) {
+                values.push_back(value);
+            }
         }
         else {
             std::cerr << "Unknown key: " << key << " Aborting." << std::endl;
@@ -222,6 +235,11 @@ AISParams readParamsFromFile(std::string fName)
     params.kXChirpVector = DoubleArrayParams["kxchirp"];
     params.kYChirpVector = DoubleArrayParams["kychirp"];
     params.kZChirpVector = DoubleArrayParams["kzchirp"];
+
+    // Zernike coefficients
+    for (const auto& [key, value] : zernikeIndexToCoeffMap) {
+        params.zernikeCoeff[key] = value;
+    }
 
     params.waistVector = DoubleArrayParams["waist"];
     params.zLaserVector = DoubleArrayParams["zlaser"];
