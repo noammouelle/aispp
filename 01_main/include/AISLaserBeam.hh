@@ -3,6 +3,8 @@
 
 #include "AISConstants.hh"
 #include "AISUtilities.hh"
+#include "AISWavefronts.hh"
+#include "AISEnvelopes.hh"
 
 #include <memory>
 #include <map>
@@ -10,10 +12,7 @@
 class AISLaserBeam
 {
 public:
-    AISLaserBeam(doubleThreeVector k, __float128 omega, double rabiFreq, double phi0,
-                 std::shared_ptr<wavefrontFunctionType> wavefrontFunction,
-                 std::shared_ptr<delWavefrontFunctionType> delWavefrontFunction,
-                 std::shared_ptr<rabifreqFunctionType> rabiFreqFunction);
+    AISLaserBeam(doubleThreeVector k, __float128 omega, double rabiFreq, double phi0);
     ~AISLaserBeam();
 
     // At the moment I suppose that I can somehow pass a function as arguments
@@ -46,6 +45,12 @@ public:
     void SetZernikeCoeffs(std::map<int, double> zernikeCoeffs);
     std::map<int, double> GetZernikeCoeffs();
 
+    void SetBeamRadius(double beamRadiusValue);
+    double GetBeamRadius();
+
+    void SetBeamType(std::string beamTypeValue);
+    std::string GetBeamType();
+
 private:
     double rabiFreq; // central rabi frequency
 
@@ -56,12 +61,16 @@ private:
     double phi0;
     double zLaser;
     double focalLength;
+    double beamRadius;
 
     std::map<int, double> zernikeCoeffs;
 
-    std::shared_ptr<wavefrontFunctionType> wavefrontFunction;
-    std::shared_ptr<delWavefrontFunctionType> delWavefrontFunction;
-    std::shared_ptr<rabifreqFunctionType> rabifreqFunction;
+    // options params
+    std::string beamType;
+
+    //std::shared_ptr<wavefrontFunctionType> wavefrontFunction;
+    //std::shared_ptr<delWavefrontFunctionType> delWavefrontFunction;
+    //std::shared_ptr<rabifreqFunctionType> rabifreqFunction;
 };
 
 

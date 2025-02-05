@@ -1,13 +1,7 @@
 #include "AISLaserBeam.hh"
 
-AISLaserBeam::AISLaserBeam(doubleThreeVector aK, __float128 aOmega, double aRabiFreq, double phi0,
-                           std::shared_ptr<wavefrontFunctionType> aWavefrontFunction,
-                           std::shared_ptr<delWavefrontFunctionType> aDelWavefrontFunction,
-                           std::shared_ptr<rabifreqFunctionType> aRabiFreqFunction) : k(aK), omega(aOmega), rabiFreq(aRabiFreq), phi0(phi0),
-                            wavefrontFunction(aWavefrontFunction), delWavefrontFunction(aDelWavefrontFunction),
-                            rabifreqFunction(aRabiFreqFunction)
-{
-}
+AISLaserBeam::AISLaserBeam(doubleThreeVector aK, __float128 aOmega, double aRabiFreq, double phi0) : k(aK), omega(aOmega), rabiFreq(aRabiFreq), phi0(phi0)
+{}
 
 AISLaserBeam::~AISLaserBeam()
 {}
@@ -62,57 +56,96 @@ void AISLaserBeam::SetFrequencyChirp(__float128 frequencyChirpValue)
 
 double AISLaserBeam::GetPhi(const doubleThreeVector& pos)
 {
-    double zShift;
-    if (k[2] > 0)
+    // check the beam type
+    if(beamType == "flat_square")
     {
-        zShift = focalLength + zLaser;
+        return phi0;
     }
-    else
+    else if(beamType == "gaussian")
     {
-        zShift = - focalLength + zLaser;
+        // compute the gaussian phase
+        double zShift;
+        if (k[2] > 0)
+        {
+            zShift = focalLength + zLaser;
+        }
+        else
+        {
+            zShift = - focalLength + zLaser; // should modify this
+        }
+        doubleThreeVector shiftedPos = {pos[0], pos[1], pos[2] - zShift}; // shift the position to account for position of the lens
+                                                                          // and the laser focal length
+
+        double gaussianPhase = gaussianWavefront(shiftedPos, k[2], w0);
+        
+        // compute the zernike polynomial phase
+        double zernikePhase = 0.0;
+        for(const auto& [key, value] : zernikeCoeffs)
+        {
+            // convert OSA/ANSI Zernike polynomial index to n,m
+            std::array<int, 2> zernikeIndices = nollToZernike(key);
+            int n = zernikeIndices[0];
+            int m = zernikeIndices[1];
+            // compute rho, theta
+            double rho = sqrt(pos[0]*pos[0] + pos[1]*pos[1]) / beamRadius;
+            double theta = atan2(pos[1], pos[0]);
+            // compute the zernike polynomial phase (same convention as in https://opticspy.github.io/lightpipes/command-reference.html#LightPipes.Zernike)
+            double prefactor = value * sqrt((2.0 * n + 2.0) / (1.0 + (m == 0)));
+            zernikePhase +=  -1.0 * prefactor * value * 2.0 * pi * Zmn(n, m, rho, theta);
+        }
+
+        return phi0 + gaussianPhase + zernikePhase;
     }
-    doubleThreeVector shiftedPos = {pos[0], pos[1], pos[2] - zShift}; // shift the position to account for position of the lens
-                                                                      // and the laser focal length
-    return phi0 + (*wavefrontFunction)(shiftedPos, k[2], w0);
 }
 
 doubleThreeVector AISLaserBeam::GetDelPhi(const doubleThreeVector& pos)
 {
-    // Check if delWavefrontFunction is null
-    if (delWavefrontFunction == nullptr) {
-        std::cerr << "Error: delWavefrontFunction is not initialized!" << std::endl;
-        throw std::runtime_error("delWavefrontFunction is not initialized");
-    }
-    double zShift;
-    if (k[2] > 0)
+    // check the beam type
+    if(beamType == "flat_square")
     {
-        zShift = focalLength + zLaser;
+        return {0.0, 0.0, 0.0};
     }
-    else
+    else if(beamType == "gaussian")
     {
-        zShift = - focalLength + zLaser;
-    }
-    doubleThreeVector shiftedPos = {pos[0], pos[1], pos[2] - zShift}; // shift the position to account for position of the lens
+        double zShift;
+        if (k[2] > 0)
+        {
+            zShift = focalLength + zLaser;
+        }
+        else
+        {
+            zShift = - focalLength + zLaser;
+        }
+        doubleThreeVector shiftedPos = {pos[0], pos[1], pos[2] - zShift}; // shift the position to account for position of the lens
                                                                       // and the laser focal length
-    return (*delWavefrontFunction)(shiftedPos, k[2], w0);
+        return gaussianGradientWavefront(shiftedPos, k[2], w0);
+    }
 }
 
 double AISLaserBeam::GetRabiFreq(const doubleThreeVector& pos, const __float128& t0, const __float128& t)
 {
-    double zShift;
-    if (k[2] > 0)
+    // check the beam type
+    if(beamType == "flat_square")
     {
-        zShift = focalLength + zLaser;
+        return rabiFreq;
     }
-    else
+    else if(beamType == "gaussian")
     {
-        zShift = - focalLength + zLaser;
-    }
-    doubleThreeVector shiftedPos = {pos[0], pos[1], pos[2] - zShift}; // shift the position to account for position of the lens
-                                                                    // and the laser focal length
-    double effectiveRabiFreq = rabiFreq * (*rabifreqFunction)(shiftedPos, w0, t0, t); // central rabi freq times envelope
+        double zShift;
+        if (k[2] > 0)
+        {
+            zShift = focalLength + zLaser;
+        }
+        else
+        {
+            zShift = - focalLength + zLaser;
+        }
+        doubleThreeVector shiftedPos = {pos[0], pos[1], pos[2] - zShift}; // shift the position to account for position of the lens
+                                                                          // and the laser focal length
+        double effectiveRabiFreq = rabiFreq * gaussianEnvelope(shiftedPos, w0, t0, t); // central rabi freq times envelope
 
-    return effectiveRabiFreq; // central rabi freq times envelope
+        return effectiveRabiFreq; // central rabi freq times envelope
+    }
 }
 
 double AISLaserBeam::GetW0()
@@ -150,3 +183,31 @@ std::map<int, double> AISLaserBeam::GetZernikeCoeffs()
 {
     return zernikeCoeffs;
 }
+
+void AISLaserBeam::SetBeamRadius(double beamRadiusValue)
+{
+    beamRadius = beamRadiusValue;
+}
+double AISLaserBeam::GetBeamRadius()
+{
+    return beamRadius;
+}
+
+void AISLaserBeam::SetBeamType(std::string beamTypeValue)
+{
+    // check if 'flat_square' or 'gaussian'
+    if(beamTypeValue == "flat_square" || beamTypeValue == "gaussian")
+    {
+        beamType = beamTypeValue;
+    }
+    else
+    {
+        std::cerr << "Beam type " << beamTypeValue << " not recognized. Exiting." << std::endl;
+        exit(1);
+    }
+}
+std::string AISLaserBeam::GetBeamType()
+{
+    return beamType;
+}
+

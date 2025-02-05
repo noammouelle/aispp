@@ -60,29 +60,21 @@ AISDriver::AISDriver(AISParams params)
     kinematicPropagator->qagRelTol = params.gslQagRelError;
     kinematicPropagator->qagAbsTol = params.gslQagAbsError;
 
-    // create the pulse propagators
-    std::shared_ptr<wavefrontFunctionType> wff;
-    std::shared_ptr<delWavefrontFunctionType> dwff;
-    std::shared_ptr<rabifreqFunctionType> rff;
-
     __float128 omega_, omegaChirp_;
     doubleThreeVector k_, kChirp_;
-    double rabiFreq_, phi0_, w0_, zLaser_, focalLength_;
+    double rabiFreq_, phi0_, w0_, zLaser_, focalLength_, beamRadius_;
+    std::string beamType_;
     std::map<int, double> zernikeCoeffs_;
 
     for(int i = 0; i < params.rabiFrequencies.size(); ++i)
     {   
         if(params.wavefrontTypeVector[i] == "flat_square")
         {
-            wff = std::make_shared<wavefrontFunctionType>(flatWavefront);
-            dwff = std::make_shared<delWavefrontFunctionType>(flatGradientWavefront);
-            rff = std::make_shared<rabifreqFunctionType>(flatSquareEnvelope);
+            beamType_ = "flat_square";
         }
         else if(params.wavefrontTypeVector[i] == "gaussian")
         {
-            wff = std::make_shared<wavefrontFunctionType>(gaussianWavefront);
-            dwff = std::make_shared<delWavefrontFunctionType>(gaussianGradientWavefront);
-            rff = std::make_shared<rabifreqFunctionType>(gaussianEnvelope);
+            beamType_ = "gaussian";
         }
         else{
             std::cerr << "Wavefront type " << params.wavefrontTypeVector[i] << " not recognized. Exiting." << std::endl;
@@ -98,14 +90,15 @@ AISDriver::AISDriver(AISParams params)
         w0_ = params.waistVector[i];
         zLaser_ = params.zLaserVector[i];
         focalLength_ = params.focalLengthVector[i];
+        beamRadius_ = params.beamRadiusVector[i];
+
         // get the zernike coeffs
         for(const auto& [key, value] : params.zernikeCoeff)
         {
             zernikeCoeffs_[key] = value[i];
         }
 
-        std::shared_ptr<AISLaserBeam> beam = std::make_shared<AISLaserBeam>(k_,omega_,rabiFreq_, phi0_,
-                                                                            wff,dwff,rff);
+        std::shared_ptr<AISLaserBeam> beam = std::make_shared<AISLaserBeam>(k_,omega_,rabiFreq_, phi0_);
 
         beam->SetKChirp(kChirp_);
         beam->SetFrequencyChirp(omegaChirp_);
@@ -113,6 +106,8 @@ AISDriver::AISDriver(AISParams params)
         beam->SetZLaser(zLaser_);
         beam->SetFocalLength(focalLength_);        
         beam->SetZernikeCoeffs(zernikeCoeffs_);
+        beam->SetBeamRadius(beamRadius_);
+        beam->SetBeamType(beamType_);
 
         // create the propagator
         auto pulsePropagator = std::make_shared<AISPulsePropagator>(beam, params.initialPulseTimes[i], params.finalPulseTimes[i], kinematicPropagator,

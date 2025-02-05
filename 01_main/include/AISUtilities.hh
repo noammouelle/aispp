@@ -94,6 +94,13 @@ double6x6Matrix expMatrix(const double6x6Matrix& M);
 /*Printing routines*/
 std::string float128ToString(__float128 value);
 
+/*Math routines*/
+// factorial of an integer
+int factorial(int n);
+
+/*Zernike routines*/
+std::array<int,2> nollToZernike(int noll);
+
 
 
 #endif

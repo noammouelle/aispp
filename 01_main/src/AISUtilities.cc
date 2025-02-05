@@ -370,3 +370,30 @@ std::string float128ToString(__float128 value) {
     quadmath_snprintf(buffer, sizeof(buffer), "%.36Qg", value);
     return std::string(buffer);
 }
+
+// Function to compute the factorial of an integer
+int factorial(int n) {
+    if (n == 0) {
+        return 1;
+    }
+    return n * factorial(n - 1);
+}
+
+// Function to convert Noll index to Zernike indices
+std::array<int, 2> nollToZernike(int j) {
+    // from https://github.com/opticspy/lightpipes/blob/master/LightPipes/zernike.py
+    if (j == 0) {
+        // Noll indices start at 1 so 0 is invalid
+        throw std::invalid_argument("Noll index must be greater than 0");
+    }
+    
+    int n = 0;
+    int j1 = j-1;
+    while (j1 > n) {
+        n++;
+        j1 -= n;
+    }
+    int m = m = pow(-1,j) * ((n % 2) + 2 * std::floor((j1+((n+1)%2)) / 2.0 ));
+
+    return {n, m};
+}
