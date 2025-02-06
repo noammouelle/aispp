@@ -51,6 +51,9 @@ public:
     void SetBeamType(std::string beamTypeValue);
     std::string GetBeamType();
 
+    void SetBaselineLength(double baselineLengthValue);
+    double GetBaselineLength();
+
 private:
     double rabiFreq; // central rabi frequency
 
@@ -62,6 +65,7 @@ private:
     double zLaser;
     double focalLength;
     double beamRadius;
+    double baselineLength;
 
     std::map<int, double> zernikeCoeffs;
 

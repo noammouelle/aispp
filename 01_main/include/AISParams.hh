@@ -41,6 +41,7 @@ public:
     std::vector<double> focalLengthVector; // focal length of the lenses
     std::map<int, std::vector<double>> zernikeCoeff; // index -> coeff map
     std::vector<double> beamRadiusVector;
+    std::vector<double> baselineLengthVector;
 
     // Kinematic parameters
     __float128 detectionTime;

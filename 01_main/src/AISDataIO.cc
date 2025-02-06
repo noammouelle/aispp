@@ -72,7 +72,7 @@ AISParams readParamsFromFile(std::string fName)
     std::set<std::string> StrParamsKeys = {"utype"};
     std::set<std::string> DoubleArrayParamsKeys = {"x0", "v0", "kx", "ky", "kz","rabifreq", "phi0", "xdet", "ydet", "zdet",
                                                    "kxchirp", "kychirp", "kzchirp", "waist", "zlaser", "focallength",
-                                                   "beamradius"};
+                                                   "beamradius", "baseline"};
     std::set<std::string> QuadArrayParamsKeys = {"t0", "t1", "omega","frequencychirp"};
     std::set<std::string> StrArrayParamsKeys = {"wtype"};
 
@@ -247,6 +247,7 @@ AISParams readParamsFromFile(std::string fName)
     params.waistVector = DoubleArrayParams["waist"];
     params.zLaserVector = DoubleArrayParams["zlaser"];
     params.focalLengthVector = DoubleArrayParams["focallength"];
+    params.baselineLengthVector = DoubleArrayParams["baseline"];
 
     params.detectionTime = QuadParams["detectiontime"];
 

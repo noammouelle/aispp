@@ -32,7 +32,7 @@ double gaussianWavefront(const std::array<double, 3>& pos, const double& kz,cons
 
     double phase = abs(kz) * r * r * RInv / 2.0 - atan(z/zR);
 
-    return sign*phase;
+    return sign*phase *0; // wavefront curvature accounted for in the zernike coeffs in this branch
 }
 
 std::array<double,3> gaussianGradientWavefront(const std::array<double, 3>& pos, const double& kz, const double& w0)
@@ -60,7 +60,7 @@ std::array<double,3> gaussianGradientWavefront(const std::array<double, 3>& pos,
 
     std::array<double,3> gradient = {sign * dWdX, sign * dWdY, sign * dWdZ};
 
-    return gradient;
+    return {0.0, 0.0, 0.0}; // wavefront curvature accounted for in the zernike coeffs in this branch   
 }
 
 double Rmn(int m, int n, double rho)

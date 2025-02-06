@@ -71,7 +71,7 @@ double AISLaserBeam::GetPhi(const doubleThreeVector& pos)
         }
         else
         {
-            zShift = - focalLength + zLaser; // should modify this
+            zShift = zLaser - focalLength + baselineLength;
         }
         doubleThreeVector shiftedPos = {pos[0], pos[1], pos[2] - zShift}; // shift the position to account for position of the lens
                                                                           // and the laser focal length
@@ -91,16 +91,22 @@ double AISLaserBeam::GetPhi(const doubleThreeVector& pos)
             double theta = atan2(pos[1],pos[0]) + pi;//atan2(pos[1], pos[0]);
             // compute the zernike polynomial phase (same convention as in https://opticspy.github.io/lightpipes/command-reference.html#LightPipes.Zernike)
             double prefactor = value * sqrt((2.0 * n + 2.0) / (1.0 + (m == 0)));
-            zernikePhase +=  -1.0 * prefactor * value * 2.0 * pi * Zmn(n, m, rho, theta);
+
+            // define the sign (if propagating in the negative z direction, the sign is inverted)
+            double sign;
+            if(k[2] < 0)
+            {
+                sign = -1.0;
+            }
+            else
+            {
+                sign = 1.0;
+            }
+
+            zernikePhase +=  -1.0 * prefactor * value * 2.0 * pi * Zmn(n, m, rho, theta) * sign;
         }
 
-        // define the sign for the zernike phase
-        if(k[2] < 0)
-        {
-            zernikePhase *= -1.0;
-        }
-
-        return phi0 + gaussianPhase + zernikePhase;
+        return phi0 + zernikePhase;
     }
 }
 
@@ -144,7 +150,7 @@ double AISLaserBeam::GetRabiFreq(const doubleThreeVector& pos, const __float128&
         }
         else
         {
-            zShift = - focalLength + zLaser;
+            zShift = zLaser - focalLength + baselineLength;
         }
         doubleThreeVector shiftedPos = {pos[0], pos[1], pos[2] - zShift}; // shift the position to account for position of the lens
                                                                           // and the laser focal length
@@ -215,5 +221,14 @@ void AISLaserBeam::SetBeamType(std::string beamTypeValue)
 std::string AISLaserBeam::GetBeamType()
 {
     return beamType;
+}
+
+void AISLaserBeam::SetBaselineLength(double baselineLengthValue)
+{
+    baselineLength = baselineLengthValue;
+}
+double AISLaserBeam::GetBaselineLength()
+{
+    return baselineLength;
 }
 
