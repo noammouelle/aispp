@@ -94,6 +94,12 @@ double AISLaserBeam::GetPhi(const doubleThreeVector& pos)
             zernikePhase +=  -1.0 * prefactor * value * 2.0 * pi * Zmn(n, m, rho, theta);
         }
 
+        // define the sign for the zernike phase
+        if(k[2] < 0)
+        {
+            zernikePhase *= -1.0;
+        }
+
         return phi0 + gaussianPhase + zernikePhase;
     }
 }
