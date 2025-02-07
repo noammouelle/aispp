@@ -144,7 +144,7 @@ doubleThreeVector AISLaserBeam::GetDelPhi(const doubleThreeVector& pos)
             params.index = i;
             params.beam = std::make_shared<AISLaserBeam>(*this);
             F.function = GetPhiWrapper;
-            gsl_deriv_central(&F, pos[i], 1e-3, &result, &abserr);
+            gsl_deriv_central(&F, pos[i], 1e-8, &result, &abserr);
             delPhi[i] = result;
         }
         delPhi[2] = 0.0; // ignore the z component
