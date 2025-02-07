@@ -9,6 +9,8 @@
 #include <memory>
 #include <map>
 
+#include <gsl/gsl_deriv.h>
+
 class AISLaserBeam
 {
 public:
@@ -54,6 +56,8 @@ public:
     void SetBaselineLength(double baselineLengthValue);
     double GetBaselineLength();
 
+    static double GetPhiWrapper(double xi, void* params);
+
 private:
     double rabiFreq; // central rabi frequency
 
@@ -75,6 +79,13 @@ private:
     //std::shared_ptr<wavefrontFunctionType> wavefrontFunction;
     //std::shared_ptr<delWavefrontFunctionType> delWavefrontFunction;
     //std::shared_ptr<rabifreqFunctionType> rabifreqFunction;
+};
+
+struct getPhiWrapperParams
+{
+    doubleThreeVector pos;
+    int index;
+    std::shared_ptr<AISLaserBeam> beam;
 };
 
 

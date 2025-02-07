@@ -110,6 +110,18 @@ double AISLaserBeam::GetPhi(const doubleThreeVector& pos)
     }
 }
 
+double AISLaserBeam::GetPhiWrapper(double xi, void* params)
+{
+    getPhiWrapperParams* p = (getPhiWrapperParams*) params;
+    
+    doubleThreeVector pos = p->pos;
+    int index = p->index;
+    std::shared_ptr<AISLaserBeam> beam = p->beam;
+    // only modify the selected index
+    pos[index] = xi;
+    return beam->GetPhi(pos);
+}
+
 doubleThreeVector AISLaserBeam::GetDelPhi(const doubleThreeVector& pos)
 {
     // check the beam type
@@ -119,18 +131,25 @@ doubleThreeVector AISLaserBeam::GetDelPhi(const doubleThreeVector& pos)
     }
     else if(beamType == "gaussian")
     {
-        double zShift;
-        if (k[2] > 0)
+        doubleThreeVector delPhi;
+        getPhiWrapperParams params;
+        gsl_function F;
+        double result, abserr;
+
+        params.pos = pos;
+        F.params = &params;
+
+        for (int i = 0; i < 2; ++i)
         {
-            zShift = focalLength + zLaser;
+            params.index = i;
+            params.beam = std::make_shared<AISLaserBeam>(*this);
+            F.function = GetPhiWrapper;
+            gsl_deriv_central(&F, pos[i], 1e-3, &result, &abserr);
+            delPhi[i] = result;
         }
-        else
-        {
-            zShift = - focalLength + zLaser;
-        }
-        doubleThreeVector shiftedPos = {pos[0], pos[1], pos[2] - zShift}; // shift the position to account for position of the lens
-                                                                      // and the laser focal length
-        return gaussianGradientWavefront(shiftedPos, k[2], w0);
+        delPhi[2] = 0.0; // ignore the z component
+
+        return delPhi;
     }
 }
 
