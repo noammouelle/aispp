@@ -149,8 +149,6 @@ doubleThreeVector AISLaserBeam::GetDelPhi(const doubleThreeVector& pos)
             delPhi[i] = result;
         }
 
-        std::cout << "delPhi: " << delPhi[0] << " " << delPhi[1] << " " << delPhi[2] << std::endl;
-
         return delPhi;
     }
 }
