@@ -89,3 +89,48 @@ double Zmn(int n, int m, double rho, double theta)
         return Rmn(-m, n, rho) * sin(-m*theta);
     }
 }
+
+double dRmnDrho(int m, int n, double rho)
+{
+    // note: rho is rho/R
+    double sum = 0.0;
+    for(int k = 0; k < (n-m)/2 + 1; k++)
+    {
+        sum += pow(-1.0, k) * factorial(n-k) / (factorial(k) * factorial((n+m)/2 - k) * factorial((n-m)/2 - k)) * pow(rho, n - 2*k -1) * (n - 2*k);
+    }
+    return sum;
+}
+
+double dZmnDrho(int m, int n, double rho, double theta)
+{
+    // note: rho is rho/R
+    if(m == 0)
+    {
+        return dRmnDrho(m, n, rho);
+    }
+    else if(m > 0)
+    {
+        return dRmnDrho(m, n, rho) * cos(m*theta);
+    }
+    else
+    {
+        return dRmnDrho(-m, n, rho) * sin(-m*theta);
+    }
+}
+
+double dZmnDtheta(int m, int n, double rho, double theta)
+{
+    // note: rho is rho/R
+    if(m == 0)
+    {
+        return 0.0;
+    }
+    else if(m > 0)
+    {
+        return -Rmn(m, n, rho) * m * sin(m*theta);
+    }
+    else
+    {
+        return -Rmn(-m, n, rho) * m * cos(-m*theta);
+    }
+}

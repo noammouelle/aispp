@@ -119,18 +119,45 @@ doubleThreeVector AISLaserBeam::GetDelPhi(const doubleThreeVector& pos)
     }
     else if(beamType == "gaussian")
     {
-        double zShift;
-        if (k[2] > 0)
+        // compute the zernike polynomial phase gradient
+        doubleThreeVector zernikePhaseGradient = {0.0, 0.0, 0.0};
+
+        for(const auto& [key, amplitude] : zernikeCoeffs)
         {
-            zShift = focalLength + zLaser;
+            // convert OSA/ANSI Zernike polynomial index to n,m
+            std::array<int, 2> zernikeIndices = nollToZernike(key);
+            int n = zernikeIndices[0];
+            int m = zernikeIndices[1];
+
+            // compute rho, theta
+            double rho = sqrt(pos[0]*pos[0] + pos[1]*pos[1]) / beamRadius;
+            double theta = atan2(pos[1],pos[0]) + pi;//atan2(pos[1], pos[0]);
+
+            // compute drho/dx, drho/dy, dtheta/dx, dtheta/dy
+            double drho_dx = pos[0] / beamRadius / sqrt(pos[0]*pos[0] + pos[1]*pos[1]);
+            double drho_dy = pos[1] / beamRadius / sqrt(pos[0]*pos[0] + pos[1]*pos[1]);
+            double dtheta_dx = -pos[1] / (pos[0]*pos[0] + pos[1]*pos[1]);
+            double dtheta_dy = pos[0] / (pos[0]*pos[0] + pos[1]*pos[1]);
+
+            // compute the zernike polynomial phase (same convention as in https://opticspy.github.io/lightpipes/command-reference.html#LightPipes.Zernike)
+            double prefactor = sqrt((2.0 * n + 2.0) / (1.0 + (m == 0)));
+
+            // define the sign (if propagating in the negative z direction, the sign is inverted)
+            double sign;
+            if(k[2] < 0)
+            {
+                sign = -1.0;
+            }
+            else
+            {
+                sign = 1.0;
+            }
+
+            zernikePhaseGradient[0] +=  -1.0 * sign * prefactor * amplitude * 2.0 * pi * (dZmnDrho(n, m, rho, theta) * drho_dx + dZmnDtheta(n, m, rho, theta) * dtheta_dx);
+            zernikePhaseGradient[1] +=  -1.0 * sign * prefactor * amplitude * 2.0 * pi * (dZmnDrho(n, m, rho, theta) * drho_dy + dZmnDtheta(n, m, rho, theta) * dtheta_dy);
         }
-        else
-        {
-            zShift = - focalLength + zLaser;
-        }
-        doubleThreeVector shiftedPos = {pos[0], pos[1], pos[2] - zShift}; // shift the position to account for position of the lens
-                                                                      // and the laser focal length
-        return gaussianGradientWavefront(shiftedPos, k[2], w0);
+
+        return zernikePhaseGradient;
     }
 }
 

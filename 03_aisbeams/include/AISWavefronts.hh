@@ -19,4 +19,9 @@ std::array<double, 3> gaussianGradientWavefront(const std::array<double, 3>& pos
 double Rmn(int m, int n, double rho);
 double Zmn(int m, int n, double rho, double theta);
 
+double dRmnDrho(int m, int n, double rho);
+double dZmnDrho(int m, int n, double rho, double theta);
+
+double dZmnDtheta(int m, int n, double rho, double theta);
+
 #endif
