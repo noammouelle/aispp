@@ -80,7 +80,7 @@ double AISLaserBeam::GetPhi(const doubleThreeVector& pos)
         
         // compute the zernike polynomial phase
         double zernikePhase = 0.0;
-        for(const auto& [key, value] : zernikeCoeffs)
+        for(const auto& [key, amplitude] : zernikeCoeffs)
         {
             // convert OSA/ANSI Zernike polynomial index to n,m
             std::array<int, 2> zernikeIndices = nollToZernike(key);
@@ -90,7 +90,7 @@ double AISLaserBeam::GetPhi(const doubleThreeVector& pos)
             double rho = sqrt(pos[0]*pos[0] + pos[1]*pos[1]) / beamRadius;
             double theta = atan2(pos[1],pos[0]) + pi;//atan2(pos[1], pos[0]);
             // compute the zernike polynomial phase (same convention as in https://opticspy.github.io/lightpipes/command-reference.html#LightPipes.Zernike)
-            double prefactor = value * sqrt((2.0 * n + 2.0) / (1.0 + (m == 0)));
+            double prefactor = sqrt((2.0 * n + 2.0) / (1.0 + (m == 0)));
 
             // define the sign (if propagating in the negative z direction, the sign is inverted)
             double sign;
@@ -103,7 +103,7 @@ double AISLaserBeam::GetPhi(const doubleThreeVector& pos)
                 sign = 1.0;
             }
 
-            zernikePhase +=  -1.0 * prefactor * value * 2.0 * pi * Zmn(n, m, rho, theta) * sign;
+            zernikePhase +=  -1.0 * sign * prefactor * amplitude * 2.0 * pi * Zmn(n, m, rho, theta);
         }
 
         return phi0 + zernikePhase;
