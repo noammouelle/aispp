@@ -73,7 +73,7 @@ double Rmn(int m, int n, double rho)
     }
     return sum;
 }
-double Zmn(int n, int m, double rho, double theta)
+double Zmn(int m, int n, double rho, double theta)
 {
     // note: rho is rho/R
     if(m == 0)
