@@ -132,17 +132,18 @@ doubleThreeVector AISLaserBeam::GetDelPhi(const doubleThreeVector& pos)
     else if(beamType == "gaussian")
     {
         doubleThreeVector delPhi = {0.0, 0.0, 0.0};
-        getPhiWrapperParams params;
-        gsl_function F;
         double result, abserr;
-
-        params.pos = pos;
-        F.params = &params;
 
         for (int i = 0; i < 2; ++i)
         {
+            getPhiWrapperParams params;
+            params.pos = pos;
             params.index = i;
             params.beam = std::make_shared<AISLaserBeam>(*this);
+
+            gsl_function F;
+            F.params = &params;
+
             F.function = GetPhiWrapper;
             gsl_deriv_central(&F, pos[i], 1e-8, &result, &abserr);
             delPhi[i] = result;
