@@ -103,7 +103,7 @@ double AISLaserBeam::GetPhi(const doubleThreeVector& pos)
                 sign = 1.0;
             }
 
-            zernikePhase +=  -1.0 * sign * prefactor * amplitude * 2.0 * pi * Zmn(n, m, rho, theta);
+            zernikePhase +=  -1.0 * sign * prefactor * amplitude * 2.0 * pi * Zmn(m, n, rho, theta);
         }
 
         return phi0 + zernikePhase;
@@ -148,6 +148,8 @@ doubleThreeVector AISLaserBeam::GetDelPhi(const doubleThreeVector& pos)
             gsl_deriv_central(&F, pos[i], 1e-8, &result, &abserr);
             delPhi[i] = result;
         }
+
+        std::cout << "delPhi: " << delPhi[0] << " " << delPhi[1] << " " << delPhi[2] << std::endl;
 
         return delPhi;
     }
