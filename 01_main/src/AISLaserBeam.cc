@@ -103,7 +103,7 @@ double AISLaserBeam::GetPhi(const doubleThreeVector& pos)
                 sign = 1.0;
             }
 
-            zernikePhase +=  -1.0 * sign * prefactor * amplitude * 2.0 * pi * Zmn(n, m, rho, theta);
+            zernikePhase +=  -1.0 * sign * prefactor * amplitude * 2.0 * pi * Zmn(m, n, rho, theta);
         }
 
         return phi0 + zernikePhase;
@@ -153,8 +153,8 @@ doubleThreeVector AISLaserBeam::GetDelPhi(const doubleThreeVector& pos)
                 sign = 1.0;
             }
 
-            zernikePhaseGradient[0] +=  -1.0 * sign * prefactor * amplitude * 2.0 * pi * (dZmnDrho(n, m, rho, theta) * drho_dx + dZmnDtheta(n, m, rho, theta) * dtheta_dx);
-            zernikePhaseGradient[1] +=  -1.0 * sign * prefactor * amplitude * 2.0 * pi * (dZmnDrho(n, m, rho, theta) * drho_dy + dZmnDtheta(n, m, rho, theta) * dtheta_dy);
+            zernikePhaseGradient[0] +=  -1.0 * sign * prefactor * amplitude * 2.0 * pi * (dZmnDrho(m, n, rho, theta) * drho_dx + dZmnDtheta(m, n, rho, theta) * dtheta_dx);
+            zernikePhaseGradient[1] +=  -1.0 * sign * prefactor * amplitude * 2.0 * pi * (dZmnDrho(m, n, rho, theta) * drho_dy + dZmnDtheta(m, n, rho, theta) * dtheta_dy);
         }
 
         return zernikePhaseGradient;
