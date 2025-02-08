@@ -148,8 +148,6 @@ doubleThreeVector AISLaserBeam::GetDelPhi(const doubleThreeVector& pos)
             gsl_deriv_central(&F, pos[i], 1e-8, &result, &abserr);
             delPhi[i] = result;
         }
-        
-        std::cout << "delPhi: " << delPhi[0] << " " << delPhi[1] << " " << delPhi[2] << std::endl;
 
         return delPhi;
     }
