@@ -131,7 +131,7 @@ doubleThreeVector AISLaserBeam::GetDelPhi(const doubleThreeVector& pos)
     }
     else if(beamType == "gaussian")
     {
-        doubleThreeVector delPhi;
+        doubleThreeVector delPhi = {0.0, 0.0, 0.0};
         getPhiWrapperParams params;
         gsl_function F;
         double result, abserr;
@@ -147,7 +147,8 @@ doubleThreeVector AISLaserBeam::GetDelPhi(const doubleThreeVector& pos)
             gsl_deriv_central(&F, pos[i], 1e-8, &result, &abserr);
             delPhi[i] = result;
         }
-        delPhi[2] = 0.0; // ignore the z component
+        
+        std::cout << "delPhi: " << delPhi[0] << " " << delPhi[1] << " " << delPhi[2] << std::endl;
 
         return delPhi;
     }
