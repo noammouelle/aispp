@@ -88,7 +88,16 @@ double AISLaserBeam::GetPhi(const doubleThreeVector& pos)
             int m = zernikeIndices[1];
             // compute rho, theta
             double rho = sqrt(pos[0]*pos[0] + pos[1]*pos[1]) / beamRadius;
-            double theta = atan2(pos[1],pos[0]) + pi;//atan2(pos[1], pos[0]);
+            double theta;
+            if(pos[0] == 0.0)
+            {
+                theta = 0.0; // avoid division by zero
+            }
+            else
+            {
+                theta = atan2(pos[1],pos[0]) + pi;
+            }
+            
             // compute the zernike polynomial phase (same convention as in https://opticspy.github.io/lightpipes/command-reference.html#LightPipes.Zernike)
             double prefactor = sqrt((2.0 * n + 2.0) / (1.0 + (m == 0)));
 
@@ -131,13 +140,36 @@ doubleThreeVector AISLaserBeam::GetDelPhi(const doubleThreeVector& pos)
 
             // compute rho, theta
             double rho = sqrt(pos[0]*pos[0] + pos[1]*pos[1]) / beamRadius;
-            double theta = atan2(pos[1],pos[0]) + pi;//atan2(pos[1], pos[0]);
+            double theta;
+            if((pos[0] == 0.0) && (pos[1] == 0.0))
+            {
+                theta = 0.0; // avoid division by zero
+            }
+            else
+            {
+                theta = atan2(pos[1],pos[0]) + pi;//atan2(pos[1], pos[0]);
+            }
 
             // compute drho/dx, drho/dy, dtheta/dx, dtheta/dy
-            double drho_dx = pos[0] / beamRadius / sqrt(pos[0]*pos[0] + pos[1]*pos[1]);
-            double drho_dy = pos[1] / beamRadius / sqrt(pos[0]*pos[0] + pos[1]*pos[1]);
-            double dtheta_dx = -pos[1] / (pos[0]*pos[0] + pos[1]*pos[1]);
-            double dtheta_dy = pos[0] / (pos[0]*pos[0] + pos[1]*pos[1]);
+            double drho_dx, drho_dy, dtheta_dx, dtheta_dy;
+
+            // define for the general case first
+            drho_dx = pos[0] / beamRadius / sqrt(pos[0]*pos[0] + pos[1]*pos[1]);
+            drho_dy = pos[1] / beamRadius / sqrt(pos[0]*pos[0] + pos[1]*pos[1]);
+            dtheta_dx = -pos[1] / (pos[0]*pos[0] + pos[1]*pos[1]);
+            dtheta_dy = pos[0] / (pos[0]*pos[0] + pos[1]*pos[1]);
+
+            // re-define to avoid division by zero
+            if(pos[0] == 0.0)
+            {
+                drho_dx = 0.0;
+                dtheta_dy = 0.0;
+            } 
+            if(pos[1] == 0.0)
+            {
+                drho_dy = 0.0;
+                dtheta_dx = 0.0;
+            } 
 
             // compute the zernike polynomial phase (same convention as in https://opticspy.github.io/lightpipes/command-reference.html#LightPipes.Zernike)
             double prefactor = sqrt((2.0 * n + 2.0) / (1.0 + (m == 0)));

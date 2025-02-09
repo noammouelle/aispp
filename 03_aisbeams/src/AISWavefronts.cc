@@ -92,13 +92,20 @@ double Zmn(int m, int n, double rho, double theta)
 
 double dRmnDrho(int m, int n, double rho)
 {
-    // note: rho is rho/R
-    double sum = 0.0;
-    for(int k = 0; k < (n-m)/2 + 1; k++)
+    if((m == 0) && (n == 0))
     {
-        sum += pow(-1.0, k) * factorial(n-k) / (factorial(k) * factorial((n+m)/2 - k) * factorial((n-m)/2 - k)) * pow(rho, n - 2*k -1) * (n - 2*k);
+        return 0.0; // piston mode (constant)
     }
-    return sum;
+    else
+    {
+        // note: rho is rho/R
+        double sum = 0.0;
+        for(int k = 0; k < (n-m)/2 + 1; k++)
+        {
+            sum += pow(-1.0, k) * factorial(n-k) / (factorial(k) * factorial((n+m)/2 - k) * factorial((n-m)/2 - k)) * pow(rho, n - 2*k -1) * (n - 2*k);
+        }
+        return sum;
+    }
 }
 
 double dZmnDrho(int m, int n, double rho, double theta)
