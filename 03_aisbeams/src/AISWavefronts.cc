@@ -108,14 +108,9 @@ double Zmn(int m, int n, double rho, double theta)
 double a(int n, int m, int nprime, int mprime)
 {
     double res;
-    if(((n >= abs(m)) && (nprime >= abs(mprime))) && (((n - abs(m)) % 2 == 0) && ((nprime - abs(mprime)) % 2 == 0)))
-    {
-        res = sqrt((2-(m==0))/(2-(mprime==0))*(n+1)*(nprime+1));
-    }
-    else
-    {
-        res = 0.0;
-    }
+
+    res = sqrt((2-(m==0))/(2-(mprime==0))*(n+1)*(nprime+1));
+
     return res;
 }
 
