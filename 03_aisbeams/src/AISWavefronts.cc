@@ -74,7 +74,7 @@ double Rmn(int m, int n, double rho)
     }
     else if(m == n-2)
     {
-        res = n*pow(rho,n) + (n-1)*pow(rho,n-2);
+        res = n*Rmn(n,n,rho) + (n-1)*Rmn(n-2,n-2,rho);
     }
     else
     {
