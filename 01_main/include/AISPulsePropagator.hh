@@ -32,14 +32,22 @@ public:
     void SetIgnoreDetuning(bool ignoreDetuning);
 
     std::vector<std::string> interferingPaths = {};
+    std::vector<std::string> pathsToSimulate = {};
     bool useMcBranching = false;
     bool useDetVolSelection = false;
+    bool usePathSelection = false;
+
+    bool GetUsePathSelection();
+    void SetUsePathSelection(bool usePathSelection);
 
     bool GetUseMcBranching();
     void SetUseMcBranching(bool useMcBranching);
 
     std::vector<std::string> GetInterferingPaths();
     void SetInterferingPaths(std::vector<std::string> paths);
+
+    std::vector<std::string> GetPathsToSimulate();
+    void SetPathsToSimulate(std::vector<std::string> paths);
 
     bool GetUseDetVolSelection();
     void SetUseDetVolSelection(bool useDetVolSelection);
@@ -52,6 +60,7 @@ protected:
     void ApplyMCBranching(std::unique_ptr<wavePacketVector>& newWavePackets);
     void ApplyDetVolSelection(std::unique_ptr<wavePacketVector>& newWavePackets);
     void ApplyCutoff(std::unique_ptr<wavePacketVector>& newWavePackets);
+    void ApplyPathSelection(std::unique_ptr<wavePacketVector>& newWavePackets, std::vector<std::string> pathsToSimulate);
 
     static int funcU3(double t, const double y[], double f[], void *params);
 

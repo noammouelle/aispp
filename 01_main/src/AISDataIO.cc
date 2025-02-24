@@ -62,7 +62,7 @@ AISParams readParamsFromFile(std::string fName)
     std::map<int, std::vector<double>> zernikeIndexToCoeffMap;
 
     // Define the possible parameter keys using sets
-    std::set<std::string> BoolParamsKeys = {"printprobs","usemcbranching","ignoredetuning","printwavepackets","usedetvolselection"};
+    std::set<std::string> BoolParamsKeys = {"printprobs","usemcbranching","ignoredetuning","printwavepackets","usedetvolselection","usepathselection"};
     std::set<std::string> IntParamsKeys = {"natoms","initialstate"};
     std::set<std::string> DoubleParamsKeys = {"sigma", "temp", "amplitudethreshold", "coherencelength", "seed",
                                               "gslqagabserr", "gslqagrelerr", 
@@ -74,7 +74,7 @@ AISParams readParamsFromFile(std::string fName)
                                                    "kxchirp", "kychirp", "kzchirp", "waist", "zlaser", "focallength",
                                                    "beamradius", "baseline"};
     std::set<std::string> QuadArrayParamsKeys = {"t0", "t1", "omega","frequencychirp"};
-    std::set<std::string> StrArrayParamsKeys = {"wtype"};
+    std::set<std::string> StrArrayParamsKeys = {"wtype","pathstosimulate"};
 
     std::string line;
 
@@ -259,6 +259,9 @@ AISParams readParamsFromFile(std::string fName)
     params.useMcBranching = BoolParams["usemcbranching"];
     params.ignoreDetuning = BoolParams["ignoredetuning"];
     params.printWavePackets = BoolParams["printwavepackets"];
+    params.usePathSelection = BoolParams["usepathselection"];
+
+    params.pathsToSimulate = StrArrayParams["pathstosimulate"];
 
     params.xDetMin = DoubleArrayParams["xdet"][0];
     params.xDetMax = DoubleArrayParams["xdet"][1];

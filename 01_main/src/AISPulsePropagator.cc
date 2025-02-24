@@ -59,6 +59,12 @@ void AISPulsePropagator::PropagateAtom(std::unique_ptr<AISAtom>& atom)
         {
             ApplyMCBranching(newWavePacketsTemp);
         }
+        // Apply the path selection scheme if needed
+        if(this->usePathSelection)
+        {
+            ApplyPathSelection(newWavePacketsTemp, pathsToSimulate);
+        }
+        // Apply the detectable volume selection scheme if needed
         if(this->useDetVolSelection)
         {
             ApplyDetVolSelection(newWavePacketsTemp);
@@ -397,6 +403,24 @@ void AISPulsePropagator::SetInterferingPaths(std::vector<std::string> paths)
     interferingPaths = paths;
 }
 
+std::vector<std::string> AISPulsePropagator::GetPathsToSimulate()
+{
+    return pathsToSimulate;
+}
+void AISPulsePropagator::SetPathsToSimulate(std::vector<std::string> paths)
+{
+    pathsToSimulate = paths;
+}
+
+bool AISPulsePropagator::GetUsePathSelection()
+{
+    return usePathSelection;
+}
+void AISPulsePropagator::SetUsePathSelection(bool usePathSelectionValue)
+{
+    usePathSelection = usePathSelectionValue;
+}
+
 void AISPulsePropagator::SetIgnoreDetuning(bool ignoreDetuning)
 {
     this->ignoreDetuning = ignoreDetuning;
@@ -513,6 +537,38 @@ void AISPulsePropagator::ApplyDetVolSelection(std::unique_ptr<wavePacketVector>&
         }
         // if the wavepacket is  detectable, keep the wavepacket
         if(isDetectable)
+        {
+            newWavePacketsTemp->push_back(std::move(currentWavepacket));
+        }
+    }
+
+    // update the wavepacket vector
+    newWavePackets = std::move(newWavePacketsTemp);
+}
+
+void AISPulsePropagator::ApplyPathSelection(std::unique_ptr<wavePacketVector>& newWavePackets, std::vector<std::string> pathsToSimulate)
+{
+    // create a new wavepacket vector
+    std::unique_ptr<wavePacketVector> newWavePacketsTemp(new wavePacketVector);
+
+    // loop over wavepackets
+    for(int i = 0; i < newWavePackets->size(); ++i)
+    {
+        // if the wavepacket is on a path to simulate, keep the wavepacket
+        std::unique_ptr<AISWavePacket>& currentWavepacket = newWavePackets->at(i);
+        std::string currentPath = currentWavepacket->GetPath();
+        // loop over paths to simulate
+        bool isPathToSimulate = false;
+        for(int j = 0; j < pathsToSimulate.size(); ++j)
+        {
+            if(pathsToSimulate[j].substr(0,currentPath.size()) == currentPath)
+            {
+                isPathToSimulate = true;
+                break;
+            }
+        }
+        // if the wavepacket is on a path to simulate, keep the wavepacket
+        if(isPathToSimulate)
         {
             newWavePacketsTemp->push_back(std::move(currentWavepacket));
         }

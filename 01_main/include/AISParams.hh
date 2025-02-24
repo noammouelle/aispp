@@ -52,6 +52,8 @@ public:
     double seed;
     bool useMcBranching;
     bool ignoreDetuning;
+    bool usePathSelection;
+    std::vector<std::string> pathsToSimulate;
     double xDetMin, xDetMax, yDetMin, yDetMax, zDetMin, zDetMax;
     bool useDetVolSelection;
     double gslQagAbsError, gslQagRelError, gslKinAbsError, gslKinRelError, gslPulseAbsError, gslPulseRelError;
