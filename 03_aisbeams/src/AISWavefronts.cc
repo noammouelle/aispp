@@ -72,17 +72,18 @@ double Rmn(int m, int n, double rho)
     {
         res = pow(rho, n);
     }
-    else if(m == n-2)
+    else if(n - m == 2)
     {
-        res = n*Rmn(n,n,rho) + (n-1)*Rmn(n-2,n-2,rho);
+        res = ((m+2)*pow(rho,2) - (m+1))*pow(rho,m);
     }
     else
     {
-        double K1 = 4*n*(n-1)/((n+m)*(n-m));
-        double K2 = 2*((m*m*(n-1)+n*(n-1)*(n-2)))/((n+m)*(m-n)*(n-2));
-        double K3 = -n*(m+n-2)*(m-n+2)/((m+n)*(m-n)*(n-2));
+        double K1 = 2*(n-2)*((n-2+m)/2 + 1)*((n-2-m)/2 + 1);
+        double K2 = 2*(n-2)*(n-1)*n;
+        double K3 = -pow(m,2)*(n-1) - n*(n-1)*(n-2);
+        double K4 = -2*n*((n+m-2)/2)*((n-m-2)/2);
 
-        res = (K1 * rho * rho + K2) * Rmn(m, n-2, rho) + K3 * Rmn(m, n-4, rho);
+        res = ((K2 * pow(rho,2) + K3) * Rmn(m, n-2, rho) + K4 * Rmn(m, n-4, rho))/K1;
     }
 
     return res;

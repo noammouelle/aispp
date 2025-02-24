@@ -96,7 +96,7 @@ double AISLaserBeam::GetPhi(const doubleThreeVector& pos)
             }
             else
             {
-                theta = atan2(pos[1],pos[0]) + pi;//atan2(pos[1], pos[0]);
+                theta = atan2(pos[1],pos[0]);// + pi;//atan2(pos[1], pos[0]);
             }
 
             // compute the zernike polynomial phase (same convention as in https://opticspy.github.io/lightpipes/command-reference.html#LightPipes.Zernike)
