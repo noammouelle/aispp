@@ -104,3 +104,79 @@ double Zmn(int m, int n, double rho, double theta)
         return Rmn(-m, n, rho) * sin(-m*theta);
     }
 }
+
+double a(int n, int m, int nprime, int mprime)
+{
+    double res;
+    if(((n >= abs(m)) && (nprime >= abs(mprime))) && (((n - abs(m)) % 2 == 0) && ((nprime - abs(mprime)) % 2 == 0)))
+    {
+        res = sqrt((2-(m==0))/(2-(mprime==0))*(n+1)*(nprime+1));
+    }
+    else
+    {
+        res = 0.0;
+    }
+    return res;
+}
+
+std::array<double,3> GradZmn(int m, int n, double rho, double theta)
+{
+    double alpham;
+    if(m >= 0)
+    {
+        alpham = 1;
+    }
+    else
+    {
+        alpham = -1;
+    }
+
+    // compute the x-component of the gradient
+    double gradX = 0.0;
+    for(int nprime = 0; nprime <= n-1; nprime++)
+    {
+        if((n >=abs(m)) && (nprime >= abs(m-1)) && ((n-abs(m))%2 == 0) && ((nprime-abs(m-1))%2 == 0))
+        {
+            gradX += a(n, m, nprime, m-1) * Zmn(alpham*abs(m-1), nprime, rho, theta);
+        }
+        if((n >= abs(m)) && (nprime >= abs(m+1)) && ((n-abs(m))%2 == 0) && ((nprime-abs(m+1))%2 == 0))
+        {
+            gradX += alpham*sgn(m+1)*a(n,m,nprime,m+1)*Zmn(alpham*abs(m+1),nprime,rho,theta);
+        }
+    }
+
+    // compute the y-component of the gradient
+    double gradY = 0.0;
+    for(int nprime = 0; nprime <= n-1; nprime++)
+    {
+        if((n >= abs(m)) && (nprime >= abs(m-1)) && ((n-abs(m))%2 == 0) && ((nprime-abs(m-1))%2 == 0))
+        {
+            gradY += -alpham*sgn(m-1)*a(n,m,nprime,m-1)*Zmn(-alpham*abs(m-1),nprime,rho,theta);
+        }
+        if((n >= abs(m)) && (nprime >= abs(m+1)) && ((n-abs(m))%2 == 0) && ((nprime-abs(m+1))%2 == 0))
+        {
+            gradY += a(n,m,nprime,m+1)*Zmn(-alpham*abs(m+1),nprime,rho,theta);
+        }
+    }
+
+    // compute the z-component of the gradient
+    double gradZ = 0.0;
+
+    return {gradX, gradY, gradZ};
+}
+
+double sgn(double val)
+{
+    if(val > 0)
+    {
+        return 1.0;
+    }
+    else if(val < 0)
+    {
+        return -1.0;
+    }
+    else
+    {
+        return 0.0;
+    }
+}
