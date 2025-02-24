@@ -66,12 +66,26 @@ std::array<double,3> gaussianGradientWavefront(const std::array<double, 3>& pos,
 double Rmn(int m, int n, double rho)
 {
     // note: rho is rho/R
-    double sum = 0.0;
-    for(int k = 0; k < (n-m)/2 + 1; k++)
+    double res;
+
+    if(m==n)
     {
-        sum += pow(-1.0, k) * factorial(n-k) / (factorial(k) * factorial((n+m)/2 - k) * factorial((n-m)/2 - k)) * pow(rho, n - 2*k);
+        res = pow(rho, n);
     }
-    return sum;
+    else if(m == n-2)
+    {
+        res = n*pow(rho,n) + (n-1)*pow(rho,n-2);
+    }
+    else
+    {
+        double K1 = 4*n*(n-1)/((n+m)*(n-m));
+        double K2 = 2*((m*m*(n-1)+n*(n-1)*(n-2)))/((n+m)*(m-n)*(n-2));
+        double K3 = -n*(m+n-2)*(m-n+2)/((m+n)*(m-n)*(n-2));
+
+        res = (K1 * rho * rho + K2) * Rmn(m, n-2, rho) + K3 * Rmn(m, n-4, rho);
+    }
+
+    return res;
 }
 double Zmn(int m, int n, double rho, double theta)
 {
