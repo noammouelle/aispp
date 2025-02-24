@@ -91,18 +91,23 @@ double Rmn(int m, int n, double rho)
 double Zmn(int m, int n, double rho, double theta)
 {
     // note: rho is rho/R
+
+    double prefactor = sqrt((2.0 * n + 2.0) / (1.0 + (m == 0)));
+    double res;
     if(m == 0)
     {
-        return Rmn(m, n, rho);
+        res = Rmn(m, n, rho);
     }
     else if(m > 0)
     {
-        return Rmn(m, n, rho) * cos(m*theta);
+        res = Rmn(m, n, rho) * cos(m*theta);
     }
     else
     {
-        return Rmn(-m, n, rho) * sin(-m*theta);
+        res = Rmn(-m, n, rho) * sin(-m*theta);
     }
+
+    return prefactor * res;
 }
 
 double a(int n, int m, int nprime, int mprime)

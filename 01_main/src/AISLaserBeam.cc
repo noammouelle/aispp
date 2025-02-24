@@ -100,7 +100,7 @@ double AISLaserBeam::GetPhi(const doubleThreeVector& pos)
             }
 
             // compute the zernike polynomial phase (same convention as in https://opticspy.github.io/lightpipes/command-reference.html#LightPipes.Zernike)
-            double prefactor = sqrt((2.0 * n + 2.0) / (1.0 + (m == 0)));
+            //double prefactor = sqrt((2.0 * n + 2.0) / (1.0 + (m == 0)));
 
             // define the sign (if propagating in the negative z direction, the sign is inverted)
             double sign;
@@ -113,7 +113,7 @@ double AISLaserBeam::GetPhi(const doubleThreeVector& pos)
                 sign = 1.0;
             }
 
-            zernikePhase +=  -1.0 * sign * prefactor * amplitude * 2.0 * pi * Zmn(m, n, rho, theta);
+            zernikePhase +=  -1.0 * sign * amplitude * 2.0 * pi * Zmn(m, n, rho, theta);
         }
 
         return phi0 + zernikePhase;
@@ -183,7 +183,7 @@ doubleThreeVector AISLaserBeam::GetDelPhi(const doubleThreeVector& pos)
             }
 
             // compute the zernike polynomial phase (same convention as in https://opticspy.github.io/lightpipes/command-reference.html#LightPipes.Zernike)
-            double prefactor = sqrt((2.0 * n + 2.0) / (1.0 + (m == 0)));
+            //double prefactor = sqrt((2.0 * n + 2.0) / (1.0 + (m == 0)));
 
             // define the sign (if propagating in the negative z direction, the sign is inverted)
             double sign;
@@ -197,9 +197,9 @@ doubleThreeVector AISLaserBeam::GetDelPhi(const doubleThreeVector& pos)
             }
 
             grad_ = GradZmn(m, n, rho, theta);
-            zernikeGradX += -1.0 * sign * prefactor * amplitude * 2.0 * pi * grad_[0];
-            zernikeGradY += -1.0 * sign * prefactor * amplitude * 2.0 * pi * grad_[1];
-            zernikeGradZ += -1.0 * sign * prefactor * amplitude * 2.0 * pi * grad_[2];
+            zernikeGradX += -1.0 * sign * amplitude * 2.0 * pi * grad_[0];
+            zernikeGradY += -1.0 * sign * amplitude * 2.0 * pi * grad_[1];
+            zernikeGradZ += -1.0 * sign * amplitude * 2.0 * pi * grad_[2];
         }
 
         return {zernikeGradX, zernikeGradY, zernikeGradZ};
