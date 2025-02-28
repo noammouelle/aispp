@@ -107,6 +107,12 @@ struct FuncLinearizedParams {
     doubleThreeVector posStar; // phase space coordinates around which the Hamiltonian is expanded
     doubleThreeVector velStar;
     AISKinematicPropagator* propagator;
+    doubleThreeVector dUdx;
+    doubleThreeVector dUdp;
+    double3x3Matrix d2Udxdx;
+    double3x3Matrix d2Udxdp;
+    double3x3Matrix d2Udpdx;
+    double3x3Matrix d2Udpdp;
 };
 
 #endif

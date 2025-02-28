@@ -226,8 +226,17 @@ std::array<doubleThreeVector, 2> AISKinematicPropagator::CalculateNewPhaseSpaceC
     }
     else
     {
+    // get the gradients and hessians
+    doubleThreeVector dUdx = get_dUdx(posStar,velStar);
+    doubleThreeVector dUdp = get_dUdp(posStar,velStar);
+    double3x3Matrix d2Udxdx = get_d2Udxdx(posStar,velStar);
+    double3x3Matrix d2Udxdp = get_d2Udxdp(posStar,velStar);
+    double3x3Matrix d2Udpdx = transpose(d2Udxdp);
+    double3x3Matrix d2Udpdp = get_d2Udpdp(posStar,velStar);
+
     // define the ode system
-    FuncLinearizedParams* linearizedParams = new FuncLinearizedParams{posStar, velStar, this};
+    FuncLinearizedParams* linearizedParams = new FuncLinearizedParams{posStar, velStar, this,
+                                                                        dUdx, dUdp, d2Udxdx, d2Udxdp, d2Udpdx, d2Udpdp};
     gsl_odeiv2_system sys = {funcLinearized, nullptr, 6, linearizedParams};
     // setup the driver
     double reltol = odeRelTol;
@@ -320,12 +329,12 @@ int AISKinematicPropagator::funcLinearized(double t, const double y[], double f[
     doubleThreeVector velStar = linearizedParams->velStar;
 
     // start by computing dU/dx and dU/dp and the hessians
-    doubleThreeVector dUdx = propagator->get_dUdx(posStar,velStar);
-    doubleThreeVector dUdp = propagator->get_dUdp(posStar,velStar);
-    double3x3Matrix d2Udxdx = propagator->get_d2Udxdx(posStar,velStar);
-    double3x3Matrix d2Udxdp = propagator->get_d2Udxdp(posStar,velStar);
-    double3x3Matrix d2Udpdx = transpose(d2Udxdp);
-    double3x3Matrix d2Udpdp = propagator->get_d2Udpdp(posStar,velStar);
+    doubleThreeVector dUdx = linearizedParams->dUdx;
+    doubleThreeVector dUdp = linearizedParams->dUdp;
+    double3x3Matrix d2Udxdx = linearizedParams->d2Udxdx;
+    double3x3Matrix d2Udxdp = linearizedParams->d2Udxdp;
+    double3x3Matrix d2Udpdx = linearizedParams->d2Udpdx;
+    double3x3Matrix d2Udpdp = linearizedParams->d2Udpdp;
 
     // get the shifted coordinates
     doubleThreeVector pos = {y[0], y[1], y[2]};

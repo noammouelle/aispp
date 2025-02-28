@@ -101,6 +101,7 @@ quad3x3Matrix matrixAdd(const quad3x3Matrix& A, const quad3x3Matrix& B){
 }
 
 // Double precision - multiplication
+
 double3x3Matrix dotProduct(const double3x3Matrix& A, const double3x3Matrix& B){
 
     double3x3Matrix result = {};
@@ -127,6 +128,7 @@ doubleSixVector dotProduct(const double6x6Matrix& A, const doubleSixVector& b){
     return result;
 }
 
+/*
 doubleThreeVector dotProduct(const double3x3Matrix& A, const doubleThreeVector& B){
 
     doubleThreeVector result = {};
@@ -138,6 +140,7 @@ doubleThreeVector dotProduct(const double3x3Matrix& A, const doubleThreeVector& 
     }
     return result;
 }
+*/
 
 doubleThreeVector dotProduct(const doubleThreeVector& A, const double3x3Matrix& B){
 
@@ -185,6 +188,7 @@ double6x6Matrix scalarMultiply(const double6x6Matrix& A, const double& B){
     return result;
 }
 
+/*
 doubleThreeVector scalarMultiply(const doubleThreeVector& A, const double& B){
     
     doubleThreeVector result = {};
@@ -194,7 +198,9 @@ doubleThreeVector scalarMultiply(const doubleThreeVector& A, const double& B){
     }
     return result;
 }
+*/
 
+/*
 double3x3Matrix matrixAdd(const double3x3Matrix& A, const double3x3Matrix& B){
     
     double3x3Matrix result = {};
@@ -206,6 +212,7 @@ double3x3Matrix matrixAdd(const double3x3Matrix& A, const double3x3Matrix& B){
     }
     return result;
 }
+*/
 
 double6x6Matrix matrixAdd(const double6x6Matrix& A, const double6x6Matrix& B){
     
@@ -229,6 +236,7 @@ doubleSixVector matrixAdd(const doubleSixVector& A, const doubleSixVector& B){
     return result;
 }
 
+/*
 doubleThreeVector matrixAdd(const doubleThreeVector& A, const doubleThreeVector& B){
     
     doubleThreeVector result = {};
@@ -238,6 +246,7 @@ doubleThreeVector matrixAdd(const doubleThreeVector& A, const doubleThreeVector&
     }
     return result;
 }
+*/
 
 // Double precision - transposition
 double3x3Matrix transpose(const double3x3Matrix& A){

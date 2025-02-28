@@ -63,16 +63,56 @@ void printQuadVariable(__float128 value);
 double3x3Matrix   dotProduct(const double3x3Matrix& A, const double3x3Matrix& B);
 doubleSixVector   dotProduct(const double6x6Matrix& A, const doubleSixVector& b);
 doubleThreeVector dotProduct(const doubleThreeVector& A, const double3x3Matrix& B);
-doubleThreeVector dotProduct(const double3x3Matrix& A, const doubleThreeVector& B);
+
+//doubleThreeVector dotProduct(const double3x3Matrix& A, const doubleThreeVector& B);
+inline doubleThreeVector dotProduct(const double3x3Matrix& A, const doubleThreeVector& B){
+    doubleThreeVector result = {};
+    for (int i = 0; i < 3; ++i) {
+        for (int j = 0; j < 3; ++j) {
+            result[i] += A[i][j] * B[j];
+        }
+    }
+    return result;
+}
+
+
+
 double            dotProduct(const doubleThreeVector& A, const doubleThreeVector& B);
 double3x3Matrix   scalarMultiply(const double3x3Matrix& A, const double& B);
 double6x6Matrix   scalarMultiply(const double6x6Matrix& A, const double& B);
-doubleThreeVector scalarMultiply(const doubleThreeVector& A, const double& B);
+
+//doubleThreeVector scalarMultiply(const doubleThreeVector& A, const double& B);
+inline doubleThreeVector scalarMultiply(const doubleThreeVector& A, const double& B) {
+    doubleThreeVector result = {};
+    for (int i = 0; i < 3; ++i) {
+        result[i] = A[i] * B;
+    }
+    return result;
+}
+
 // Double precision - addition
-double3x3Matrix   matrixAdd(const double3x3Matrix& A, const double3x3Matrix& B);
+//double3x3Matrix   matrixAdd(const double3x3Matrix& A, const double3x3Matrix& B);
+inline double3x3Matrix matrixAdd(const double3x3Matrix& A, const double3x3Matrix& B) {
+    double3x3Matrix result = {};
+    for (int i = 0; i < 3; ++i) {
+        for (int j = 0; j < 3; ++j) {
+            result[i][j] = A[i][j] + B[i][j];
+        }
+    }
+    return result;
+}
+
 double6x6Matrix   matrixAdd(const double6x6Matrix& A, const double6x6Matrix& B);
 doubleSixVector   matrixAdd(const doubleSixVector& A, const doubleSixVector& B);
-doubleThreeVector matrixAdd(const doubleThreeVector& A, const doubleThreeVector& B);
+//doubleThreeVector matrixAdd(const doubleThreeVector& A, const doubleThreeVector& B);
+inline doubleThreeVector matrixAdd(const doubleThreeVector& A, const doubleThreeVector& B) {
+    doubleThreeVector result = {};
+    for (int i = 0; i < 3; ++i) {
+        result[i] = A[i] + B[i];
+    }
+    return result;
+}
+
 // Double precision - transposition
 double3x3Matrix transpose(const double3x3Matrix& A);
 
