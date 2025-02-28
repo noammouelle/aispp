@@ -130,7 +130,7 @@ void AISPulsePropagator::ApplyU2(std::unique_ptr<AISWavePacket>& wavepacket, __f
         doubleThreeVector kT0 = laserBeam->GetK(t0);
         __float128 omegaT0 = laserBeam->GetOmega(t0);
         double phi = laserBeam->GetPhi(posStar);
-        doubleThreeVector gradPhi = laserBeam->GetDelPhi(posStar);
+        doubleThreeVector gradPhi = {0,0,0};//laserBeam->GetDelPhi(posStar);
 
         double dPhaseDouble = - dotProduct(matrixAdd(kT0,gradPhi),pos) - phi + dotProduct(posStar,gradPhi);
         __float128 dPhaseQuad = omegaT0 * t0;
@@ -159,7 +159,7 @@ void AISPulsePropagator::ApplyU2Dagger(std::unique_ptr<AISWavePacket>& wavepacke
         doubleThreeVector kT1 = laserBeam->GetK(t1);
         __float128 omegaT1 = laserBeam->GetOmega(t1);
         double phi = laserBeam->GetPhi(posStar);
-        doubleThreeVector gradPhi = laserBeam->GetDelPhi(posStar);
+        doubleThreeVector gradPhi = {0,0,0};//laserBeam->GetDelPhi(posStar);
         doubleThreeVector kPrime = matrixAdd(kT1,gradPhi);
 
         // Get the A and B matrices and the Xi vector
@@ -199,7 +199,7 @@ double AISPulsePropagator::getDelta(doubleThreeVector posPrime, doubleThreeVecto
     // get the effective wavevector
     doubleThreeVector kT1 = laserBeam->GetK(t1);
     doubleThreeVector kChirp = laserBeam->GetKChirp();
-    doubleThreeVector gradPhi = laserBeam->GetDelPhi(posStar);
+    doubleThreeVector gradPhi = {0,0,0};//laserBeam->GetDelPhi(posStar);
     doubleThreeVector kPrime = matrixAdd(kT1,gradPhi);
 
     // get the detuning
