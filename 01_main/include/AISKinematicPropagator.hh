@@ -23,6 +23,11 @@ public:
     using gradPotentialFunctionType = doubleThreeVector(*)(const doubleThreeVector&, const doubleThreeVector&);
     using hessianPotentialFunctionType = double3x3Matrix(*)(const doubleThreeVector&, const doubleThreeVector&);
 
+    std::string potentialTypeName;
+
+    std::string GetPotentialTypeName();
+    void SetPotentialTypeName(std::string potentialTypeName);
+
     AISKinematicPropagator(std::shared_ptr<potentialFunctionType> U, std::shared_ptr<gradPotentialFunctionType> dUdx,
                            std::shared_ptr<gradPotentialFunctionType> dUdp,
                            std::shared_ptr<hessianPotentialFunctionType> d2Udxdx,

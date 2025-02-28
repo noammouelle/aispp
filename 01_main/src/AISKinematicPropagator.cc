@@ -114,7 +114,15 @@ void AISKinematicPropagator::PropagateWavePacket(std::unique_ptr<AISWavePacket>&
     double t1_double = (double)t1;
 
     // compute new phase space coordinates
-    std::array<doubleThreeVector, 2> newPosVel = CalculateNewPhaseSpaceCoords(t0_double, t1_double, currentPos, currentVel);
+    std::array<doubleThreeVector, 2> newPosVel;
+    if((potentialTypeName == "zero_pot") || (potentialTypeName == "linear_pot") || (potentialTypeName == "quadratic_pot"))
+    {
+        newPosVel = CalculateNewPhaseSpaceCoordsLinearized(t0_double, t1_double, currentPos, currentVel, currentPos, currentVel);
+    }
+    else
+    {
+        newPosVel = CalculateNewPhaseSpaceCoords(t0_double, t1_double, currentPos, currentVel);
+    }
     doubleThreeVector newPos = newPosVel[0];
     doubleThreeVector newVel = newPosVel[1];
 
@@ -375,7 +383,15 @@ double AISKinematicPropagator::get_dL(const double& t, void *params)
 
     // compute the exact trajectory of the wavepacket and the unperturbed
     // atom trajectory in a quadratic Hamiltonian
-    std::array<doubleThreeVector, 2> newPosVel = CalculateNewPhaseSpaceCoords(t0, t, pos0, vel0);
+    std::array<doubleThreeVector, 2> newPosVel;
+    if((potentialTypeName == "zero_pot") || (potentialTypeName == "linear_pot") || (potentialTypeName == "quadratic_pot"))
+    {
+        newPosVel = CalculateNewPhaseSpaceCoordsLinearized(t0, t, pos0, vel0, pos0, vel0);
+    }
+    else
+    {
+        newPosVel = CalculateNewPhaseSpaceCoords(t0, t, pos0, vel0);
+    }
     std::array<doubleThreeVector, 2> newPosVelTilde = CalculateNewPhaseSpaceCoordsLinearized(atomInitialTimeDouble, t, atomInitialPos, atomInitialVel, atomInitialPos, atomInitialVel);
     doubleThreeVector newPos = newPosVel[0];
     doubleThreeVector newVel = newPosVel[1];
@@ -502,4 +518,13 @@ std::array<double,2> AISKinematicPropagator::CalculateNewPhaseDouble(const doubl
 __float128 AISKinematicPropagator::CalculateNewPhaseQuad(const __float128& phase0, const __float128& t0, const __float128 t1)
 {
     return phase0 - omegaSr87 * (t1 - t0);
+}
+
+void AISKinematicPropagator::SetPotentialTypeName(const std::string potentialTypeNameVal)
+{
+    potentialTypeName = potentialTypeNameVal;
+}
+std::string AISKinematicPropagator::GetPotentialTypeName()
+{
+    return potentialTypeName;
 }
