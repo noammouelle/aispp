@@ -36,6 +36,10 @@ public:
     bool useMcBranching = false;
     bool useDetVolSelection = false;
     bool usePathSelection = false;
+    bool useStaticApprox = false;
+
+    bool GetUseStaticApprox();
+    void SetUseStaticApprox(bool useStaticApprox);
 
     bool GetUsePathSelection();
     void SetUsePathSelection(bool usePathSelection);

@@ -62,7 +62,7 @@ AISParams readParamsFromFile(std::string fName)
     std::map<int, std::vector<double>> zernikeIndexToCoeffMap;
 
     // Define the possible parameter keys using sets
-    std::set<std::string> BoolParamsKeys = {"printprobs","usemcbranching","ignoredetuning","printwavepackets","usedetvolselection","usepathselection"};
+    std::set<std::string> BoolParamsKeys = {"printprobs","usemcbranching","ignoredetuning","printwavepackets","usedetvolselection","usepathselection","usestaticapprox"};
     std::set<std::string> IntParamsKeys = {"natoms","initialstate"};
     std::set<std::string> DoubleParamsKeys = {"sigma", "temp", "amplitudethreshold", "coherencelength", "seed",
                                               "gslqagabserr", "gslqagrelerr", 
@@ -260,6 +260,7 @@ AISParams readParamsFromFile(std::string fName)
     params.ignoreDetuning = BoolParams["ignoredetuning"];
     params.printWavePackets = BoolParams["printwavepackets"];
     params.usePathSelection = BoolParams["usepathselection"];
+    params.useStaticApprox = BoolParams["usestaticapprox"];
 
     params.pathsToSimulate = StrArrayParams["pathstosimulate"];
 

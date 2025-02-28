@@ -53,6 +53,7 @@ public:
     bool useMcBranching;
     bool ignoreDetuning;
     bool usePathSelection;
+    bool useStaticApprox;
     std::vector<std::string> pathsToSimulate;
     double xDetMin, xDetMax, yDetMin, yDetMax, zDetMin, zDetMax;
     bool useDetVolSelection;

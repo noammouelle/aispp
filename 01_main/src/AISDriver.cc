@@ -122,6 +122,8 @@ AISDriver::AISDriver(AISParams params)
         pulsePropagator->SetUsePathSelection(params.usePathSelection);
         pulsePropagator->SetPathsToSimulate(params.pathsToSimulate);
 
+        pulsePropagator->SetUseStaticApprox(params.useStaticApprox);
+
         // add the propagator to the list
         pulsePropagators.push_back(pulsePropagator);
     }

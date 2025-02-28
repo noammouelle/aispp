@@ -234,9 +234,19 @@ int AISPulsePropagator::funcU3(double t, const double y[], double f[], void *par
     double t0 = u3Params->t0;
 
     // Compute the linearly propagated phase space coordinates
-    std::array<doubleThreeVector,2> newCoordsLinearized = pulsePropagator->kinematicPropagator->CalculateNewPhaseSpaceCoordsLinearized(t0,t,pos0,vel0,posStar,velStar);
-    doubleThreeVector posPrime = newCoordsLinearized[0];
-    doubleThreeVector velPrime = newCoordsLinearized[1];
+    doubleThreeVector posPrime, velPrime;
+
+    if (pulsePropagator->useStaticApprox)
+    {
+        posPrime = pos0;
+        velPrime = vel0;
+    }
+    else
+    {
+        std::array<doubleThreeVector,2> newCoordsLinearized = pulsePropagator->kinematicPropagator->CalculateNewPhaseSpaceCoordsLinearized(t0,t,pos0,vel0,posStar,velStar);
+        doubleThreeVector posPrime = newCoordsLinearized[0];
+        doubleThreeVector velPrime = newCoordsLinearized[1];
+    }
 
     // compute the detuning 
     double delta = pulsePropagator->getDelta(posPrime,velPrime, posStar, velStar, t0,t,laserBeam);
@@ -596,4 +606,13 @@ bool AISPulsePropagator::GetUseDetVolSelection()
 void AISPulsePropagator::SetUseDetVolSelection(bool useDetVolSelectionVal)
 {
     useDetVolSelection = useDetVolSelectionVal;
+}
+
+bool AISPulsePropagator::GetUseStaticApprox()
+{
+    return useStaticApprox;
+}
+void AISPulsePropagator::SetUseStaticApprox(bool useStaticApproxVal)
+{
+    useStaticApprox = useStaticApproxVal;
 }
