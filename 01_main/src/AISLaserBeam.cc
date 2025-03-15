@@ -87,18 +87,18 @@ double AISLaserBeam::GetPhi(const doubleThreeVector& pos)
             // compute the zernike polynomial phase (same convention as in https://opticspy.github.io/lightpipes/command-reference.html#LightPipes.Zernike)
             double prefactor = sqrt((2.0 * n + 2.0) / (1.0 + (m == 0)));
 
-            // define the sign (if propagating in the negative z direction, the sign is inverted)
-            double sign;
+            // define the phase shift for the reflection symmetry
+            double reflectionShift;
             if(k[2] < 0)
             {
-                sign = -1.0;
+                reflectionShift = pi;
             }
             else
             {
-                sign = 1.0;
+                reflectionShift = 0.0;
             }
 
-            zernikePhase +=  -1.0 * sign * prefactor * amplitude * 2.0 * pi * Zmn(m, n, rho, theta);
+            zernikePhase +=  -1.0 * prefactor * amplitude * 2.0 * pi * Zmn(m, n, rho, theta) + reflectionShift;
         }
 
         return phi0 + zernikePhase;
