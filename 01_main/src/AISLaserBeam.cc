@@ -62,22 +62,7 @@ double AISLaserBeam::GetPhi(const doubleThreeVector& pos)
         return phi0;
     }
     else if(beamType == "gaussian")
-    {
-        // compute the gaussian phase
-        double zShift;
-        if (k[2] > 0)
-        {
-            zShift = focalLength + zLaser;
-        }
-        else
-        {
-            zShift = zLaser - focalLength + baselineLength;
-        }
-        doubleThreeVector shiftedPos = {pos[0], pos[1], pos[2] - zShift}; // shift the position to account for position of the lens
-                                                                          // and the laser focal length
-
-        double gaussianPhase = gaussianWavefront(shiftedPos, k[2], w0);
-        
+    {       
         // compute the zernike polynomial phase
         double zernikePhase = 0.0;
         for(const auto& [key, amplitude] : zernikeCoeffs)
