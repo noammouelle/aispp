@@ -157,16 +157,16 @@ double AISLaserBeam::GetRabiFreq(const doubleThreeVector& pos, const __float128&
     }
     else if(beamType == "gaussian")
     {
-        double zShift;
+        double zPos;
         if (k[2] > 0)
         {
-            zShift = focalLength + zLaser;
+            zPos = pos[2] - zLaser + focalLength;
         }
         else
         {
-            zShift = zLaser - focalLength + baselineLength;
+            zPos = 2*baselineLength - pos[2] - zLaser + focalLength;
         }
-        doubleThreeVector shiftedPos = {pos[0], pos[1], pos[2] - zShift}; // shift the position to account for position of the lens
+        doubleThreeVector shiftedPos = {pos[0], pos[1], zPos}; // shift the position to account for position of the lens
                                                                           // and the laser focal length
         double effectiveRabiFreq = rabiFreq * gaussianEnvelope(shiftedPos, w0, t0, t); // central rabi freq times envelope
 
