@@ -369,6 +369,10 @@ void AISDriver::WritePortsToFile(std::string fName)
     std::vector<int> states(numPorts);
     std::vector<int> interferingFlag(numPorts);
     std::vector<double> probabilities(numPorts);
+    std::vector<double> phaseShifts(numPorts);
+    std::vector<double> phaseShiftErrors(numPorts);
+
+    int index = 0;
 
     // loop over the ports to fill in the data
     for(int portFrameIndex = 0; portFrameIndex < detector->GetNumberOfPortFrames(); portFrameIndex++)
@@ -384,15 +388,22 @@ void AISDriver::WritePortsToFile(std::string fName)
             int currentState = port->state;
             int currentInterferingFlag = static_cast<int>(port->interfering);
             double currentProbability = abs(port->probabilityAmplitude);
+            double currentPhaseShift = port->phaseShift;
+            double currentPhaseShiftError = port->phaseShiftError;
+
             // fill in the data
             for(int i = 0; i < 3; ++i)
             {
-                positions[portIndex][i] = currentPosition[i];
-                velocities[portIndex][i] = currentVelocity[i];
+                positions[index][i] = currentPosition[i];
+                velocities[index][i] = currentVelocity[i];
             }
-            states[portIndex] = currentState;
-            interferingFlag[portIndex] = currentInterferingFlag;
-            probabilities[portIndex] = currentProbability;
+            states[index] = currentState;
+            interferingFlag[index] = currentInterferingFlag;
+            probabilities[index] = currentProbability;
+            phaseShifts[index] = currentPhaseShift;
+            phaseShiftErrors[index] = currentPhaseShiftError;
+
+            index++;
         }        
     }
     // define the dimensionality of the datasets
@@ -402,24 +413,32 @@ void AISDriver::WritePortsToFile(std::string fName)
     hsize_t dim_states[1] = {numSPortsHsize};
     hsize_t dim_interferingFlag[1] = {numSPortsHsize};
     hsize_t dim_probabilities[1] = {numSPortsHsize};
+    hsize_t dim_phaseShifts[1] = {numSPortsHsize};
+    hsize_t dim_phaseShiftErrors[1] = {numSPortsHsize};
     // create the dataspace
     H5::DataSpace dataspace_positions(2, dim_positions);
     H5::DataSpace dataspace_velocities(2, dim_velocities);
     H5::DataSpace dataspace_states(1, dim_states);
     H5::DataSpace dataspace_interferingFlag(1, dim_interferingFlag);
     H5::DataSpace dataspace_probabilities(1, dim_probabilities);
+    H5::DataSpace dataspace_phaseShifts(1, dim_phaseShifts);
+    H5::DataSpace dataspace_phaseShiftErrors(1, dim_phaseShiftErrors);
     // create the datasets
     H5::DataSet dataset_positions = file.createDataSet("positions", H5::PredType::NATIVE_DOUBLE, dataspace_positions);
     H5::DataSet dataset_velocities = file.createDataSet("velocities", H5::PredType::NATIVE_DOUBLE, dataspace_velocities);
     H5::DataSet dataset_states = file.createDataSet("states", H5::PredType::NATIVE_INT, dataspace_states);
     H5::DataSet dataset_interferingFlag = file.createDataSet("interferingFlag", H5::PredType::NATIVE_INT, dataspace_interferingFlag);
     H5::DataSet dataset_probabilities = file.createDataSet("probabilities", H5::PredType::NATIVE_DOUBLE, dataspace_probabilities);
+    H5::DataSet dataset_phaseShifts = file.createDataSet("phaseShifts", H5::PredType::NATIVE_DOUBLE, dataspace_phaseShifts);
+    H5::DataSet dataset_phaseShiftErrors = file.createDataSet("phaseShiftErrors", H5::PredType::NATIVE_DOUBLE, dataspace_phaseShiftErrors);
     // write the data
     dataset_positions.write(positions.data(), H5::PredType::NATIVE_DOUBLE);
     dataset_velocities.write(velocities.data(), H5::PredType::NATIVE_DOUBLE);
     dataset_states.write(states.data(), H5::PredType::NATIVE_INT);
     dataset_interferingFlag.write(interferingFlag.data(), H5::PredType::NATIVE_INT);
     dataset_probabilities.write(probabilities.data(), H5::PredType::NATIVE_DOUBLE);
+    dataset_phaseShifts.write(phaseShifts.data(), H5::PredType::NATIVE_DOUBLE);
+    dataset_phaseShiftErrors.write(phaseShiftErrors.data(), H5::PredType::NATIVE_DOUBLE);
 
     // close the file
     file.close();
