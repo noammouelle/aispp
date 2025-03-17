@@ -160,11 +160,11 @@ double AISLaserBeam::GetRabiFreq(const doubleThreeVector& pos, const __float128&
         double zPos;
         if (k[2] > 0)
         {
-            zPos = pos[2] - zLaser + focalLength;
+            zPos = pos[2]; //- zLaser + focalLength;
         }
         else
         {
-            zPos = 2*baselineLength - pos[2] - zLaser + focalLength;
+            zPos = 2*baselineLength - pos[2];// - zLaser + focalLength;
         }
         doubleThreeVector shiftedPos = {pos[0], pos[1], zPos}; // shift the position to account for position of the lens
                                                                           // and the laser focal length
