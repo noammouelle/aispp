@@ -119,76 +119,7 @@ double AISLaserBeam::GetPhiWrapper(double xi, void* params)
 
 doubleThreeVector AISLaserBeam::GetDelPhi(const doubleThreeVector& pos)
 {
-    // check the beam type
-    if(beamType == "flat_square")
-    {
-        return {0.0, 0.0, 0.0};
-    }
-    else if(beamType == "gaussian")
-    {
-        // compute the gaussian phase
-        double zShift;
-        if (k[2] > 0)
-        {
-            zShift = focalLength + zLaser;
-        }
-        else
-        {
-            zShift = zLaser - focalLength + baselineLength;
-        }
-        doubleThreeVector shiftedPos = {pos[0], pos[1], pos[2] - zShift}; // shift the position to account for position of the lens
-                                                                          // and the laser focal length
-
-        double gaussianPhase = gaussianWavefront(shiftedPos, k[2], w0);
-        
-        // compute the zernike polynomial grad
-        double zernikeGradX = 0.0;
-        double zernikeGradY = 0.0;
-        double zernikeGradZ = 0.0;
-
-        doubleThreeVector grad_;
-
-        for(const auto& [key, amplitude] : zernikeCoeffs)
-        {
-            // convert OSA/ANSI Zernike polynomial index to n,m
-            std::array<int, 2> zernikeIndices = nollToZernike(key);
-            int n = zernikeIndices[0];
-            int m = zernikeIndices[1];
-            // compute rho, theta
-            double rho = sqrt(pos[0]*pos[0] + pos[1]*pos[1]) / beamRadius;
-
-            double theta;
-            if(rho == 0.0)
-            {
-                theta = 0.0; // avoid division by zero
-            }
-            else
-            {
-                theta = atan2(pos[1],pos[0]);// + pi;//atan2(pos[1], pos[0]);
-            }
-
-            // compute the zernike polynomial phase (same convention as in https://opticspy.github.io/lightpipes/command-reference.html#LightPipes.Zernike)
-            //double prefactor = sqrt((2.0 * n + 2.0) / (1.0 + (m == 0)));
-
-            // define the sign (if propagating in the negative z direction, the sign is inverted)
-            double sign;
-            if(k[2] < 0)
-            {
-                sign = -1.0;
-            }
-            else
-            {
-                sign = 1.0;
-            }
-
-            grad_ = GradZmn(m, n, rho, theta);
-            zernikeGradX += -1.0 * sign * amplitude * 2.0 * pi * grad_[0];
-            zernikeGradY += -1.0 * sign * amplitude * 2.0 * pi * grad_[1];
-            zernikeGradZ += -1.0 * sign * amplitude * 2.0 * pi * grad_[2];
-        }
-
-        return {zernikeGradX, zernikeGradY, zernikeGradZ};
-    }
+    return {0., 0., 0.}; // TODO: implement with numerical differentiation
 }
 
 double AISLaserBeam::GetRabiFreq(const doubleThreeVector& pos, const __float128& t0, const __float128& t)
