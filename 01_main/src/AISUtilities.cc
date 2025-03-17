@@ -393,7 +393,7 @@ std::array<int, 2> nollToZernike(int j) {
         n++;
         j1 -= n;
     }
-    int m = m = pow(-1,j) * ((n % 2) + 2 * std::floor((j1+((n+1)%2)) / 2.0 ));
+    int m = pow(-1,j) * ((n % 2) + 2 * std::floor((j1+((n+1)%2)) / 2.0 ));
 
     return {n, m};
 }
