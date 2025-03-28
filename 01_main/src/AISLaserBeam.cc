@@ -144,7 +144,7 @@ double AISLaserBeam::GetRabiFreq(const doubleThreeVector& pos, const __float128&
                                                                           // and the laser focal length
         double effectiveRabiFreq = rabiFreq * gaussianEnvelope(shiftedPos, w0, t0, t); // central rabi freq times envelope
 
-        return effectiveRabiFreq; // central rabi freq times envelope
+        return rabiFreq;//effectiveRabiFreq; // central rabi freq times envelope
     }
 }
 
