@@ -19,20 +19,9 @@ double gaussianWavefront(const std::array<double, 3>& pos, const double& kz,cons
     double zR  = pi * w0 * w0 / lambdaSr87;
     double RInv = z / (z*z + zR*zR);
 
-    // if the wavevector is negative, invert the sign phase
-    double sign;
-    if(kz < 0)
-    {
-        sign = -1.0;
-    }
-    else
-    {
-        sign = 1.0;
-    }
-
     double phase = abs(kz) * r * r * RInv / 2.0 - atan(z/zR);
 
-    return sign*phase *0; // wavefront curvature accounted for in the zernike coeffs in this branch
+    return phase; 
 }
 
 std::array<double,3> gaussianGradientWavefront(const std::array<double, 3>& pos, const double& kz, const double& w0)

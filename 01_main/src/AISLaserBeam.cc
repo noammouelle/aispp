@@ -101,7 +101,13 @@ double AISLaserBeam::GetPhi(const doubleThreeVector& pos)
             reflectionShift = 0.0;
         }
 
-        return phi0 + zernikePhase + reflectionShift;
+        doubleThreeVector shiftedPos = {pos[0],pos[1],pos[2]};
+        if(k[2] < 0)
+        {
+            shiftedPos[2] = 2*baselineLength - pos[2];
+        }
+
+        return phi0 + zernikePhase + reflectionShift + gaussianWavefront(shiftedPos, k[2], w0);
     }
 }
 
