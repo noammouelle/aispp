@@ -30,7 +30,7 @@ add_subdirectory(02_aispotentials)
 add_subdirectory(03_aisbeams)
 
 # Specify the executable target
-add_executable(ais++ 01_main/src/AIS++.cc)
+add_executable(analytical-wf-ais++ 01_main/src/AIS++.cc)
 
 # Link the executable with the required libraries
-target_link_libraries(ais++ AISppLib AISPotentials AISBeams ${HDF5_LIBRARIES} ${HDF5_CXX_LIBRARIES} ${GSL_LIBRARIES} OpenMP::OpenMP_CXX quadmath)
+target_link_libraries(analytical-wf-ais++ AISppLib AISPotentials AISBeams ${HDF5_LIBRARIES} ${HDF5_CXX_LIBRARIES} ${GSL_LIBRARIES} OpenMP::OpenMP_CXX quadmath)
