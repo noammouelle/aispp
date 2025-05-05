@@ -42,6 +42,7 @@ public:
     std::map<int, std::vector<double>> zernikeCoeff; // index -> coeff map
     std::vector<double> beamRadiusVector;
     std::vector<double> baselineLengthVector;
+    std::vector<std::string> beamInterpolationParamsFilenames;
 
     // Kinematic parameters
     __float128 detectionTime;

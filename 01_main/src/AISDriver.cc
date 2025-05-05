@@ -63,7 +63,7 @@ AISDriver::AISDriver(AISParams params)
     __float128 omega_, omegaChirp_;
     doubleThreeVector k_, kChirp_;
     double rabiFreq_, phi0_, w0_, zLaser_, focalLength_, beamRadius_, baselineLength_;
-    std::string beamType_;
+    std::string beamType_, beamInterpolationParamsFilename_;
     std::map<int, double> zernikeCoeffs_;
 
     for(int i = 0; i < params.rabiFrequencies.size(); ++i)
@@ -92,6 +92,7 @@ AISDriver::AISDriver(AISParams params)
         focalLength_ = params.focalLengthVector[i];
         beamRadius_ = params.beamRadiusVector[i];
         baselineLength_ = params.baselineLengthVector[i];
+        beamInterpolationParamsFilename_ = params.beamInterpolationParamsFilenames[i];
 
 
         // get the zernike coeffs
@@ -111,6 +112,7 @@ AISDriver::AISDriver(AISParams params)
         beam->SetBeamRadius(beamRadius_);
         beam->SetBeamType(beamType_);
         beam->SetBaselineLength(baselineLength_);
+        beam->SetInterpolationGrids(beamInterpolationParamsFilename_);
 
         // create the propagator
         auto pulsePropagator = std::make_shared<AISPulsePropagator>(beam, params.initialPulseTimes[i], params.finalPulseTimes[i], kinematicPropagator,

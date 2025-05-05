@@ -10,6 +10,7 @@
 #include <map>
 
 #include <gsl/gsl_deriv.h>
+#include <H5Cpp.h>
 
 class AISLaserBeam
 {
@@ -58,6 +59,8 @@ public:
 
     static double GetPhiWrapper(double xi, void* params);
 
+    void SetInterpolationGrids(std::string filename);
+
 private:
     double rabiFreq; // central rabi frequency
 
@@ -72,6 +75,12 @@ private:
     double baselineLength;
 
     std::map<int, double> zernikeCoeffs;
+
+    std::vector<double> interpolationGridX;
+    std::vector<double> interpolationGridY;
+    std::vector<double> interpolationGridZ;
+    std::vector<double> phaseInterpolationGridValues;
+    std::vector<double> intensityInterpolationGridValues;
 
     // options params
     std::string beamType;

@@ -63,51 +63,18 @@ double AISLaserBeam::GetPhi(const doubleThreeVector& pos)
     }
     else if(beamType == "gaussian")
     {       
-        // compute the zernike polynomial phase
-        double zernikePhase = 0.0;
-        for(const auto& [key, amplitude] : zernikeCoeffs)
-        {
-            // convert OSA/ANSI Zernike polynomial index to n,m
-            std::array<int, 2> zernikeIndices = nollToZernike(key);
-            int n = zernikeIndices[0];
-            int m = zernikeIndices[1];
-            // compute rho, theta
-            double rho = sqrt(pos[0]*pos[0] + pos[1]*pos[1]) / beamRadius;
+        double spatiallyVaryingPhase = trilinearInterpolation(pos[0], pos[1], pos[2], 
+            interpolationGridX, interpolationGridY, interpolationGridZ,
+            phaseInterpolationGridValues, interpolationGridX.size(), interpolationGridY.size(), interpolationGridZ.size());
 
-            double theta;
-            if(rho == 0.0)
-            {
-                theta = 0.0; // avoid division by zero
-            }
-            else
-            {
-                theta = atan2(pos[1],pos[0]);// + pi;//atan2(pos[1], pos[0]);
-            }
-
-            // compute the zernike polynomial phase (same convention as in https://opticspy.github.io/lightpipes/command-reference.html#LightPipes.Zernike)
-            //double prefactor = sqrt((2.0 * n + 2.0) / (1.0 + (m == 0)));
-
-            zernikePhase +=  -1.0 * amplitude * 2.0 * pi * Zmn(m, n, rho, theta);
-        }
-
-         // define the phase shift for the reflection symmetry
-        double reflectionShift;
+        double reflectionShift = 0.0;
+        
         if(k[2] < 0)
         {
             reflectionShift = pi;
         }
-        else
-        {
-            reflectionShift = 0.0;
-        }
 
-        doubleThreeVector shiftedPos = {pos[0],pos[1],pos[2]};
-        if(k[2] < 0)
-        {
-            shiftedPos[2] = 2*baselineLength - pos[2];
-        }
-
-        return phi0 + zernikePhase + reflectionShift + gaussianWavefront(shiftedPos, k[2], w0);
+        return phi0 + reflectionShift + spatiallyVaryingPhase;
     }
 }
 
@@ -137,20 +104,11 @@ double AISLaserBeam::GetRabiFreq(const doubleThreeVector& pos, const __float128&
     }
     else if(beamType == "gaussian")
     {
-        double zPos;
-        if (k[2] > 0)
-        {
-            zPos = pos[2]; //- zLaser + focalLength;
-        }
-        else
-        {
-            zPos = 2*baselineLength - pos[2];// - zLaser + focalLength;
-        }
-        doubleThreeVector shiftedPos = {pos[0], pos[1], zPos}; // shift the position to account for position of the lens
-                                                                          // and the laser focal length
-        double effectiveRabiFreq = rabiFreq * gaussianEnvelope(shiftedPos, w0, t0, t); // central rabi freq times envelope
-
-        return effectiveRabiFreq; // central rabi freq times envelope
+        double intensity = trilinearInterpolation(pos[0], pos[1], pos[2], 
+            interpolationGridX, interpolationGridY, interpolationGridZ, 
+            intensityInterpolationGridValues, interpolationGridX.size(), interpolationGridY.size(), interpolationGridZ.size());
+        
+        return intensity * rabiFreq;
     }
 }
 
@@ -226,3 +184,22 @@ double AISLaserBeam::GetBaselineLength()
     return baselineLength;
 }
 
+void AISLaserBeam::SetInterpolationGrids(std::string filename)
+{
+    // open the h5 file
+    H5::H5File file(filename, H5F_ACC_RDONLY);
+    // read the interpolation grids
+    H5::DataSet datasetX = file.openDataSet("x");
+    H5::DataSet datasetY = file.openDataSet("y");
+    H5::DataSet datasetZ = file.openDataSet("z");
+    H5::DataSet datasetPhase = file.openDataSet("phase");
+    H5::DataSet datasetIntensity = file.openDataSet("intensity");
+    // read the data
+    datasetX.read(interpolationGridX.data(), H5::PredType::NATIVE_DOUBLE);
+    datasetY.read(interpolationGridY.data(), H5::PredType::NATIVE_DOUBLE);
+    datasetZ.read(interpolationGridZ.data(), H5::PredType::NATIVE_DOUBLE);
+    datasetPhase.read(phaseInterpolationGridValues.data(), H5::PredType::NATIVE_DOUBLE);
+    datasetIntensity.read(intensityInterpolationGridValues.data(), H5::PredType::NATIVE_DOUBLE);
+    // close the file
+    file.close();
+}
