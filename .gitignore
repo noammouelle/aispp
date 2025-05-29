@@ -1,7 +1,5 @@
 # ignore build directory
-/build/
-/build-analytical-wf/
-/build-uniform-intensity-analytical-wf/
+/build*
 
 # ignore .vscode directory
 /.vscode/

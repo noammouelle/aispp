@@ -80,7 +80,7 @@ private:
     std::vector<double> interpolationGridY;
     std::vector<double> interpolationGridZ;
     std::vector<double> phaseInterpolationGridValues;
-    std::vector<double> intensityInterpolationGridValues;
+    std::vector<double> amplitudeInterpolationGridValues;
 
     // options params
     std::string beamType;

@@ -67,14 +67,7 @@ double AISLaserBeam::GetPhi(const doubleThreeVector& pos)
             interpolationGridX, interpolationGridY, interpolationGridZ,
             phaseInterpolationGridValues, interpolationGridX.size(), interpolationGridY.size(), interpolationGridZ.size());
 
-        double reflectionShift = 0.0;
-        
-        if(k[2] < 0)
-        {
-            reflectionShift = pi;
-        }
-
-        return phi0 + reflectionShift + spatiallyVaryingPhase;
+        return phi0 + spatiallyVaryingPhase;
     }
 }
 
@@ -104,11 +97,11 @@ double AISLaserBeam::GetRabiFreq(const doubleThreeVector& pos, const __float128&
     }
     else if(beamType == "gaussian")
     {
-        double intensity = trilinearInterpolation(pos[0], pos[1], pos[2], 
+        double amplitude = trilinearInterpolation(pos[0], pos[1], pos[2], 
             interpolationGridX, interpolationGridY, interpolationGridZ, 
-            intensityInterpolationGridValues, interpolationGridX.size(), interpolationGridY.size(), interpolationGridZ.size());
+            amplitudeInterpolationGridValues, interpolationGridX.size(), interpolationGridY.size(), interpolationGridZ.size());
         
-        return intensity * rabiFreq;
+        return amplitude * rabiFreq;
     }
 }
 
@@ -186,20 +179,43 @@ double AISLaserBeam::GetBaselineLength()
 
 void AISLaserBeam::SetInterpolationGrids(std::string filename)
 {
-    // open the h5 file
+    // Open the HDF5 file
     H5::H5File file(filename, H5F_ACC_RDONLY);
-    // read the interpolation grids
+
+    // Read the interpolation grids
     H5::DataSet datasetX = file.openDataSet("x");
     H5::DataSet datasetY = file.openDataSet("y");
     H5::DataSet datasetZ = file.openDataSet("z");
     H5::DataSet datasetPhase = file.openDataSet("phase");
-    H5::DataSet datasetIntensity = file.openDataSet("intensity");
-    // read the data
+    H5::DataSet datasetAmplitude = file.openDataSet("amplitude");
+
+    // Get the dimensions of each dataset
+    H5::DataSpace dataspaceX = datasetX.getSpace();
+    H5::DataSpace dataspaceY = datasetY.getSpace();
+    H5::DataSpace dataspaceZ = datasetZ.getSpace();
+    H5::DataSpace dataspacePhase = datasetPhase.getSpace();
+    H5::DataSpace dataspaceAmplitude = datasetAmplitude.getSpace();
+
+    hsize_t dimsX[1], dimsY[1], dimsZ[1], dimsPhase[1], dimsAmplitude[1];
+    dataspaceX.getSimpleExtentDims(dimsX);
+    dataspaceY.getSimpleExtentDims(dimsY);
+    dataspaceZ.getSimpleExtentDims(dimsZ);
+    dataspacePhase.getSimpleExtentDims(dimsPhase);
+    dataspaceAmplitude.getSimpleExtentDims(dimsAmplitude);
+
+    // Resize the vectors to match the dataset dimensions
+    interpolationGridX.resize(dimsX[0]);
+    interpolationGridY.resize(dimsY[0]);
+    interpolationGridZ.resize(dimsZ[0]);
+    phaseInterpolationGridValues.resize(dimsPhase[0]);
+    amplitudeInterpolationGridValues.resize(dimsAmplitude[0]);
+
+    // Read the data into the vectors
     datasetX.read(interpolationGridX.data(), H5::PredType::NATIVE_DOUBLE);
     datasetY.read(interpolationGridY.data(), H5::PredType::NATIVE_DOUBLE);
     datasetZ.read(interpolationGridZ.data(), H5::PredType::NATIVE_DOUBLE);
     datasetPhase.read(phaseInterpolationGridValues.data(), H5::PredType::NATIVE_DOUBLE);
-    datasetIntensity.read(intensityInterpolationGridValues.data(), H5::PredType::NATIVE_DOUBLE);
-    // close the file
+    datasetAmplitude.read(amplitudeInterpolationGridValues.data(), H5::PredType::NATIVE_DOUBLE);
+    // Close the file
     file.close();
 }
