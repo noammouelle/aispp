@@ -200,8 +200,17 @@ inline doubleThreeVector matrixAdd(const doubleThreeVector& A, const doubleThree
 }
 
 // Double precision - transposition
-double3x3Matrix transpose(const double3x3Matrix& A);
+inline double3x3Matrix transpose(const double3x3Matrix& A){
+    
+    double3x3Matrix result = {};
 
+    for(int i = 0; i < 3; ++i){
+        for(int j = 0; j < 3; ++j){ 
+            result[i][j] = A[j][i];
+        }
+    }
+    return result;
+}
 /* Data type conversion routines*/
 double convertScalarToDouble(__float128 x);
 doubleThreeVector convertThreeVectorToDouble(quadThreeVector v);

@@ -108,17 +108,7 @@ quad3x3Matrix matrixAdd(const quad3x3Matrix& A, const quad3x3Matrix& B){
 // all in .hh now for inlining.
 
 // Double precision - transposition
-double3x3Matrix transpose(const double3x3Matrix& A){
-    
-    double3x3Matrix result = {};
-
-    for(int i = 0; i < 3; ++i){
-        for(int j = 0; j < 3; ++j){ 
-            result[i][j] = A[j][i];
-        }
-    }
-    return result;
-}
+// all in .hh now for inlining.
 
 /* Data type conversion routines*/
 double convertScalarToDouble(__float128 x){
