@@ -121,9 +121,12 @@ void AISKinematicPropagator::PropagateWavePacket(std::unique_ptr<AISWavePacket>&
     wavePacket->SetPosition(newPos);
     wavePacket->SetVelocity(newVel);
 
-    std::array<double,2> phaseDoubleRes = CalculateNewPhaseDouble(currentPhaseDouble, currentPhaseDoubleErr, currentPos, currentVel,
-                                                                  atomInitialPos, atomInitialVel,
-                                                                  t0_double, t1_double, atomInitialTime);
+    //std::array<double,2> phaseDoubleRes = CalculateNewPhaseDouble(currentPhaseDouble, currentPhaseDoubleErr, currentPos, currentVel,
+    //                                                              atomInitialPos, atomInitialVel,
+    //                                                              t0_double, t1_double, atomInitialTime);
+
+    std::array<double,2> phaseDoubleRes = {0, 0}; // ultra-fast version, ignore action phase
+
     double newPhaseDouble    = phaseDoubleRes[0];
     double newPhaseDoubleErr = phaseDoubleRes[1];
 
