@@ -212,8 +212,7 @@ double AISPulsePropagator::getDelta(doubleThreeVector posPrime, doubleThreeVecto
     double recoilTerm = dotProduct(kPrime,kPrime) * hbar / (2 * massSr87);
 
     // compute the time derivative of R hat '
-    std::array<doubleThreeVector,2> dotCoordsPrime = kinematicPropagator->get_dotPhaseSpaceCoordsLinearized(t0,t1,posPrime,velPrime,posStar,velStar);
-    doubleThreeVector posDotPrime = dotCoordsPrime[0];
+    doubleThreeVector posDotPrime = velPrime;
 
     // compute the wavevector chirp term
     double kChirpTerm = 0.5 * dotProduct(kChirp,posPrime);
@@ -327,62 +326,11 @@ void AISPulsePropagator::ApplyU3(std::unique_ptr<AISWavePacket>& wavepacket0, st
     // define the params
     double t0Double = static_cast<double>(t0);
     double t1Double = static_cast<double>(t1);
-    U3Params* params = new U3Params{t0Double, 
-                                    wavepacket0->GetPosition(), wavepacket0->GetVelocity(), 
-                                    wavepacket0->GetPosStar(), wavepacket0->GetVelStar(),
-                                    laserBeam, this};
-
-    // define the ode system
-    gsl_odeiv2_system sys = {funcU3, nullptr, 4, params};
-    // setup the driver
-    double reltol = this->relTol;
-    double abstol = this->absTol;
-    double hstart = (t1Double - t0Double) / 10.0;
-    gsl_odeiv2_driver * d =
-    gsl_odeiv2_driver_alloc_y_new (&sys, gsl_odeiv2_step_rk8pd,
-                                  hstart, abstol, reltol);
-
-    double y[4];
-    if(wavepacket0->GetState()==0)
-    {
-        double amplitudeGround = wavepacket0->GetAmplitude();
-        y[0] = amplitudeGround;
-        y[1] = 0.0;
-        y[2] = 0.0;
-        y[3] = 0.0;
-    }
-    else
-    {
-        double amplitudeExcited = wavepacket0->GetAmplitude();
-        y[0] = 0.0;
-        y[1] = amplitudeExcited;
-        y[2] = 0.0;
-        y[3] = 0.0;
-    }
-    int status = gsl_odeiv2_driver_apply(d, &t0Double, t1Double, y);
-
-    if (status != GSL_SUCCESS)
-    {
-        printf("error, return value=%d\n", status);
-    }
-    
-    gsl_odeiv2_driver_free(d);
-
-    // get the amplitudes 
-    double reComplexAmplitdueGround = y[0];
-    double reComplexAmplitdueExcited = y[1];
-    double imComplexAmplitdueGround = y[2];
-    double imComplexAmplitdueExcited = y[3];
-
-    // separate into amplitude and phase
-    double amplitudeGround = sqrt(reComplexAmplitdueGround * reComplexAmplitdueGround + imComplexAmplitdueGround * imComplexAmplitdueGround);
-    double amplitudeExcited = sqrt(reComplexAmplitdueExcited * reComplexAmplitdueExcited + imComplexAmplitdueExcited * imComplexAmplitdueExcited);
-    double phaseGround = atan2(imComplexAmplitdueGround,reComplexAmplitdueGround);
-    double phaseExcited = atan2(imComplexAmplitdueExcited,reComplexAmplitdueExcited);
 
     // set the amplitudes and phases of the wavepackets
     if(wavepacket0->GetState()==0)
     {
+        // get the wavepacket params
         double currentPhaseDouble = wavepacket0->GetPhaseDouble();
         __float128 currentPhaseQuad = wavepacket0->GetPhaseQuad();
         doubleThreeVector pos = wavepacket0->GetPosition();
@@ -392,17 +340,32 @@ void AISPulsePropagator::ApplyU3(std::unique_ptr<AISWavePacket>& wavepacket0, st
         std::string path = wavepacket0->GetPath();
         std::vector<std::string> detectablePaths = wavepacket0->GetDetectablePaths();
         bool willInterfere = wavepacket0->GetWillInterfere();
+        double amplitudeGround = wavepacket0->GetAmplitude();
 
-        wavepacket0->SetAmplitude(amplitudeGround);
-        wavepacket0->SetPhaseDouble(currentPhaseDouble+phaseGround);
+        // compute the detuning
+        double detuning = getDelta(pos, vel, posStar, velStar, t0, t1, laserBeam);
+        // compute the Rabi frequency
+        double Omega = laserBeam->GetRabiFreq(pos, t0, t1);
+        // compute the trigonometric arg
+        double trigArg = 0.5 * (t1Double - t0Double) * sqrt(Omega * Omega + detuning * detuning);
+        // compute the complex exponential factor
+        std::complex<double> expFactor = exp(std::complex<double>(0,-0.5 * (t1Double-t0Double) * detuning));
+
+        // compute the complex amplitude of the g->e transition
+        std::complex<double> Seg = expFactor * std::complex<double>(0, -1 * Omega / sqrt(Omega * Omega + detuning * detuning) * sin(trigArg));
+        // compute the complex amplitude of the g->g transition
+        std::complex<double> Sgg = expFactor * std::complex<double>(cos(trigArg), detuning / sqrt(Omega * Omega + detuning * detuning) * sin(trigArg));
+
+        wavepacket0->SetAmplitude(amplitudeGround * abs(Sgg));
+        wavepacket0->SetPhaseDouble(currentPhaseDouble + std::arg(Sgg));
         wavepacket0->SetPath(path + "0"); // append a 0 to the path
         wavepacket0->SetPosStar(posStar); // ensures the expansions are about the correct point for the next unitary transformation
         wavepacket0->SetVelStar(velStar);
         wavepacket0->SetDetectablePaths(detectablePaths);
         wavepacket0->SetWillInterfere(willInterfere);
   
-        wavepacket1->SetAmplitude(amplitudeExcited);
-        wavepacket1->SetPhaseDouble(currentPhaseDouble+phaseExcited);
+        wavepacket1->SetAmplitude(amplitudeGround * abs(Seg));
+        wavepacket1->SetPhaseDouble(currentPhaseDouble + std::arg(Seg));
         wavepacket1->SetPhaseQuad(currentPhaseQuad);
         wavepacket1->SetState(1);
         wavepacket1->SetPosition(pos);
@@ -424,17 +387,31 @@ void AISPulsePropagator::ApplyU3(std::unique_ptr<AISWavePacket>& wavepacket0, st
         std::string path = wavepacket0->GetPath();
         std::vector<std::string> detectablePaths = wavepacket0->GetDetectablePaths();
         bool willInterfere = wavepacket0->GetWillInterfere();
+        double amplitudeExcited = wavepacket0->GetAmplitude();
 
-        wavepacket0->SetAmplitude(amplitudeExcited);
-        wavepacket0->SetPhaseDouble(currentPhaseDouble+phaseExcited);
+        // compute the detuning
+        double detuning = getDelta(pos, vel, posStar, velStar, t0, t1, laserBeam);
+        // compute the Rabi frequency
+        double Omega = laserBeam->GetRabiFreq(pos, t0, t1);
+        // compute the trigonometric arg
+        double trigArg = 0.5 * (t1Double - t0Double) * sqrt(Omega * Omega + detuning * detuning);
+        // compute the complex exponential factor
+        std::complex<double> expFactor = std::exp(std::complex<double>(0,-0.5*(t1Double-t0Double) * detuning));
+        // compute the complex amplitude of the e->g transition
+        std::complex<double> Sge = expFactor * std::complex<double>(0, -1 * Omega / sqrt(Omega * Omega + detuning * detuning) * sin(trigArg));
+        // compute the complex amplitude of the e->e transition
+        std::complex<double> See = expFactor * std::complex<double>(cos(trigArg), - 1 * detuning / sqrt(Omega * Omega + detuning * detuning) * sin(trigArg));
+
+        wavepacket0->SetAmplitude(amplitudeExcited * abs(See));
+        wavepacket0->SetPhaseDouble(currentPhaseDouble + std::arg(See));
         wavepacket0->SetPath(path + "1"); // append a 1 to the path
         wavepacket0->SetPosStar(posStar); // ensures the expansions are about the correct point for the next unitary transformation
         wavepacket0->SetVelStar(velStar);
         wavepacket0->SetDetectablePaths(detectablePaths);
         wavepacket0->SetWillInterfere(willInterfere);
 
-        wavepacket1->SetAmplitude(amplitudeGround);
-        wavepacket1->SetPhaseDouble(currentPhaseDouble+phaseGround);
+        wavepacket1->SetAmplitude(amplitudeExcited * abs(Sge));
+        wavepacket1->SetPhaseDouble(currentPhaseDouble + std::arg(Sge));
         wavepacket1->SetPhaseQuad(currentPhaseQuad);
         wavepacket1->SetState(0);
         wavepacket1->SetPosition(pos);
@@ -445,9 +422,6 @@ void AISPulsePropagator::ApplyU3(std::unique_ptr<AISWavePacket>& wavepacket0, st
         wavepacket1->SetDetectablePaths(detectablePaths);
         wavepacket1->SetWillInterfere(willInterfere);
     }
-
-    // free the params
-    delete params;
 }
 
 void AISPulsePropagator::ApplyU3StaticApprox(std::unique_ptr<AISWavePacket>& wavepacket0, std::unique_ptr<AISWavePacket>& wavepacket1, __float128 t0, __float128 t1)

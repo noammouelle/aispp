@@ -12,6 +12,8 @@
 #include <stdio.h>
 #include <math.h>
 #include <memory>
+#include <complex>
+
 
 #include <gsl/gsl_errno.h>
 #include <gsl/gsl_matrix.h>
