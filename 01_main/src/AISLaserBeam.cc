@@ -63,34 +63,7 @@ double AISLaserBeam::GetPhi(const doubleThreeVector& pos)
     }
     else if(beamType == "gaussian")
     {       
-        // compute the zernike polynomial phase
-        double zernikePhase = 0.0;
-        for(const auto& [key, amplitude] : zernikeCoeffs)
-        {
-            // convert OSA/ANSI Zernike polynomial index to n,m
-            std::array<int, 2> zernikeIndices = nollToZernike(key);
-            int n = zernikeIndices[0];
-            int m = zernikeIndices[1];
-            // compute rho, theta
-            double rho = sqrt(pos[0]*pos[0] + pos[1]*pos[1]) / beamRadius;
-
-            double theta;
-            if(rho == 0.0)
-            {
-                theta = 0.0; // avoid division by zero
-            }
-            else
-            {
-                theta = atan2(pos[1],pos[0]);// + pi;//atan2(pos[1], pos[0]);
-            }
-
-            // compute the zernike polynomial phase (same convention as in https://opticspy.github.io/lightpipes/command-reference.html#LightPipes.Zernike)
-            //double prefactor = sqrt((2.0 * n + 2.0) / (1.0 + (m == 0)));
-
-            zernikePhase +=  -1.0 * amplitude * 2.0 * pi * Zmn(m, n, rho, theta);
-        }
-
-         // define the phase shift for the reflection symmetry
+        // define the phase shift for the reflection symmetry
         double reflectionShift;
         if(k[2] < 0)
         {
@@ -107,7 +80,7 @@ double AISLaserBeam::GetPhi(const doubleThreeVector& pos)
             shiftedPos[2] = 2*baselineLength - pos[2];
         }
 
-        return phi0 + zernikePhase + reflectionShift + gaussianWavefront(shiftedPos, k[2], w0);
+        return phi0 + reflectionShift + gaussianWavefront(shiftedPos, k[2], w0);
     }
 }
 
@@ -131,9 +104,10 @@ doubleThreeVector AISLaserBeam::GetDelPhi(const doubleThreeVector& pos)
 double AISLaserBeam::GetRabiFreq(const doubleThreeVector& pos, const __float128& t0, const __float128& t)
 {
     // check the beam type
+    double effectiveRabiFreq = 0.0;
     if(beamType == "flat_square")
     {
-        return rabiFreq;
+        effectiveRabiFreq = rabiFreq; // constant rabi freq
     }
     else if(beamType == "gaussian")
     {
@@ -148,10 +122,9 @@ double AISLaserBeam::GetRabiFreq(const doubleThreeVector& pos, const __float128&
         }
         doubleThreeVector shiftedPos = {pos[0], pos[1], zPos}; // shift the position to account for position of the lens
                                                                           // and the laser focal length
-        double effectiveRabiFreq = rabiFreq * gaussianEnvelope(shiftedPos, w0, t0, t); // central rabi freq times envelope
-
-        return effectiveRabiFreq; // central rabi freq times envelope
+        effectiveRabiFreq = rabiFreq * gaussianEnvelope(shiftedPos, w0, t0, t); // central rabi freq times envelope
     }
+    return effectiveRabiFreq;
 }
 
 double AISLaserBeam::GetW0()

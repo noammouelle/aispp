@@ -33,6 +33,10 @@ void AISPulsePropagator::PropagateAtom(std::unique_ptr<AISAtom>& atom)
         std::unique_ptr<AISWavePacket>& wavepacket0 = atom->GetWavePacket(wavePacketIndex);
         std::unique_ptr<AISWavePacket> wavepacket1(new AISWavePacket());
 
+        // print path and vertical velocity for debugging
+        //std::cout<<wavepacket0->GetPath() << " " 
+        //         << wavepacket0->GetVelocity()[2] << std::endl;
+
         // Set pos0 and vel0 and t0 (initial pos and vel of atom) for the new wavepacket
         wavepacket1->SetPos0(wavepacket0->GetPos0());
         wavepacket1->SetVel0(wavepacket0->GetVel0());
@@ -97,6 +101,12 @@ void AISPulsePropagator::PropagateAtom(std::unique_ptr<AISAtom>& atom)
         ApplyU1(currentWavepacket, this->finalTime, this->initTime); // note the reverse time order
         // make sure the wavepacket time is correct
         currentWavepacket->SetTime(this->finalTime);
+
+        // debugging output
+        //std::cout<<"Path: " << currentWavepacket->GetPath() << " State: " 
+        //             << currentWavepacket->GetState() << " Amplitude: " 
+        //             << currentWavepacket->GetAmplitude() << "new Phase Double: "
+        //                << currentWavepacket->GetPhaseDouble() << std::endl;
     }
 
     // Step 3: update the wavepacket vector
@@ -375,6 +385,10 @@ void AISPulsePropagator::ApplyU3(std::unique_ptr<AISWavePacket>& wavepacket0, st
         wavepacket1->SetVelStar(velStar);
         wavepacket1->SetDetectablePaths(detectablePaths);
         wavepacket1->SetWillInterfere(willInterfere);
+
+        // debugging output
+        //std::cout << "detuning: " << detuning << std::endl;
+
     }
     else
     {
@@ -421,6 +435,9 @@ void AISPulsePropagator::ApplyU3(std::unique_ptr<AISWavePacket>& wavepacket0, st
         wavepacket1->SetVelStar(velStar);
         wavepacket1->SetDetectablePaths(detectablePaths);
         wavepacket1->SetWillInterfere(willInterfere);
+
+        // debugging output
+        //std::cout << "detuning: " << detuning << std::endl;
     }
 }
 

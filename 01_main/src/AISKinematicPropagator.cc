@@ -103,6 +103,15 @@ void AISKinematicPropagator::PropagateWavePacket(std::unique_ptr<AISWavePacket>&
     double currentPhaseDouble    = wavePacket->GetPhaseDouble();
     double currentPhaseDoubleErr = wavePacket->GetPhaseDoubleError();
 
+    // apply mod 2pi to the phase double
+    //currentPhaseDouble = fmod(currentPhaseDouble, 2 * M_PI);
+    //wavePacket->SetPhaseDouble(currentPhaseDouble);
+
+    // apply mod 2pi to the phase quad (quadruple precision)
+    //__float128 currentPhaseQuad = wavePacket->GetPhaseQuad();
+    //currentPhaseQuad = fmod(currentPhaseQuad, 2 * M_PI);
+    //wavePacket->SetPhaseQuad(currentPhaseQuad);
+
     __float128 t0 = wavePacket->GetTime();
 
     doubleThreeVector atomInitialPos = wavePacket->GetPos0();
@@ -125,7 +134,7 @@ void AISKinematicPropagator::PropagateWavePacket(std::unique_ptr<AISWavePacket>&
     //                                                              atomInitialPos, atomInitialVel,
     //                                                              t0_double, t1_double, atomInitialTime);
 
-    std::array<double,2> phaseDoubleRes = {0, 0}; // ultra-fast version, ignore action phase
+    std::array<double,2> phaseDoubleRes = {currentPhaseDouble, 0}; // ultra-fast version, ignore action phase
 
     double newPhaseDouble    = phaseDoubleRes[0];
     double newPhaseDoubleErr = phaseDoubleRes[1];
