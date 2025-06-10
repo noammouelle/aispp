@@ -65,7 +65,7 @@ double AISLaserBeam::GetPhi(const doubleThreeVector& pos)
     {       
         // define the phase shift for the reflection symmetry
         double reflectionShift;
-        if(k[2] < 0)
+        if(k[2] > 0)
         {
             reflectionShift = pi;
         }
@@ -77,7 +77,7 @@ double AISLaserBeam::GetPhi(const doubleThreeVector& pos)
         doubleThreeVector shiftedPos = {pos[0],pos[1],pos[2]};
         if(k[2] < 0)
         {
-            shiftedPos[2] = 2*baselineLength - pos[2];
+            shiftedPos[2] = - pos[2]; // this assumes incident beam from top, beam waist at bottom.
         }
 
         return phi0 + reflectionShift + gaussianWavefront(shiftedPos, k[2], w0);
@@ -118,7 +118,7 @@ double AISLaserBeam::GetRabiFreq(const doubleThreeVector& pos, const __float128&
         }
         else
         {
-            zPos = 2*baselineLength - pos[2];// - zLaser + focalLength;
+            zPos = - pos[2];// - zLaser + focalLength;
         }
         doubleThreeVector shiftedPos = {pos[0], pos[1], zPos}; // shift the position to account for position of the lens
                                                                           // and the laser focal length
