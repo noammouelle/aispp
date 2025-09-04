@@ -3,7 +3,7 @@
 
 #include "AISAtomEnsemble.hh"
 
-AISAtomEnsemble::AISAtomEnsemble(int nAtoms, double temperature, double width,
+AISAtomEnsemble::AISAtomEnsemble(int nAtoms, double transtemperature, double longtemperature, double width,
                                  doubleThreeVector initialPosition, doubleThreeVector initialVelocity,
                                  double seed, int initialState)
 {
@@ -19,16 +19,17 @@ AISAtomEnsemble::AISAtomEnsemble(int nAtoms, double temperature, double width,
     doubleThreeVector centralPos = initialPosition;
     double stdPos = width;
     doubleThreeVector centralVel = initialVelocity;
-    double stdVel = sqrt(temperature * kB / massSr87);
+    double stdVelZ = sqrt(longtemperature * kB / massSr87);
+    double stdVelX = sqrt(transtemperature * kB / massSr87);
 
     std::normal_distribution<double> posDistributionX(centralPos[0], stdPos); // X
-    std::normal_distribution<double> velDistributionX(centralVel[0], stdVel);
+    std::normal_distribution<double> velDistributionX(centralVel[0], stdVelX);
 
     std::normal_distribution<double> posDistributionY(centralPos[1], stdPos); // Y
-    std::normal_distribution<double> velDistributionY(centralVel[1], stdVel);
+    std::normal_distribution<double> velDistributionY(centralVel[1], stdVelX);
     
     std::normal_distribution<double> posDistributionZ(centralPos[2], stdPos); // Z
-    std::normal_distribution<double> velDistributionZ(centralVel[2], stdVel);
+    std::normal_distribution<double> velDistributionZ(centralVel[2], stdVelZ);
 
     std::vector<doubleThreeVector> sampledPos(nAtoms);
     std::vector<doubleThreeVector> sampledVel(nAtoms);

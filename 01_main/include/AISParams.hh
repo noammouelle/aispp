@@ -17,7 +17,8 @@ public:
     int initialState = 0;
     int nAtoms = 0;
     double cloudRadius = 0.0;
-    double cloudTemperature = 0.0;
+    double cloudTransTemperature = 0.0;
+    double cloudLongTemperature = 0.0;
     doubleThreeVector initialPosition = {0.0, 0.0, 0.0};
     doubleThreeVector initialVelocity = {0.0, 0.0, 0.0};
 

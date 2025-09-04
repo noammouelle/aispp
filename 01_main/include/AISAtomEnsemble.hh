@@ -16,7 +16,7 @@ private:
     std::unique_ptr<atomVector> fpAtomVector = std::make_unique<atomVector>();
 
 public:
-    AISAtomEnsemble(int nAtoms, double temperature, double width,
+    AISAtomEnsemble(int nAtoms, double transtemperature, double longtemp, double width,
                     doubleThreeVector initialPosition, doubleThreeVector initialVelocity,
                     double seed, int initialState);
     ~AISAtomEnsemble();

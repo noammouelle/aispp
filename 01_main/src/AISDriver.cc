@@ -3,7 +3,7 @@
 AISDriver::AISDriver(AISParams params)
 {   
     // create the atom ensemble
-    atomEnsemble = std::make_unique<AISAtomEnsemble>(params.nAtoms, params.cloudTemperature, params.cloudRadius,
+    atomEnsemble = std::make_unique<AISAtomEnsemble>(params.nAtoms, params.cloudTransTemperature, params.cloudLongTemperature, params.cloudRadius,
                                                      params.initialPosition, params.initialVelocity,
                                                      params.seed, params.initialState);
 
@@ -222,7 +222,8 @@ void AISDriver::RunPathFinder()
     AISParams pathFinderParams = params;
     // set position and velocity spread to 0
     pathFinderParams.cloudRadius = 0.0;
-    pathFinderParams.cloudTemperature = 0.0;
+    pathFinderParams.cloudTransTemperature = 0.0;
+    pathFinderParams.cloudLongTemperature = 0.0;
     // set the number of atoms to 1
     pathFinderParams.nAtoms = 1;
     // set the useMcBranching flag to false

@@ -64,7 +64,7 @@ AISParams readParamsFromFile(std::string fName)
     // Define the possible parameter keys using sets
     std::set<std::string> BoolParamsKeys = {"printprobs","usemcbranching","ignoredetuning","printwavepackets","usedetvolselection","usepathselection","usestaticapprox"};
     std::set<std::string> IntParamsKeys = {"natoms","initialstate"};
-    std::set<std::string> DoubleParamsKeys = {"sigma", "temp", "amplitudethreshold", "coherencelength", "seed",
+    std::set<std::string> DoubleParamsKeys = {"sigma", "transtemp", "longtemp", "amplitudethreshold", "coherencelength", "seed",
                                               "gslqagabserr", "gslqagrelerr", 
                                               "gslkinodeabserr", "gslkinoderelerr", 
                                               "gslpulseodeabserr", "gslpulseoderelerr",};
@@ -212,7 +212,8 @@ AISParams readParamsFromFile(std::string fName)
     params.nAtoms           = IntParams["natoms"];
     params.initialState     = IntParams["initialstate"];
     params.cloudRadius      = DoubleParams["sigma"];
-    params.cloudTemperature = DoubleParams["temp"];
+    params.cloudTransTemperature = DoubleParams["transtemp"];
+    params.cloudLongTemperature = DoubleParams["longtemp"];
     params.potentialType    = StrParams["utype"];
     params.initialPosition  = {DoubleArrayParams["x0"][0], DoubleArrayParams["x0"][1], DoubleArrayParams["x0"][2]};
     params.initialVelocity  = {DoubleArrayParams["v0"][0], DoubleArrayParams["v0"][1], DoubleArrayParams["v0"][2]};
