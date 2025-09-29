@@ -4,6 +4,7 @@
 /build-uniform-intensity-analytical-wf/
 /build-interpolated-beam/
 /build-ultrafast/
+/build-ultrafast-moveable-focus/
 
 # ignore .vscode directory
 /.vscode/
