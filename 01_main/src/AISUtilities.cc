@@ -255,3 +255,54 @@ std::array<int, 2> nollToZernike(int j) {
 
     return {n, m};
 }
+
+double trilinearInterpolation(
+    double x, double y, double z,
+    const std::vector<double>& x_grid,
+    const std::vector<double>& y_grid,
+    const std::vector<double>& z_grid,
+    const std::vector<double>& values,
+    int Nx, int Ny, int Nz
+) {
+    auto lower_index = [](double val, const std::vector<double>& grid) {
+        for (size_t i = 0; i < grid.size() - 1; ++i)
+            if (val >= grid[i] && val < grid[i+1])
+                return i;
+        return grid.size() - 2; // clamp
+    };
+
+    int i = lower_index(x, x_grid);
+    int j = lower_index(y, y_grid);
+    int k = lower_index(z, z_grid);
+
+    double x0 = x_grid[i], x1 = x_grid[i+1];
+    double y0 = y_grid[j], y1 = y_grid[j+1];
+    double z0 = z_grid[k], z1 = z_grid[k+1];
+
+    double xd = (x - x0) / (x1 - x0);
+    double yd = (y - y0) / (y1 - y0);
+    double zd = (z - z0) / (z1 - z0);
+
+    auto at = [&](int ii, int jj, int kk) {
+        return values[ii * Ny * Nz + jj * Nz + kk];
+    };
+
+    double c000 = at(i, j, k);
+    double c100 = at(i+1, j, k);
+    double c010 = at(i, j+1, k);
+    double c001 = at(i, j, k+1);
+    double c101 = at(i+1, j, k+1);
+    double c011 = at(i, j+1, k+1);
+    double c110 = at(i+1, j+1, k);
+    double c111 = at(i+1, j+1, k+1);
+
+    double c00 = c000 * (1 - xd) + c100 * xd;
+    double c01 = c001 * (1 - xd) + c101 * xd;
+    double c10 = c010 * (1 - xd) + c110 * xd;
+    double c11 = c011 * (1 - xd) + c111 * xd;
+
+    double c0 = c00 * (1 - yd) + c10 * yd;
+    double c1 = c01 * (1 - yd) + c11 * yd;
+
+    return c0 * (1 - zd) + c1 * zd;
+}

@@ -63,28 +63,11 @@ double AISLaserBeam::GetPhi(const doubleThreeVector& pos)
     }
     else if(beamType == "gaussian")
     {       
-        // define the phase shift for the reflection symmetry
-        double reflectionShift;
-        if(k[2] > 0)
-        {
-            reflectionShift = pi;
-        }
-        else
-        {
-            reflectionShift = 0.0;
-        }
+        double spatiallyVaryingPhase = trilinearInterpolation(pos[0], pos[1], pos[2], 
+            interpolationGridX, interpolationGridY, interpolationGridZ,
+            phaseInterpolationGridValues, interpolationGridX.size(), interpolationGridY.size(), interpolationGridZ.size());
 
-        doubleThreeVector shiftedPos = {pos[0],pos[1],pos[2]};
-        if(k[2] < 0)
-        {
-            shiftedPos[2] = focalLength - pos[2]; // propagating downward
-        }
-        else if(k[2] > 0)
-        {
-            shiftedPos[2] = focalLength + pos[2]; // propagating upward
-        }
-
-        return phi0 + reflectionShift + gaussianWavefront(shiftedPos, k[2], w0);
+        return phi0 + spatiallyVaryingPhase;
     }
 }
 
@@ -115,18 +98,11 @@ double AISLaserBeam::GetRabiFreq(const doubleThreeVector& pos, const __float128&
     }
     else if(beamType == "gaussian")
     {
-        double zPos;
-        if (k[2] > 0)
-        {
-            zPos = focalLength + pos[2]; 
-        }
-        else if (k[2] < 0)
-        {
-            zPos = focalLength - pos[2];
-        }
-        doubleThreeVector shiftedPos = {pos[0], pos[1], zPos}; // shift the position to account for position of the lens
-                                                                          // and the laser focal length
-        effectiveRabiFreq = rabiFreq * gaussianEnvelope(shiftedPos, w0, t0, t); // central rabi freq times envelope
+        double amplitude = trilinearInterpolation(pos[0], pos[1], pos[2], 
+            interpolationGridX, interpolationGridY, interpolationGridZ, 
+            amplitudeInterpolationGridValues, interpolationGridX.size(), interpolationGridY.size(), interpolationGridZ.size());
+        
+        return amplitude * rabiFreq;
     }
     return effectiveRabiFreq;
 }
@@ -203,3 +179,45 @@ double AISLaserBeam::GetBaselineLength()
     return baselineLength;
 }
 
+void AISLaserBeam::SetInterpolationGrids(std::string filename)
+{
+    // Open the HDF5 file
+    H5::H5File file(filename, H5F_ACC_RDONLY);
+
+    // Read the interpolation grids
+    H5::DataSet datasetX = file.openDataSet("x");
+    H5::DataSet datasetY = file.openDataSet("y");
+    H5::DataSet datasetZ = file.openDataSet("z");
+    H5::DataSet datasetPhase = file.openDataSet("phase");
+    H5::DataSet datasetAmplitude = file.openDataSet("amplitude");
+
+    // Get the dimensions of each dataset
+    H5::DataSpace dataspaceX = datasetX.getSpace();
+    H5::DataSpace dataspaceY = datasetY.getSpace();
+    H5::DataSpace dataspaceZ = datasetZ.getSpace();
+    H5::DataSpace dataspacePhase = datasetPhase.getSpace();
+    H5::DataSpace dataspaceAmplitude = datasetAmplitude.getSpace();
+
+    hsize_t dimsX[1], dimsY[1], dimsZ[1], dimsPhase[1], dimsAmplitude[1];
+    dataspaceX.getSimpleExtentDims(dimsX);
+    dataspaceY.getSimpleExtentDims(dimsY);
+    dataspaceZ.getSimpleExtentDims(dimsZ);
+    dataspacePhase.getSimpleExtentDims(dimsPhase);
+    dataspaceAmplitude.getSimpleExtentDims(dimsAmplitude);
+
+    // Resize the vectors to match the dataset dimensions
+    interpolationGridX.resize(dimsX[0]);
+    interpolationGridY.resize(dimsY[0]);
+    interpolationGridZ.resize(dimsZ[0]);
+    phaseInterpolationGridValues.resize(dimsPhase[0]);
+    amplitudeInterpolationGridValues.resize(dimsAmplitude[0]);
+
+    // Read the data into the vectors
+    datasetX.read(interpolationGridX.data(), H5::PredType::NATIVE_DOUBLE);
+    datasetY.read(interpolationGridY.data(), H5::PredType::NATIVE_DOUBLE);
+    datasetZ.read(interpolationGridZ.data(), H5::PredType::NATIVE_DOUBLE);
+    datasetPhase.read(phaseInterpolationGridValues.data(), H5::PredType::NATIVE_DOUBLE);
+    datasetAmplitude.read(amplitudeInterpolationGridValues.data(), H5::PredType::NATIVE_DOUBLE);
+    // Close the file
+    file.close();
+}

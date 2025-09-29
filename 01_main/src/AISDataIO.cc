@@ -74,7 +74,7 @@ AISParams readParamsFromFile(std::string fName)
                                                    "kxchirp", "kychirp", "kzchirp", "waist", "zlaser", "focallength",
                                                    "beamradius", "baseline"};
     std::set<std::string> QuadArrayParamsKeys = {"t0", "t1", "omega","frequencychirp"};
-    std::set<std::string> StrArrayParamsKeys = {"wtype","pathstosimulate"};
+    std::set<std::string> StrArrayParamsKeys = {"wtype","pathstosimulate","beaminterpolationparamsfilenames"};
 
     std::string line;
 
@@ -234,6 +234,7 @@ AISParams readParamsFromFile(std::string fName)
     params.phi0 = DoubleArrayParams["phi0"];
     params.omegaVector = QuadArrayParams["omega"];
     params.wavefrontTypeVector = StrArrayParams["wtype"];
+    params.beamInterpolationParamsFilenames = StrArrayParams["beaminterpolationparamsfilenames"];
 
     params.frequencyChirpVector = QuadArrayParams["frequencychirp"];
     params.kXChirpVector = DoubleArrayParams["kxchirp"];

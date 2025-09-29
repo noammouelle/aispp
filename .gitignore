@@ -1,10 +1,5 @@
 # ignore build directory
-/build/
-/build-analytical-wf/
-/build-uniform-intensity-analytical-wf/
-/build-interpolated-beam/
-/build-ultrafast/
-/build-ultrafast-moveable-focus/
+/build*
 
 # ignore .vscode directory
 /.vscode/
