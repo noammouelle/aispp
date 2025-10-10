@@ -1,5 +1,5 @@
 # ignore build directory
-/build/
+/build*
 /build-analytical-wf/
 /build-uniform-intensity-analytical-wf/
 /build-interpolated-beam/
