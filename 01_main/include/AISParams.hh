@@ -59,6 +59,7 @@ public:
     double xDetMin, xDetMax, yDetMin, yDetMax, zDetMin, zDetMax;
     bool useDetVolSelection;
     double gslQagAbsError, gslQagRelError, gslKinAbsError, gslKinRelError, gslPulseAbsError, gslPulseRelError;
+    bool ultraFast;
 
     // Output parameters
     bool printPorts;

@@ -90,6 +90,9 @@ public:
     double qagRelTol = 1e-12;
     double odeAbsTol = 1e-9;
     double odeRelTol = 0.0;
+
+    // wether or not use ultrafast version
+    bool ultraFast;
 };
 
 // struct for the Lagrangian parameters
