@@ -1,13 +1,11 @@
-# ignore build directory
-/build/
-/build-analytical-wf/
-/build-uniform-intensity-analytical-wf/
-/build-interpolated-beam/
-/build-ultrafast/
-/build-ultrafast-moveable-focus/
+# ignore build directories
+/build*
 
 # ignore .vscode directory
 /.vscode/
 
 # ignore personalized config file
 myconfig.cmake
+
+# ignore tests (not up to date)
+/tests/*

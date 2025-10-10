@@ -102,7 +102,7 @@ double AISLaserBeam::GetPhiWrapper(double xi, void* params)
 
 doubleThreeVector AISLaserBeam::GetDelPhi(const doubleThreeVector& pos)
 {
-    return {0., 0., 0.}; // TODO: implement with numerical differentiation
+    return {0., 0., 0.}; // TODO: implement 
 }
 
 double AISLaserBeam::GetRabiFreq(const doubleThreeVector& pos, const __float128& t0, const __float128& t)
