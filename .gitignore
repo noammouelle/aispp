@@ -9,3 +9,7 @@ myconfig.cmake
 
 # ignore tests (not up to date)
 /tests/*
+
+# ignore the output files (let user run them ?)
+/examples/output-files/*
+!/examples/output-files/.gitkeep

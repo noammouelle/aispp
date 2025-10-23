@@ -17,12 +17,18 @@ AIS++ version > 1.0.0 uses numerical ODE solvers to solve for the kinematics of 
 ## Introduction
 
 ## Dependencies
+For ais++
 - GNU Scientific Library 2.5 (instructions at https://coral.ise.lehigh.edu/jild13/2016/07/11/hello/)
 - HDF5
 - CMake
 - G++
 - GCC
 
+For the examples
+- Matplotlib
+- h5py
+- Numpy
+- Pandas
 
 ## Installation
 Start by cloning this repository

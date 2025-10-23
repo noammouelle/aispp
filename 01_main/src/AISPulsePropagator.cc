@@ -113,6 +113,9 @@ void AISPulsePropagator::PropagateAtom(std::unique_ptr<AISAtom>& atom)
         //                << currentWavepacket->GetPhaseDouble() << std::endl;
     }
 
+    // debug
+    //std::cout<<"Number of wavepackets left: "<<newWavePackets->size()<<std::endl;
+
     // Step 3: update the wavepacket vector
     atom->DeleteWavePackets();
     atom->AddWavePackets(newWavePackets);
@@ -502,6 +505,9 @@ void AISPulsePropagator::ApplyU3UltraFast(std::unique_ptr<AISWavePacket>& wavepa
     double t0Double = static_cast<double>(t0);
     double t1Double = static_cast<double>(t1);
 
+    // Debug
+    //std::cout << "Using ApplyU3UltraFast" << std::endl;
+
     // set the amplitudes and phases of the wavepackets
     if(wavepacket0->GetState()==0)
     {
@@ -518,7 +524,7 @@ void AISPulsePropagator::ApplyU3UltraFast(std::unique_ptr<AISWavePacket>& wavepa
         double amplitudeGround = wavepacket0->GetAmplitude();
 
         // compute the detuning
-        double detuning = getDeltaUltraFast(pos, vel, posStar, velStar, t0, t1, laserBeam);
+        double detuning = 1*getDeltaUltraFast(pos, vel, posStar, velStar, t0, t1, laserBeam);
         // compute the Rabi frequency
         double Omega = laserBeam->GetRabiFreq(pos, t0, t1);
         // compute the trigonometric arg
@@ -552,7 +558,7 @@ void AISPulsePropagator::ApplyU3UltraFast(std::unique_ptr<AISWavePacket>& wavepa
         wavepacket1->SetWillInterfere(willInterfere);
 
         // debugging output
-        //std::cout << "detuning: " << detuning << std::endl;
+        //std::cout << "path: " << path << " detuning: " << detuning << std::endl;
 
     }
     else
@@ -569,7 +575,7 @@ void AISPulsePropagator::ApplyU3UltraFast(std::unique_ptr<AISWavePacket>& wavepa
         double amplitudeExcited = wavepacket0->GetAmplitude();
 
         // compute the detuning
-        double detuning = getDelta(pos, vel, posStar, velStar, t0, t1, laserBeam);
+        double detuning = 1*getDeltaUltraFast(pos, vel, posStar, velStar, t0, t1, laserBeam);
         // compute the Rabi frequency
         double Omega = laserBeam->GetRabiFreq(pos, t0, t1);
         // compute the trigonometric arg
@@ -602,7 +608,7 @@ void AISPulsePropagator::ApplyU3UltraFast(std::unique_ptr<AISWavePacket>& wavepa
         wavepacket1->SetWillInterfere(willInterfere);
 
         // debugging output
-        //std::cout << "detuning: " << detuning << std::endl;
+        //std::cout << "path: " << path << " detuning: " << detuning << std::endl;
     }
 }
 
