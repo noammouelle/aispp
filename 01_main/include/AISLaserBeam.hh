@@ -61,6 +61,9 @@ public:
 
     void SetInterpolationGrids(std::string filename);
 
+    void SetTipTilt(double tiptiltX, double tiptiltY);
+    std::pair<double, double> GetTipTilt();
+
 private:
     double rabiFreq; // central rabi frequency
 
@@ -81,6 +84,9 @@ private:
     std::vector<double> interpolationGridZ;
     std::vector<double> phaseInterpolationGridValues;
     std::vector<double> amplitudeInterpolationGridValues;
+
+    double tiptiltX;
+    double tiptiltY;
 
     // options params
     std::string beamType;

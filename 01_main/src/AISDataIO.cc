@@ -72,7 +72,7 @@ AISParams readParamsFromFile(std::string fName)
     std::set<std::string> StrParamsKeys = {"utype"};
     std::set<std::string> DoubleArrayParamsKeys = {"x0", "v0", "kx", "ky", "kz","rabifreq", "phi0", "xdet", "ydet", "zdet",
                                                    "kxchirp", "kychirp", "kzchirp", "waist", "zlaser", "focallength",
-                                                   "beamradius", "baseline"};
+                                                   "beamradius", "baseline", "tiptiltx", "tiptilty"};
     std::set<std::string> QuadArrayParamsKeys = {"t0", "t1", "omega","frequencychirp"};
     std::set<std::string> StrArrayParamsKeys = {"wtype","pathstosimulate","beaminterpolationparamsfilenames"};
 
@@ -280,6 +280,9 @@ AISParams readParamsFromFile(std::string fName)
     params.gslKinRelError = DoubleParams["gslkinoderelerr"];
     params.gslPulseAbsError = DoubleParams["gslpulseodeabserr"];
     params.gslPulseRelError = DoubleParams["gslpulseoderelerr"];
+
+    params.tiptiltX = DoubleArrayParams["tiptiltx"];
+    params.tiptiltY = DoubleArrayParams["tiptilty"];
 
     return params;
 }

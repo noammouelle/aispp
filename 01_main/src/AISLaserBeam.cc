@@ -63,7 +63,11 @@ double AISLaserBeam::GetPhi(const doubleThreeVector& pos)
     }
     else if(beamType == "gaussian")
     {       
-        double spatiallyVaryingPhase = trilinearInterpolation(pos[0], pos[1], pos[2], 
+        // apply tiptilt
+        double xShifted = pos[0] - pos[2] * tan(tiptiltX * (M_PI/180.0));
+        double yShifted = pos[1] - pos[2] * tan(tiptiltY * (M_PI/180.0));
+        doubleThreeVector shiftedPos = {xShifted, yShifted, pos[2]};
+        double spatiallyVaryingPhase = trilinearInterpolation(shiftedPos[0], shiftedPos[1], shiftedPos[2],
             interpolationGridX, interpolationGridY, interpolationGridZ,
             phaseInterpolationGridValues, interpolationGridX.size(), interpolationGridY.size(), interpolationGridZ.size());
 
@@ -98,8 +102,12 @@ double AISLaserBeam::GetRabiFreq(const doubleThreeVector& pos, const __float128&
     }
     else if(beamType == "gaussian")
     {
-        double amplitude = trilinearInterpolation(pos[0], pos[1], pos[2], 
-            interpolationGridX, interpolationGridY, interpolationGridZ, 
+        // apply tiptilt
+        double xShifted = pos[0] - pos[2] * tan(tiptiltX * (M_PI/180.0));
+        double yShifted = pos[1] - pos[2] * tan(tiptiltY * (M_PI/180.0));
+        doubleThreeVector shiftedPos = {xShifted, yShifted, pos[2]};
+        double amplitude = trilinearInterpolation(shiftedPos[0], shiftedPos[1], shiftedPos[2],
+            interpolationGridX, interpolationGridY, interpolationGridZ,
             amplitudeInterpolationGridValues, interpolationGridX.size(), interpolationGridY.size(), interpolationGridZ.size());
         
         return amplitude * rabiFreq;
@@ -177,6 +185,16 @@ void AISLaserBeam::SetBaselineLength(double baselineLengthValue)
 double AISLaserBeam::GetBaselineLength()
 {
     return baselineLength;
+}
+
+void AISLaserBeam::SetTipTilt(double tiptiltXValue, double tiptiltYValue)
+{
+    tiptiltX = tiptiltXValue;
+    tiptiltY = tiptiltYValue;
+}
+std::pair<double, double> AISLaserBeam::GetTipTilt()
+{
+    return {tiptiltX, tiptiltY};
 }
 
 void AISLaserBeam::SetInterpolationGrids(std::string filename)

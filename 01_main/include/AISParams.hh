@@ -44,6 +44,8 @@ public:
     std::vector<double> beamRadiusVector;
     std::vector<double> baselineLengthVector;
     std::vector<std::string> beamInterpolationParamsFilenames;
+    std::vector<double> tiptiltX;
+    std::vector<double> tiptiltY;
 
     // Kinematic parameters
     __float128 detectionTime;
