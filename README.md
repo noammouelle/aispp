@@ -1,8 +1,10 @@
-# AIS++ v2.0.2
+# AIS++ v0.0.1
 
 Atom Interferometry Simulator in C++ (AIS++) is a C++ library enabling the simulation of atom clouds undergoing atom interferometry sequences. 
 
-AIS++ version > 1.0.0 uses numerical ODE solvers to solve for the kinematics of the wavepackets in-between pulses, as well as for the evolution of the wavepackets during pulses. v2.0.2 implements a corrected version of the beam-splitting scheme, documented in the LaTeX proejct "Numerical treatment semi-classical beam-splitter" as well as my notebook. This version also includes several tests to ensure the correct implementation of the beam-splitter. 
+AIS++ uses numerical ODE solvers to solve for the kinematics of the wavepackets in-between pulses, as well as for the evolution of the wavepackets during pulses.It implements a beam-splitting scheme, documented in the LaTeX proejct "Numerical treatment semi-classical beam-splitter" as well as my notebook. 
+
+Version 0.0.1 uses an analytical Gaussian wavefront and intensity profile. It also enables optional "ultrafast" simulation which skips the calculation of the "action phase" to increase simulation speed and focus on wavefront effects.
 
 ## Table of Contents
 
