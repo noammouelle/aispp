@@ -161,14 +161,7 @@ over the beam aperture:
 $$\varphi(\boldsymbol{r}) = \sum_N c_N Z_N(\boldsymbol{r}/r_{\text{beam}})$$
 
 Each coefficient is specified as a per-pulse array with key `zernikecoeff_N` where
-`N` is the Zernike index. Indices used in version 0.0.1:
-
-| Index | Zernike polynomial | Aberration |
-|-------|--------------------|------------|
-| 1     | $Z_1 = 2\rho\cos\theta$ | Horizontal tilt |
-| 4     | $Z_4 = \sqrt{3}(2\rho^2 - 1)$ | Defocus |
-
-Set all coefficients to `0` to use the analytic Gaussian wavefront profile alone
+`N` is the Zernike Noll index. Set all coefficients to `0` to use the analytic Gaussian wavefront profile alone
 (wavefront curvature from the beam geometry is still included via `focallength` and
 `waist`).
 
