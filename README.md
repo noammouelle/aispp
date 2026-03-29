@@ -1,10 +1,7 @@
 # AIS++ v0.0.1
 
-Atom Interferometry Simulator in C++ (AIS++) is a C++ library enabling the simulation of atom clouds undergoing atom interferometry sequences. 
-
-AIS++ uses numerical ODE solvers to solve for the kinematics of the wavepackets in-between pulses, as well as for the evolution of the wavepackets during pulses.It implements a beam-splitting scheme, documented in the LaTeX proejct "Numerical treatment semi-classical beam-splitter" as well as my notebook. 
-
-Version 0.0.1 uses an analytical Gaussian wavefront and intensity profile. It also enables optional "ultrafast" simulation which skips the calculation of the "action phase" to increase simulation speed and focus on wavefront effects.
+Atom Interferometry Simulator in C++ (AIS++) is a compiled semi-classical simulation framework
+for modelling atom interferometry sequences in arbitrary inertial and laser potentials.
 
 ## Table of Contents
 
@@ -17,6 +14,39 @@ Version 0.0.1 uses an analytical Gaussian wavefront and intensity profile. It al
 - [License](#license)
 
 ## Introduction
+
+Light-pulse atom interferometry exploits interference between atomic wavepackets travelling along
+spatially separated paths. Laser pulses coherently split, redirect, and recombine the wavepackets,
+enabling precision measurement of external forces and fields. See [1] for background.
+
+AIS++ uses a **semi-classical model**: atoms are treated as point-like particles following
+classical trajectories, while their internal states evolve as a quantum-mechanical two-level
+system. Each atom follows two trajectories (upper and lower interferometer arms), accumulating a
+complex phase along each. The total interferometric phase difference $\Delta\varphi$ between the
+arms determines the probability of detecting the atom in each output port.
+
+The simulation has two alternating stages:
+
+- **Free propagation.** Between pulses, AIS++ integrates Hamilton's equations of motion
+  numerically (GSL adaptive ODE solvers) to advance the atom's centre-of-mass coordinates and
+  accumulate the kinematic phase (classical action). The laser frequency contribution to the
+  phase is carried in `__float128` quad precision to avoid catastrophic cancellation at optical
+  frequencies ($\omega_0 T \sim 10^{15}$ rad).
+
+- **Beam-splitter pulses.** During each laser pulse, AIS++ solves the time-dependent
+  Schrödinger equation for the two-level internal state in the presence of a spatially varying
+  laser field. The position-dependent Rabi frequency, laser phase, and wavefront gradient all
+  enter the dynamics. This yields updated internal-state amplitudes and phases for each
+  wavepacket. The mathematical derivation of this step — including the unitary transformation
+  chain that reduces the full atom–light Hamiltonian to a tractable ODE — is given in
+  [THEORY.md](THEORY.md).
+
+At the end of the sequence, interfering wavepacket pairs are identified and their phase difference
+is extracted. Results are written to HDF5 for analysis with **aispy**.
+
+Version 0.0.1 uses a Gaussian wavefront and intensity profile. An `ultrafast` mode is available
+which skips the classical action phase accumulation to accelerate simulations focused on wavefront
+effects.
 
 ## Dependencies
 For ais++
@@ -37,12 +67,13 @@ Start by cloning this repository
 ```
 git clone git@github.com:noammouelle/aispp.git
 ```
-You then need edit the `config.cmake` file, uncommenting the relevant lines and adding the path to your GSL and HDF5 installations. Once done, create a build directory
+You then need to edit the `config.cmake` file, uncommenting the relevant lines and adding the path
+to your GSL and HDF5 installations. Once done, create a build directory
 ```
 mkdir build
 cd build
 ```
-and create the make files using cmake, passing as an argument the path to you configuration file
+and create the make files using cmake, passing as an argument the path to your configuration file
 ```
 cmake -DCMAKE_CONFIG_FILE=/path/to/config.cmake ..
 ```
@@ -50,18 +81,18 @@ Once done, build the executables using
 ```
 make
 ```
-Finally, you will need to add the following lines to your `.bashrc` file
+Finally, add the following lines to your `.bashrc`
 ```
 export AISPP_BUILD="/path/to/ais++/build"
 export PATH="$AISPP_BUILD:$PATH"
 ```
 
 ## Usage
-The code is run by calling the executable `ais++` from terminal, specifying the input and output files as such
+The code is run by calling the executable `ais++` from terminal, specifying the input and output
+files:
 ```
 ais++ -i /path/to/input.aisi -o /path/to/output.h5
 ```
-
 
 ## Contributing
 
@@ -69,5 +100,7 @@ Email: ndm33@cam.ac.uk
 
 ## References
 
+[1] Mouelle et al., *Wavefront Curvature and Transverse Atomic Motion in Time-Resolved Atom
+Interferometry: Impact and Mitigation*, arXiv:2510.26739 (2025).
 
 ## Licence
