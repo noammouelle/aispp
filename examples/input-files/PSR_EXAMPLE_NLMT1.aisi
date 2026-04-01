@@ -1,0 +1,78 @@
+#     ___    _________
+#    /   |  /  _/ ___/  __    __
+#   / /| |  / / \__ \__/ /___/ /_
+#  / ___ |_/ / ___/ /_  __/_  __/
+# /_/  |_/___//____/ /_/   /_/
+#
+#
+# AISI file — Phase-Shear Readout example (LMT order 1)
+#
+# Mach-Zehnder atom interferometer:
+#   T = 2.225 s interrogation time
+#   n = 1 (standard single-photon-recoil beam splitters)
+#   Phase-Shear Readout (PSR) applied at final pulse (kx_psr = 3140 rad/m)
+#
+# Cloud: 1 000 000 atoms, sigma_x = 100 um, T_transverse = 1 nK, launched at vz = 19.62 m/s
+#
+# Run with:
+#   ais++ -i PSR_EXAMPLE_NLMT1.aisi -o output-files/PSR_EXAMPLE_NLMT1.h5
+
+# Cloud parameters
+natoms 1000000
+initialstate 0
+sigma 0.0001
+transtemp 1e-09
+longtemp 0
+x0 0.0 0.0 0.0
+v0 0 0.0 19.62
+
+# Potential parameters
+utype linear_pot
+
+# Simulation parameters
+amplitudethreshold 0
+coherencelength 3.740463112189228e-06
+usemcbranching 0
+usepathselection 1
+usestaticapprox 0
+ultrafast 1
+pathstosimulate 0010 0011 0100 0101
+ignoredetuning 0
+seed -1
+usedetvolselection 0
+xdet -0.03 0.03
+ydet -0.03 0.03
+zdet -0.03 0.03
+gslqagabserr 1e-12
+gslqagrelerr 1e-12
+gslkinodeabserr 1e-09
+gslkinoderelerr 0
+gslpulseodeabserr 1e-09
+gslpulseoderelerr 0
+
+# Sequence parameters
+detectiontime 4.451
+
+# IO parameters
+printprobs 0
+printwavepackets 0
+
+# Pulse parameters
+t0 0.0 2.22525 4.45075
+t1 0.00025 2.22575 4.451
+kx 0.0 0.0 3140.0
+ky 0.0 0.0 0.0
+kz 8995954.348315687495500094725385411 8995953.759474347513950220782899023 8995953.03814248313063203347609048
+omega 2696919266137348.114235837336956127 2696919069758342.430517432843378587 2696918873357302.771955712409335449
+rabifreq 1000.0 1000.0 1000.0
+wtype gaussian gaussian gaussian
+phi0 0 0 0
+kxchirp 0 0 0
+kychirp 0 0 0
+kzchirp 0 0 0
+frequencychirp 0 0 0
+waist 0.01000319328186729550325188260259019 0.01000319328186729550325188260259019 0.01000319328186729550325188260259019
+focallength 0 0 0
+zlaser 0 0 0
+beamradius 0.02 0.02 0.02
+baseline 10 10 10
