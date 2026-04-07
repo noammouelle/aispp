@@ -47,7 +47,7 @@ if(USE_CUDA)
         set(CUDA_ARCH "75")   # Turing (RTX 20xx) — safe default for modern GPUs
     endif()
     set(CMAKE_CUDA_ARCHITECTURES ${CUDA_ARCH})
-    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -O3 --use_fast_math")
+    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -O3 --use_fast_math -Xcompiler=-fext-numeric-literals")
     message(STATUS "CUDA enabled — targeting sm_${CUDA_ARCH} (override with -DCUDA_ARCH=XX)")
 endif()
 
