@@ -1,5 +1,9 @@
 #include "AISKinematicPropagator.hh"
 
+#ifdef USE_CUDA
+#include "AISKinematicPropagatorGPU.hh"
+#endif
+
 AISKinematicPropagator::AISKinematicPropagator(std::shared_ptr<potentialFunctionType> aU, std::shared_ptr<gradPotentialFunctionType> aDUdx,
                                                std::shared_ptr<gradPotentialFunctionType> aDUdp,
                                                std::shared_ptr<hessianPotentialFunctionType> aD2Udxdx,
@@ -78,6 +82,15 @@ void AISKinematicPropagator::SetAddEnergyPhase(bool addEnergyPhase)
 
 void AISKinematicPropagator::PropagateEnsemble(std::unique_ptr<AISAtomEnsemble>& atomEnsemble, __float128 t1)
 {
+#ifdef USE_CUDA
+    // GPU path: ultrafast mode + constant-acceleration potential (zero or linear gravity).
+    // For quadratic_pot (position-dependent force) we fall back to CPU — the force
+    // is not constant, so the analytic update does not apply.
+    if (ultraFast && (potentialType == "zero_pot" || potentialType == "linear_pot")) {
+        PropagateEnsembleGPU(atomEnsemble, t1);
+        return;
+    }
+#endif
     #pragma omp parallel for
     for(int i_atom = 0; i_atom < atomEnsemble->GetNumberOfAtoms(); ++i_atom)
     {

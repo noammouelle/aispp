@@ -1,5 +1,9 @@
 #include "AISPulsePropagator.hh"
 
+#ifdef USE_CUDA
+#include "AISPulsePropagatorGPU.hh"
+#endif
+
 AISPulsePropagator::AISPulsePropagator(std::shared_ptr<AISLaserBeam> beam, 
                                        __float128 t0, __float128 t1,
                                        std::shared_ptr<AISKinematicPropagator> prop, double threshold)
@@ -13,6 +17,9 @@ AISPulsePropagator::~AISPulsePropagator()
 
 void AISPulsePropagator::PropagateEnsemble(std::unique_ptr<AISAtomEnsemble>& atomEnsemble)
 {
+#ifdef USE_CUDA
+    if (this->ultraFast) { PropagateEnsembleGPU(atomEnsemble); return; }
+#endif
     #pragma omp parallel for
     for(int i_atom = 0; i_atom < atomEnsemble->GetNumberOfAtoms(); ++i_atom)
     {

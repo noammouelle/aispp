@@ -59,7 +59,19 @@ AISDriver::AISDriver(AISParams params)
     kinematicPropagator->odeAbsTol = params.gslKinAbsError;
     kinematicPropagator->qagRelTol = params.gslQagRelError;
     kinematicPropagator->qagAbsTol = params.gslQagAbsError;
-    kinematicPropagator->ultraFast = params.ultraFast;  
+    kinematicPropagator->ultraFast = params.ultraFast;
+
+    // Store potential type and precompute constant acceleration for GPU kinematic kernel.
+    // zero_pot:   a = {0, 0, 0}     (free flight)
+    // linear_pot: a = {0, 0, -g}    (uniform gravity, dUdx={0,0,m*g} → -dUdx/m={0,0,-g})
+    // quadratic_pot: force is position-dependent — GPU falls back to CPU automatically.
+    kinematicPropagator->potentialType = params.potentialType;
+    if (params.potentialType == "zero_pot")
+        kinematicPropagator->constAcceleration = {0.0, 0.0, 0.0};
+    else if (params.potentialType == "linear_pot")
+        kinematicPropagator->constAcceleration = {0.0, 0.0, -g};
+    else
+        kinematicPropagator->constAcceleration = {0.0, 0.0, 0.0}; // unused (falls back to CPU)
 
     __float128 omega_, omegaChirp_;
     doubleThreeVector k_, kChirp_;

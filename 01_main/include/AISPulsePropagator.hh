@@ -86,6 +86,12 @@ public:
     void PropagateEnsemble(std::unique_ptr<AISAtomEnsemble>& atomEnsemble);
     void PropagateAtom(std::unique_ptr<AISAtom>& atom);
 
+#ifdef USE_CUDA
+    // GPU-accelerated version of PropagateEnsemble for ultrafast mode.
+    // Declared here; defined in AISPulsePropagatorGPU.cu.
+    void PropagateEnsembleGPU(std::unique_ptr<AISAtomEnsemble>& atomEnsemble);
+#endif
+
     // ode tolerances
     double relTol = 0.0;
     double absTol = 1e-9;

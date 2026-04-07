@@ -2,23 +2,20 @@
 
 AISDetector::AISDetector(std::unique_ptr<AISAtomEnsemble>& pAtomEnsemble, double coherenceLength)
 {
-    // initialize the port-frame vector and allocate memory
-    fpPortFrameVector = std::make_unique<portFrameVector>();
+    int nAtoms = pAtomEnsemble->GetNumberOfAtoms();
+
+    // Pre-allocate the vector so each parallel thread can write to its own
+    // index without any synchronisation.  The previous push_back inside an
+    // omp critical section serialised all 1M insertions, making detection
+    // effectively single-threaded despite the parallel for.
+    fpPortFrameVector = std::make_unique<portFrameVector>(nAtoms);
 
     #pragma omp parallel for
-    for(int atomIndex = 0; atomIndex < pAtomEnsemble->GetNumberOfAtoms(); atomIndex++)
+    for(int atomIndex = 0; atomIndex < nAtoms; atomIndex++)
     {
         std::unique_ptr<AISAtom>& currentAtom = pAtomEnsemble->GetAtom(atomIndex);
-        // get the indices of wavepackets close enough to interfere
-        //intTuple adjacentWavepacketIndices = GetAdjacentWavepackets(currentAtom, coherenceLength);
-
-        // create the port-frame object
-        std::unique_ptr<AISPortFrame> currentPortFrame(new AISPortFrame(currentAtom, coherenceLength));
-        
-        #pragma omp critical
-        {
-            fpPortFrameVector->push_back(std::move(currentPortFrame));
-        }
+        (*fpPortFrameVector)[atomIndex] =
+            std::make_unique<AISPortFrame>(currentAtom, coherenceLength);
     }
 }
 
@@ -96,19 +93,31 @@ int AISDetector::SamplePort(std::unique_ptr<AISPortFrame>& aPortFrame)
 intVector AISDetector::SampleAllPorts()
 {
     intVector sampledPortsIndices;
-    // loop over all the port-frames
+    sampledPortsIndices.reserve(GetNumberOfPortFrames());
     numSamples = 0;
+
+    // The original SamplePort() created a new std::random_device and std::mt19937
+    // inside the per-atom loop, causing 1M syscall-based entropy reads from
+    // /dev/urandom and 1M Mersenne Twister initializations.  Seed one RNG here
+    // and reuse it for all atoms.  Also avoid the per-atom cumulativeProbabilities
+    // vector allocation by inlining the walk.
+    std::random_device seedSource;
+    std::mt19937 rng(seedSource());
+    std::uniform_real_distribution<double> dis(0.0, 1.0);
+
     for(int portFrameIndex = 0; portFrameIndex < GetNumberOfPortFrames(); portFrameIndex++)
     {
-        // sample a port from the current port-frame
-        int sampledPortIndex = SamplePort(GetPortFrame(portFrameIndex));
-        // add the sampled port index to the list
-        sampledPortsIndices.push_back(sampledPortIndex);
-        // increment the number of samples if index is not -1
-        if(sampledPortIndex != -1)
+        auto& portFrame = GetPortFrame(portFrameIndex);
+        double r = dis(rng);
+        double cumulative = 0.0;
+        int sampledPortIndex = -1;
+        for(int portIndex = 0; portIndex < portFrame->GetNumberOfPorts(); portIndex++)
         {
-            numSamples++;
+            cumulative += portFrame->GetPort(portIndex)->probabilityAmplitude;
+            if(r <= cumulative) { sampledPortIndex = portIndex; break; }
         }
+        sampledPortsIndices.push_back(sampledPortIndex);
+        if(sampledPortIndex != -1) numSamples++;
     }
     return sampledPortsIndices;
 }

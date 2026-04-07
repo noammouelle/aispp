@@ -34,6 +34,12 @@ public:
     void PropagateAtom(std::unique_ptr<AISAtom>& atom, __float128 t1);
     void PropagateWavePacket(std::unique_ptr<AISWavePacket>& wavePacket, __float128 t1);
 
+#ifdef USE_CUDA
+    // GPU-accelerated kinematic propagation for ultrafast mode + constant-force potentials.
+    // Defined in AISKinematicPropagatorGPU.cu.
+    void PropagateEnsembleGPU(std::unique_ptr<AISAtomEnsemble>& atomEnsemble, __float128 t1);
+#endif
+
     void PropagateEnsembleLinearized(std::unique_ptr<AISAtomEnsemble>& atomEnsemble, __float128 t1);
     void PropagateAtomLinearized(std::unique_ptr<AISAtom>& atom, __float128 t1);
     void PropagateWavePacketLinearized(std::unique_ptr<AISWavePacket>& wavePacket, __float128 t1);
@@ -93,6 +99,11 @@ public:
 
     // wether or not use ultrafast version
     bool ultraFast;
+
+    // GPU support: potential type and precomputed constant acceleration (-dUdx/m).
+    // Set by AISDriver after construction.  Used by PropagateEnsembleGPU.
+    std::string potentialType;            // "zero_pot", "linear_pot", "quadratic_pot"
+    doubleThreeVector constAcceleration;  // valid for zero_pot and linear_pot only
 };
 
 // struct for the Lagrangian parameters
