@@ -41,3 +41,8 @@ void AISAtom::DeleteWavePackets(){
 void AISAtom::AddWavePackets(std::unique_ptr<wavePacketVector>& newWavePacketVector){
     fpWavePacketVector = std::move(newWavePacketVector);
 };
+
+void AISAtom::SwapWavePackets(wavePacketVector& newWPs){
+    fpWavePacketVector->clear();         // destroy existing WPs
+    fpWavePacketVector->swap(newWPs);    // atom gets newWPs, caller gets old empty buffer
+};

@@ -8,6 +8,10 @@ public:
     AISWavePacket();
     ~AISWavePacket();
 
+    // Thread-local pool allocator — eliminates malloc contention under OMP.
+    static void* operator new(std::size_t sz);
+    static void  operator delete(void* p) noexcept;
+
     __float128 GetTime();
     double GetTime64();
     void SetTime(__float128 time);

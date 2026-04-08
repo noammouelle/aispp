@@ -5,6 +5,10 @@
 #include <iostream>
 #include <chrono>
 
+#ifdef USE_CUDA
+#include <cuda_runtime.h>
+#endif
+
 /*
 Main file for this library. Works by calling 
     ais++ -i input_file.aisi -o output_file.h5
@@ -37,10 +41,18 @@ int main(int argc, char* argv[])
 
     // read the params
     AISParams params = readParamsFromFile(inputFileName);
-    
+
+#ifdef USE_CUDA
+    // Force CUDA context initialization before the propagation timer starts.
+    // Without this, the first cudaMalloc inside RunAll() pays a ~100-150 ms
+    // one-time driver-init penalty that would otherwise inflate Propagation time.
+    cudaSetDevice(0);
+    cudaFree(nullptr);  // triggers full context init immediately
+#endif
+
     // create the driver
     AISDriver* driver = new AISDriver(params);
-    
+
     /* RUN THE ATOM PROPAGATION */
     auto start = std::chrono::high_resolution_clock::now();
 

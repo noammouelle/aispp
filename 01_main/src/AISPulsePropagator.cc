@@ -1,4 +1,5 @@
 #include "AISPulsePropagator.hh"
+#include <algorithm>
 
 #ifdef USE_CUDA
 #include "AISPulsePropagatorGPU.hh"
@@ -849,87 +850,48 @@ void AISPulsePropagator::ApplyMCBranching(std::unique_ptr<wavePacketVector>& new
 
 void AISPulsePropagator::ApplyCutoff(std::unique_ptr<wavePacketVector>& newWavePackets)
 {
-    // create a new wavepacket vector
-    std::unique_ptr<wavePacketVector> newWavePacketsTemp(new wavePacketVector);
-
-    // loop over wavepackets in reverse order
-    for(int i = 0; i < newWavePackets->size(); ++i)
-    {
-        // if the amplitude is above the threshold, add the wavepacket to the new vector
-        std::unique_ptr<AISWavePacket>& currentWavepacket = newWavePackets->at(i);
-        if(abs(currentWavepacket->GetAmplitude()) > this->amplitudeThreshold)
-        {
-            newWavePacketsTemp->push_back(std::move(currentWavepacket));
-        }
-    }
-
-    // update the wavepacket vector
-    newWavePackets = std::move(newWavePacketsTemp);
+    // In-place filter — no heap allocation.
+    // Wavepackets that fail the amplitude threshold are erased (their unique_ptr
+    // destructs, returning the AISWavePacket memory to the thread-local pool).
+    double threshold = this->amplitudeThreshold;
+    auto& v = *newWavePackets;
+    auto newEnd = std::remove_if(v.begin(), v.end(),
+        [threshold](const std::unique_ptr<AISWavePacket>& wp) {
+            return std::abs(wp->GetAmplitude()) <= threshold;
+        });
+    v.erase(newEnd, v.end());
 }
 
 void AISPulsePropagator::ApplyDetVolSelection(std::unique_ptr<wavePacketVector>& newWavePackets)
 {
-    // create a new wavepacket vector
-    std::unique_ptr<wavePacketVector> newWavePacketsTemp(new wavePacketVector);
-
-    // loop over wavepackets
-    for(int i = 0; i < newWavePackets->size(); ++i)
-    {
-        // if the wavepacket is not on a detectable path, delete the wavepacket
-        std::unique_ptr<AISWavePacket>& currentWavepacket = newWavePackets->at(i);
-        std::vector<std::string> detectablePaths = currentWavepacket->GetDetectablePaths();
-        std::string currentPath = currentWavepacket->GetPath();
-        // loop over detectable paths
-        bool isDetectable = false;
-        for(int j = 0; j < detectablePaths.size(); ++j)
-        {
-            if(detectablePaths[j].substr(0,currentPath.size()) == currentPath)
-            {
-                isDetectable = true;
-                break;
+    // In-place filter — no heap allocation.
+    auto& v = *newWavePackets;
+    auto newEnd = std::remove_if(v.begin(), v.end(),
+        [](const std::unique_ptr<AISWavePacket>& wp) {
+            const std::string& currentPath = wp->GetPath();
+            for (const auto& dp : wp->GetDetectablePaths()) {
+                if (dp.substr(0, currentPath.size()) == currentPath)
+                    return false;  // keep
             }
-        }
-        // if the wavepacket is  detectable, keep the wavepacket
-        if(isDetectable)
-        {
-            newWavePacketsTemp->push_back(std::move(currentWavepacket));
-        }
-    }
-
-    // update the wavepacket vector
-    newWavePackets = std::move(newWavePacketsTemp);
+            return true;  // remove
+        });
+    v.erase(newEnd, v.end());
 }
 
 void AISPulsePropagator::ApplyPathSelection(std::unique_ptr<wavePacketVector>& newWavePackets, std::vector<std::string> pathsToSimulate)
 {
-    // create a new wavepacket vector
-    std::unique_ptr<wavePacketVector> newWavePacketsTemp(new wavePacketVector);
-
-    // loop over wavepackets
-    for(int i = 0; i < newWavePackets->size(); ++i)
-    {
-        // if the wavepacket is on a path to simulate, keep the wavepacket
-        std::unique_ptr<AISWavePacket>& currentWavepacket = newWavePackets->at(i);
-        std::string currentPath = currentWavepacket->GetPath();
-        // loop over paths to simulate
-        bool isPathToSimulate = false;
-        for(int j = 0; j < pathsToSimulate.size(); ++j)
-        {
-            if(pathsToSimulate[j].substr(0,currentPath.size()) == currentPath)
-            {
-                isPathToSimulate = true;
-                break;
+    // In-place filter — no heap allocation.
+    auto& v = *newWavePackets;
+    auto newEnd = std::remove_if(v.begin(), v.end(),
+        [&pathsToSimulate](const std::unique_ptr<AISWavePacket>& wp) {
+            const std::string& currentPath = wp->GetPath();
+            for (const auto& ps : pathsToSimulate) {
+                if (ps.substr(0, currentPath.size()) == currentPath)
+                    return false;  // keep
             }
-        }
-        // if the wavepacket is on a path to simulate, keep the wavepacket
-        if(isPathToSimulate)
-        {
-            newWavePacketsTemp->push_back(std::move(currentWavepacket));
-        }
-    }
-
-    // update the wavepacket vector
-    newWavePackets = std::move(newWavePacketsTemp);
+            return true;  // remove
+        });
+    v.erase(newEnd, v.end());
 }
 
 bool AISPulsePropagator::GetUseMcBranching()

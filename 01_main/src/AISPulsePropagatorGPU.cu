@@ -26,6 +26,7 @@
 #include "AISConstants.hh"
 
 #include <cuda_runtime.h>
+#include <omp.h>
 #include <stdexcept>
 #include <sstream>
 #include <vector>
@@ -171,9 +172,57 @@ __global__ void applyU3UltraFastKernel(
 }
 
 // ---------------------------------------------------------------------------
+// Persistent device-side storage for pulse propagator.
+//
+// All 11 double arrays and the int state array are packed into a single
+// cudaMalloc.  The block is grown (never shrunk) as N increases, so
+// malloc/free overhead is paid at most O(log N_max) times over the entire
+// simulation rather than once per pulse step.
+// ---------------------------------------------------------------------------
+struct PulseDeviceBuffers {
+    void*  block    = nullptr;
+    int    capacity = 0;
+
+    double *d_px, *d_py, *d_pz;
+    double *d_vx, *d_vy, *d_vz;
+    double *d_amp;
+    double *d_amp0, *d_dph0, *d_amp1, *d_dph1;
+    int    *d_state;
+
+    void ensure(int N) {
+        if (N <= capacity) return;
+        if (block) { cudaFree(block); block = nullptr; }
+
+        // 11 double arrays + state ints packed after the doubles (double-aligned).
+        size_t totalBytes = 11 * (size_t)N * sizeof(double)
+                          +      (size_t)N * sizeof(int);
+        CUDA_CHECK(cudaMalloc(&block, totalBytes));
+
+        double* base = static_cast<double*>(block);
+        d_px    = base +  0 * N;
+        d_py    = base +  1 * N;
+        d_pz    = base +  2 * N;
+        d_vx    = base +  3 * N;
+        d_vy    = base +  4 * N;
+        d_vz    = base +  5 * N;
+        d_amp   = base +  6 * N;
+        d_amp0  = base +  7 * N;
+        d_dph0  = base +  8 * N;
+        d_amp1  = base +  9 * N;
+        d_dph1  = base + 10 * N;
+        d_state = reinterpret_cast<int*>(base + 11 * N);  // double-aligned boundary
+        capacity = N;
+    }
+
+    ~PulseDeviceBuffers() { if (block) cudaFree(block); }
+};
+
+static PulseDeviceBuffers s_pulseBufs;
+
+// ---------------------------------------------------------------------------
 // launchU3UltraFastKernel — host-side wrapper (declared in the .hh)
 //
-// Manages device memory allocation, H2D transfer, kernel launch, D2H transfer.
+// Uses persistent device buffers to avoid per-call cudaMalloc/cudaFree.
 // Input arrays are host pointers; output arrays are host pointers.
 // ---------------------------------------------------------------------------
 void launchU3UltraFastKernel(
@@ -188,63 +237,40 @@ void launchU3UltraFastKernel(
 {
     if (N == 0) return;
 
-    // --- Allocate device memory ---
-    double *d_px, *d_py, *d_pz;
-    double *d_vx, *d_vy, *d_vz;
-    double *d_amp;
-    int    *d_state;
-    double *d_amp0, *d_dph0, *d_amp1, *d_dph1;
+    // --- Ensure device buffers are large enough (no-op if N hasn't grown) ---
+    s_pulseBufs.ensure(N);
 
     size_t szD = N * sizeof(double);
     size_t szI = N * sizeof(int);
 
-    CUDA_CHECK(cudaMalloc(&d_px,    szD));
-    CUDA_CHECK(cudaMalloc(&d_py,    szD));
-    CUDA_CHECK(cudaMalloc(&d_pz,    szD));
-    CUDA_CHECK(cudaMalloc(&d_vx,    szD));
-    CUDA_CHECK(cudaMalloc(&d_vy,    szD));
-    CUDA_CHECK(cudaMalloc(&d_vz,    szD));
-    CUDA_CHECK(cudaMalloc(&d_amp,   szD));
-    CUDA_CHECK(cudaMalloc(&d_state, szI));
-    CUDA_CHECK(cudaMalloc(&d_amp0,  szD));
-    CUDA_CHECK(cudaMalloc(&d_dph0,  szD));
-    CUDA_CHECK(cudaMalloc(&d_amp1,  szD));
-    CUDA_CHECK(cudaMalloc(&d_dph1,  szD));
-
     // --- Copy inputs H→D ---
-    CUDA_CHECK(cudaMemcpy(d_px,    pos_x,    szD, cudaMemcpyHostToDevice));
-    CUDA_CHECK(cudaMemcpy(d_py,    pos_y,    szD, cudaMemcpyHostToDevice));
-    CUDA_CHECK(cudaMemcpy(d_pz,    pos_z,    szD, cudaMemcpyHostToDevice));
-    CUDA_CHECK(cudaMemcpy(d_vx,    vel_x,    szD, cudaMemcpyHostToDevice));
-    CUDA_CHECK(cudaMemcpy(d_vy,    vel_y,    szD, cudaMemcpyHostToDevice));
-    CUDA_CHECK(cudaMemcpy(d_vz,    vel_z,    szD, cudaMemcpyHostToDevice));
-    CUDA_CHECK(cudaMemcpy(d_amp,   amp_in,   szD, cudaMemcpyHostToDevice));
-    CUDA_CHECK(cudaMemcpy(d_state, state_in, szI, cudaMemcpyHostToDevice));
+    CUDA_CHECK(cudaMemcpy(s_pulseBufs.d_px,    pos_x,    szD, cudaMemcpyHostToDevice));
+    CUDA_CHECK(cudaMemcpy(s_pulseBufs.d_py,    pos_y,    szD, cudaMemcpyHostToDevice));
+    CUDA_CHECK(cudaMemcpy(s_pulseBufs.d_pz,    pos_z,    szD, cudaMemcpyHostToDevice));
+    CUDA_CHECK(cudaMemcpy(s_pulseBufs.d_vx,    vel_x,    szD, cudaMemcpyHostToDevice));
+    CUDA_CHECK(cudaMemcpy(s_pulseBufs.d_vy,    vel_y,    szD, cudaMemcpyHostToDevice));
+    CUDA_CHECK(cudaMemcpy(s_pulseBufs.d_vz,    vel_z,    szD, cudaMemcpyHostToDevice));
+    CUDA_CHECK(cudaMemcpy(s_pulseBufs.d_amp,   amp_in,   szD, cudaMemcpyHostToDevice));
+    CUDA_CHECK(cudaMemcpy(s_pulseBufs.d_state, state_in, szI, cudaMemcpyHostToDevice));
 
     // --- Launch kernel ---
     int blockSize = 256;
     int gridSize  = (N + blockSize - 1) / blockSize;
     applyU3UltraFastKernel<<<gridSize, blockSize>>>(
-        d_px, d_py, d_pz,
-        d_vx, d_vy, d_vz,
-        d_amp, d_state,
-        d_amp0, d_dph0, d_amp1, d_dph1,
+        s_pulseBufs.d_px,  s_pulseBufs.d_py,  s_pulseBufs.d_pz,
+        s_pulseBufs.d_vx,  s_pulseBufs.d_vy,  s_pulseBufs.d_vz,
+        s_pulseBufs.d_amp, s_pulseBufs.d_state,
+        s_pulseBufs.d_amp0, s_pulseBufs.d_dph0,
+        s_pulseBufs.d_amp1, s_pulseBufs.d_dph1,
         bp, N);
     CUDA_CHECK(cudaGetLastError());
     CUDA_CHECK(cudaDeviceSynchronize());
 
     // --- Copy outputs D→H ---
-    CUDA_CHECK(cudaMemcpy(amp0_out,    d_amp0, szD, cudaMemcpyDeviceToHost));
-    CUDA_CHECK(cudaMemcpy(dphase0_out, d_dph0, szD, cudaMemcpyDeviceToHost));
-    CUDA_CHECK(cudaMemcpy(amp1_out,    d_amp1, szD, cudaMemcpyDeviceToHost));
-    CUDA_CHECK(cudaMemcpy(dphase1_out, d_dph1, szD, cudaMemcpyDeviceToHost));
-
-    // --- Free device memory ---
-    cudaFree(d_px);  cudaFree(d_py);  cudaFree(d_pz);
-    cudaFree(d_vx);  cudaFree(d_vy);  cudaFree(d_vz);
-    cudaFree(d_amp); cudaFree(d_state);
-    cudaFree(d_amp0); cudaFree(d_dph0);
-    cudaFree(d_amp1); cudaFree(d_dph1);
+    CUDA_CHECK(cudaMemcpy(amp0_out,    s_pulseBufs.d_amp0, szD, cudaMemcpyDeviceToHost));
+    CUDA_CHECK(cudaMemcpy(dphase0_out, s_pulseBufs.d_dph0, szD, cudaMemcpyDeviceToHost));
+    CUDA_CHECK(cudaMemcpy(amp1_out,    s_pulseBufs.d_amp1, szD, cudaMemcpyDeviceToHost));
+    CUDA_CHECK(cudaMemcpy(dphase1_out, s_pulseBufs.d_dph1, szD, cudaMemcpyDeviceToHost));
 }
 
 // ---------------------------------------------------------------------------
@@ -321,10 +347,12 @@ void AISPulsePropagator::PropagateEnsembleGPU(
     }
 
     // ----------------------------------------------------------------
-    // Step 1: Apply U2 (CPU, serial).
+    // Step 1: Apply U2 — parallel over atoms.
     //   U2 only modifies state==1 wavepackets and uses quad arithmetic.
     //   Also set posStar/velStar which are used later in U2Dagger/U1.
+    //   Each atom is fully independent so this is embarrassingly parallel.
     // ----------------------------------------------------------------
+    #pragma omp parallel for schedule(static)
     for (int a = 0; a < nAtoms; ++a) {
         auto& atom = atomEnsemble->GetAtom(a);
         for (int j = 0; j < atom->GetNumberOfWavePackets(); ++j) {
@@ -336,32 +364,41 @@ void AISPulsePropagator::PropagateEnsembleGPU(
     }
 
     // ----------------------------------------------------------------
-    // Step 2: Flatten all wavepackets across all atoms into SoA arrays.
+    // Step 2: Compute per-atom WP offsets, then flatten into SoA arrays.
+    //   Offset array lets the flatten and unpack loops run in parallel
+    //   without a shared sequential counter.
+    //   WP counts are gathered in parallel (OMP) to avoid serial pointer-
+    //   chasing over the atom list; the prefix sum over plain ints is fast.
     // ----------------------------------------------------------------
-    struct WPKey { int atomIdx; int wpIdx; };
-    std::vector<WPKey> workList;
-    workList.reserve(nAtoms * 4); // typical: up to 4 wavepackets per atom
-    for (int a = 0; a < nAtoms; ++a) {
-        int nWP = atomEnsemble->GetAtom(a)->GetNumberOfWavePackets();
-        for (int j = 0; j < nWP; ++j)
-            workList.push_back({a, j});
-    }
-    int N = (int)workList.size();
+    std::vector<int> wpCounts(nAtoms);
+    #pragma omp parallel for schedule(static)
+    for (int a = 0; a < nAtoms; ++a)
+        wpCounts[a] = atomEnsemble->GetAtom(a)->GetNumberOfWavePackets();
+
+    std::vector<int> atomOffset(nAtoms + 1, 0);
+    for (int a = 0; a < nAtoms; ++a)
+        atomOffset[a + 1] = atomOffset[a] + wpCounts[a];
+    int N = atomOffset[nAtoms];
 
     std::vector<double> h_px(N), h_py(N), h_pz(N);
     std::vector<double> h_vx(N), h_vy(N), h_vz(N);
     std::vector<double> h_amp(N);
     std::vector<int>    h_state(N);
 
-    for (int i = 0; i < N; ++i) {
-        auto& wp  = atomEnsemble->GetAtom(workList[i].atomIdx)
-                               ->GetWavePacket(workList[i].wpIdx);
-        auto pos  = wp->GetPosition();
-        auto vel  = wp->GetVelocity();
-        h_px[i]   = pos[0]; h_py[i] = pos[1]; h_pz[i] = pos[2];
-        h_vx[i]   = vel[0]; h_vy[i] = vel[1]; h_vz[i] = vel[2];
-        h_amp[i]  = wp->GetAmplitude();
-        h_state[i]= wp->GetState();
+    #pragma omp parallel for schedule(static)
+    for (int a = 0; a < nAtoms; ++a) {
+        int base = atomOffset[a];
+        auto& atom = atomEnsemble->GetAtom(a);
+        for (int j = 0; j < atom->GetNumberOfWavePackets(); ++j) {
+            int i = base + j;
+            auto& wp = atom->GetWavePacket(j);
+            auto pos = wp->GetPosition();
+            auto vel = wp->GetVelocity();
+            h_px[i] = pos[0]; h_py[i] = pos[1]; h_pz[i] = pos[2];
+            h_vx[i] = vel[0]; h_vy[i] = vel[1]; h_vz[i] = vel[2];
+            h_amp[i]   = wp->GetAmplitude();
+            h_state[i] = wp->GetState();
+        }
     }
 
     // ----------------------------------------------------------------
@@ -378,18 +415,33 @@ void AISPulsePropagator::PropagateEnsembleGPU(
         bp, N);
 
     // ----------------------------------------------------------------
-    // Step 4: Unpack GPU results, create daughter wavepackets, and
-    //         apply post-processing (path selection, cutoff) — CPU, per atom.
-    //         Mirrors the inner loop of PropagateAtom() exactly.
+    // Step 4+5: Unpack GPU results, create daughter wavepackets, apply
+    //   post-processing and inverse transforms — parallel over atoms.
+    //   Each atom's newWavePackets vector is local, so no data races.
+    //
+    // Fast-path optimisation: when no MC branching, path selection, or
+    // det-vol selection is active (the common case), we skip the per-WP
+    // tempVec allocation entirely and inline the amplitude cutoff.
+    // A thread_local accumulator retains its heap buffer across atoms
+    // handled by the same thread, eliminating repeated resize costs.
     // ----------------------------------------------------------------
-    int flatIdx = 0;
+    const bool fastPath = !this->useMcBranching &&
+                          !this->usePathSelection &&
+                          !this->useDetVolSelection;
+
+    #pragma omp parallel for schedule(dynamic, 64)
     for (int a = 0; a < nAtoms; ++a) {
+        int base   = atomOffset[a];
         auto& atom = atomEnsemble->GetAtom(a);
         int nWP    = atom->GetNumberOfWavePackets();
 
-        std::unique_ptr<wavePacketVector> newWavePackets(new wavePacketVector);
+        // Thread-local accumulator: clear() keeps the heap buffer alive
+        // across atoms on the same thread, amortising resize allocations.
+        thread_local wavePacketVector tl_newWPs;
+        tl_newWPs.clear();
 
-        for (int j = 0; j < nWP; ++j, ++flatIdx) {
+        for (int j = 0; j < nWP; ++j) {
+            int flatIdx = base + j;
             auto& wp0 = atom->GetWavePacket(j);
 
             // Build wavepacket1 (the "flip-state" daughter)
@@ -410,7 +462,6 @@ void AISPulsePropagator::PropagateEnsembleGPU(
             bool willInterf       = wp0->GetWillInterfere();
             int  st               = wp0->GetState();
 
-            // Determine path suffixes (same logic as ApplyU3UltraFast)
             char keepSuffix = (st == 0) ? '0' : '1';
             char flipSuffix = (st == 0) ? '1' : '0';
 
@@ -422,12 +473,11 @@ void AISPulsePropagator::PropagateEnsembleGPU(
             wp0->SetVelStar(velStar);
             wp0->SetDetectablePaths(detectPaths);
             wp0->SetWillInterfere(willInterf);
-            // wp0 state unchanged (keep-state)
 
             // --- Populate wavepacket1 (flip-state) ---
             wp1->SetAmplitude(h_amp1[flatIdx]);
             wp1->SetPhaseDouble(curPhaseD + h_dph1[flatIdx]);
-            wp1->SetPhaseQuad(curPhaseQ);   // quad phase carried unchanged
+            wp1->SetPhaseQuad(curPhaseQ);
             wp1->SetState(1 - st);
             wp1->SetPosition(pos);
             wp1->SetVelocity(vel);
@@ -437,33 +487,38 @@ void AISPulsePropagator::PropagateEnsembleGPU(
             wp1->SetDetectablePaths(detectPaths);
             wp1->SetWillInterfere(willInterf);
 
-            // --- Post-processing (identical to CPU PropagateAtom) ---
-            std::unique_ptr<wavePacketVector> tempVec(new wavePacketVector);
-            tempVec->push_back(std::move(wp0));
-            tempVec->push_back(std::move(wp1));
-
-            if (this->useMcBranching)   ApplyMCBranching(tempVec);
-            if (this->usePathSelection) ApplyPathSelection(tempVec, pathsToSimulate);
-            if (this->useDetVolSelection) ApplyDetVolSelection(tempVec);
-            ApplyCutoff(tempVec);
-
-            for (auto& wp : *tempVec)
-                newWavePackets->push_back(std::move(wp));
+            if (fastPath) {
+                // Inline amplitude cutoff — avoids two 'new wavePacketVector'
+                // per WP (one for tempVec, one inside ApplyCutoff).
+                if (std::abs(h_amp0[flatIdx]) > this->amplitudeThreshold)
+                    tl_newWPs.push_back(std::move(wp0));
+                if (std::abs(h_amp1[flatIdx]) > this->amplitudeThreshold)
+                    tl_newWPs.push_back(std::move(wp1));
+            } else {
+                // Slow path: Apply* filters require unique_ptr<wavePacketVector>.
+                std::unique_ptr<wavePacketVector> tempVec(new wavePacketVector);
+                tempVec->push_back(std::move(wp0));
+                tempVec->push_back(std::move(wp1));
+                if (this->useMcBranching)     ApplyMCBranching(tempVec);
+                if (this->usePathSelection)   ApplyPathSelection(tempVec, pathsToSimulate);
+                if (this->useDetVolSelection) ApplyDetVolSelection(tempVec);
+                ApplyCutoff(tempVec);
+                for (auto& wp : *tempVec)
+                    tl_newWPs.push_back(std::move(wp));
+            }
         }
 
-        // ----------------------------------------------------------------
-        // Step 5: Inverse transformations — CPU, same as PropagateAtom Step 2.
-        //         U2†, U1 both involve quad phases and must stay on CPU.
-        // ----------------------------------------------------------------
-        for (int k = 0; k < (int)newWavePackets->size(); ++k) {
-            auto& wp = newWavePackets->at(k);
+        // --- Step 5: Inverse transforms (U2†, U1) — quad phases, must be CPU ---
+        for (auto& wp : tl_newWPs) {
             ApplyU2Dagger(wp, this->initTime, this->finalTime);
             ApplyU1(wp, this->finalTime, this->initTime);
             wp->SetTime(this->finalTime);
         }
 
-        // Rebuild atom's wavepacket list
-        atom->DeleteWavePackets();
-        atom->AddWavePackets(newWavePackets);
+        // Transfer tl_newWPs to atom ownership via buffer swap.
+        // SwapWavePackets: destroys old WPs in atom, swaps buffers so the atom
+        // holds the new WPs and tl_newWPs gets the old empty buffer back —
+        // no heap allocation, and tl_newWPs retains its capacity for the next atom.
+        atom->SwapWavePackets(tl_newWPs);
     }
 }

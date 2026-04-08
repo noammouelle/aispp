@@ -82,15 +82,10 @@ void AISKinematicPropagator::SetAddEnergyPhase(bool addEnergyPhase)
 
 void AISKinematicPropagator::PropagateEnsemble(std::unique_ptr<AISAtomEnsemble>& atomEnsemble, __float128 t1)
 {
-#ifdef USE_CUDA
-    // GPU path: ultrafast mode + constant-acceleration potential (zero or linear gravity).
-    // For quadratic_pot (position-dependent force) we fall back to CPU — the force
-    // is not constant, so the analytic update does not apply.
-    if (ultraFast && (potentialType == "zero_pot" || potentialType == "linear_pot")) {
-        PropagateEnsembleGPU(atomEnsemble, t1);
-        return;
-    }
-#endif
+    // Kinematic propagation (12 FLOPs/WP) has arithmetic intensity far below
+    // the PCIe break-even point.  The CPU analytic path below (zero/linear_pot
+    // fast-path in CalculateNewPhaseSpaceCoords) is faster than any GPU kernel
+    // would be when accounting for H2D + D2H transfer overhead.
     #pragma omp parallel for
     for(int i_atom = 0; i_atom < atomEnsemble->GetNumberOfAtoms(); ++i_atom)
     {
@@ -219,9 +214,25 @@ void AISKinematicPropagator::PropagateWavePacketLinearized(std::unique_ptr<AISWa
     wavePacket->SetTime(t1);
 }
 
-std::array<doubleThreeVector, 2> AISKinematicPropagator::CalculateNewPhaseSpaceCoords(const double& t0, const double& t1, 
+std::array<doubleThreeVector, 2> AISKinematicPropagator::CalculateNewPhaseSpaceCoords(const double& t0, const double& t1,
                                                                                   const doubleThreeVector& pos0, const doubleThreeVector& vel0)
 {
+    // Analytic fast-path for constant-acceleration potentials (zero_pot / linear_pot).
+    // The exact trajectory is pos(t1) = pos0 + vel0*dt + 0.5*a*dt^2,
+    //                          vel(t1) = vel0 + a*dt.
+    if (potentialType == "zero_pot" || potentialType == "linear_pot") {
+        double dt = t1 - t0;
+        const auto& a = constAcceleration;
+        double half_dt2 = 0.5 * dt * dt;
+        doubleThreeVector newPos = {pos0[0] + vel0[0]*dt + a[0]*half_dt2,
+                                    pos0[1] + vel0[1]*dt + a[1]*half_dt2,
+                                    pos0[2] + vel0[2]*dt + a[2]*half_dt2};
+        doubleThreeVector newVel = {vel0[0] + a[0]*dt,
+                                    vel0[1] + a[1]*dt,
+                                    vel0[2] + a[2]*dt};
+        return {newPos, newVel};
+    }
+
     // define the ode system
     gsl_odeiv2_system sys = {func, nullptr, 6, this};
     // setup the driver
@@ -232,7 +243,7 @@ std::array<doubleThreeVector, 2> AISKinematicPropagator::CalculateNewPhaseSpaceC
     gsl_odeiv2_driver_alloc_y_new (&sys, gsl_odeiv2_step_rk8pd,
                                   hstart, abstol, reltol);
     double y[6] = {pos0[0], pos0[1], pos0[2], vel0[0], vel0[1], vel0[2]};
-    
+
     double t_start = t0;
     int status = gsl_odeiv2_driver_apply(d, &t_start, t1, y);
     if (status != GSL_SUCCESS)
@@ -247,7 +258,7 @@ std::array<doubleThreeVector, 2> AISKinematicPropagator::CalculateNewPhaseSpaceC
     return {newPos, newVel};
 }
 
-std::array<doubleThreeVector, 2> AISKinematicPropagator::CalculateNewPhaseSpaceCoordsLinearized(const double& t0, const double& t1, 
+std::array<doubleThreeVector, 2> AISKinematicPropagator::CalculateNewPhaseSpaceCoordsLinearized(const double& t0, const double& t1,
                                                                                   const doubleThreeVector& pos0, const doubleThreeVector& vel0,
                                                                                   const doubleThreeVector& posStar, const doubleThreeVector& velStar)
 {   // check if t0 == t1 (can happen here)
@@ -255,6 +266,20 @@ std::array<doubleThreeVector, 2> AISKinematicPropagator::CalculateNewPhaseSpaceC
     {
         return {pos0, vel0};
     }
+
+    // Analytic fast-path: for zero_pot/linear_pot all second derivatives of U vanish,
+    // so the linearized Hamilton equations reduce to the same as the full equations:
+    //   δr_dot = δv,  δv_dot = 0
+    // giving δr(t1) = δr(t0) + δv(t0)*dt,  δv(t1) = δv(t0).
+    // When called with pos0={0,0,0}, vel0={0,0,0} this returns Xi={0,0,0}.
+    if (potentialType == "zero_pot" || potentialType == "linear_pot") {
+        double dt = t1 - t0;
+        doubleThreeVector newPos = {pos0[0] + vel0[0]*dt,
+                                    pos0[1] + vel0[1]*dt,
+                                    pos0[2] + vel0[2]*dt};
+        return {newPos, vel0};
+    }
+
     else
     {
     // define the ode system
@@ -459,9 +484,21 @@ std::array<double,2> AISKinematicPropagator::get_dScl(const double& t0, const do
     return {result, error};
 }
 
-std::tuple<double3x3Matrix, double3x3Matrix, doubleThreeVector> AISKinematicPropagator::get_ABXi(const double& t0, const double& t1, 
+std::tuple<double3x3Matrix, double3x3Matrix, doubleThreeVector> AISKinematicPropagator::get_ABXi(const double& t0, const double& t1,
                                                                              const doubleThreeVector& posStar, const doubleThreeVector& velStar)
 {
+    // Analytic fast-path: for zero_pot/linear_pot all second derivatives of U vanish.
+    // The linearized propagator reduces to: δpos(t1) = δpos(t0) + dt*δvel(t0),
+    //                                       δvel(t1) = δvel(t0).
+    // So A = I, B = dt*I, Xi = 0.
+    if (potentialType == "zero_pot" || potentialType == "linear_pot") {
+        double dt = t1 - t0;
+        double3x3Matrix A = {{{1,0,0},{0,1,0},{0,0,1}}};
+        double3x3Matrix B = {{{dt,0,0},{0,dt,0},{0,0,dt}}};
+        doubleThreeVector Xi = {0,0,0};
+        return {A, B, Xi};
+    }
+
     // Compute the A, B and Xi matrices
 
     // get the hessians

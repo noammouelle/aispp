@@ -74,6 +74,34 @@ __global__ void kinematicPropagateKernel(
 }
 
 // ---------------------------------------------------------------------------
+// Persistent device-side storage for kinematic propagator.
+//
+// All 6 double arrays packed into a single cudaMalloc.  Grown as needed,
+// never shrunk — eliminates per-call malloc/free overhead.
+// ---------------------------------------------------------------------------
+struct KinematicDeviceBuffers {
+    void*  block    = nullptr;
+    int    capacity = 0;
+
+    double *d_px, *d_py, *d_pz;
+    double *d_vx, *d_vy, *d_vz;
+
+    void ensure(int N) {
+        if (N <= capacity) return;
+        if (block) { cudaFree(block); block = nullptr; }
+        CUDA_CHECK(cudaMalloc(&block, 6 * (size_t)N * sizeof(double)));
+        double* base = static_cast<double*>(block);
+        d_px = base + 0 * N;  d_py = base + 1 * N;  d_pz = base + 2 * N;
+        d_vx = base + 3 * N;  d_vy = base + 4 * N;  d_vz = base + 5 * N;
+        capacity = N;
+    }
+
+    ~KinematicDeviceBuffers() { if (block) cudaFree(block); }
+};
+
+static KinematicDeviceBuffers s_kinBufs;
+
+// ---------------------------------------------------------------------------
 // launchKinematicKernel — host-side wrapper (declared in the .hh)
 // ---------------------------------------------------------------------------
 void launchKinematicKernel(
@@ -85,38 +113,35 @@ void launchKinematicKernel(
 {
     if (N == 0) return;
 
+    // --- Ensure device buffers are large enough (no-op if N hasn't grown) ---
+    s_kinBufs.ensure(N);
+
     size_t sz = N * sizeof(double);
 
-    double *d_px, *d_py, *d_pz, *d_vx, *d_vy, *d_vz;
-    CUDA_CHECK(cudaMalloc(&d_px, sz)); CUDA_CHECK(cudaMalloc(&d_py, sz));
-    CUDA_CHECK(cudaMalloc(&d_pz, sz)); CUDA_CHECK(cudaMalloc(&d_vx, sz));
-    CUDA_CHECK(cudaMalloc(&d_vy, sz)); CUDA_CHECK(cudaMalloc(&d_vz, sz));
-
     // H→D
-    CUDA_CHECK(cudaMemcpy(d_px, pos_x, sz, cudaMemcpyHostToDevice));
-    CUDA_CHECK(cudaMemcpy(d_py, pos_y, sz, cudaMemcpyHostToDevice));
-    CUDA_CHECK(cudaMemcpy(d_pz, pos_z, sz, cudaMemcpyHostToDevice));
-    CUDA_CHECK(cudaMemcpy(d_vx, vel_x, sz, cudaMemcpyHostToDevice));
-    CUDA_CHECK(cudaMemcpy(d_vy, vel_y, sz, cudaMemcpyHostToDevice));
-    CUDA_CHECK(cudaMemcpy(d_vz, vel_z, sz, cudaMemcpyHostToDevice));
+    CUDA_CHECK(cudaMemcpy(s_kinBufs.d_px, pos_x, sz, cudaMemcpyHostToDevice));
+    CUDA_CHECK(cudaMemcpy(s_kinBufs.d_py, pos_y, sz, cudaMemcpyHostToDevice));
+    CUDA_CHECK(cudaMemcpy(s_kinBufs.d_pz, pos_z, sz, cudaMemcpyHostToDevice));
+    CUDA_CHECK(cudaMemcpy(s_kinBufs.d_vx, vel_x, sz, cudaMemcpyHostToDevice));
+    CUDA_CHECK(cudaMemcpy(s_kinBufs.d_vy, vel_y, sz, cudaMemcpyHostToDevice));
+    CUDA_CHECK(cudaMemcpy(s_kinBufs.d_vz, vel_z, sz, cudaMemcpyHostToDevice));
 
     int blockSize = 256;
     int gridSize  = (N + blockSize - 1) / blockSize;
     kinematicPropagateKernel<<<gridSize, blockSize>>>(
-        d_px, d_py, d_pz, d_vx, d_vy, d_vz, ax, ay, az, dt, N);
+        s_kinBufs.d_px, s_kinBufs.d_py, s_kinBufs.d_pz,
+        s_kinBufs.d_vx, s_kinBufs.d_vy, s_kinBufs.d_vz,
+        ax, ay, az, dt, N);
     CUDA_CHECK(cudaGetLastError());
     CUDA_CHECK(cudaDeviceSynchronize());
 
     // D→H
-    CUDA_CHECK(cudaMemcpy(pos_x, d_px, sz, cudaMemcpyDeviceToHost));
-    CUDA_CHECK(cudaMemcpy(pos_y, d_py, sz, cudaMemcpyDeviceToHost));
-    CUDA_CHECK(cudaMemcpy(pos_z, d_pz, sz, cudaMemcpyDeviceToHost));
-    CUDA_CHECK(cudaMemcpy(vel_x, d_vx, sz, cudaMemcpyDeviceToHost));
-    CUDA_CHECK(cudaMemcpy(vel_y, d_vy, sz, cudaMemcpyDeviceToHost));
-    CUDA_CHECK(cudaMemcpy(vel_z, d_vz, sz, cudaMemcpyDeviceToHost));
-
-    cudaFree(d_px); cudaFree(d_py); cudaFree(d_pz);
-    cudaFree(d_vx); cudaFree(d_vy); cudaFree(d_vz);
+    CUDA_CHECK(cudaMemcpy(pos_x, s_kinBufs.d_px, sz, cudaMemcpyDeviceToHost));
+    CUDA_CHECK(cudaMemcpy(pos_y, s_kinBufs.d_py, sz, cudaMemcpyDeviceToHost));
+    CUDA_CHECK(cudaMemcpy(pos_z, s_kinBufs.d_pz, sz, cudaMemcpyDeviceToHost));
+    CUDA_CHECK(cudaMemcpy(vel_x, s_kinBufs.d_vx, sz, cudaMemcpyDeviceToHost));
+    CUDA_CHECK(cudaMemcpy(vel_y, s_kinBufs.d_vy, sz, cudaMemcpyDeviceToHost));
+    CUDA_CHECK(cudaMemcpy(vel_z, s_kinBufs.d_vz, sz, cudaMemcpyDeviceToHost));
 }
 
 // ---------------------------------------------------------------------------
@@ -161,26 +186,31 @@ void AISKinematicPropagator::PropagateEnsembleGPU(
     // ----------------------------------------------------------------
     // Step 1: flatten all wavepackets into host arrays
     // ----------------------------------------------------------------
-    // Count total wavepackets
-    int totalWP = 0;
+    // Gather WP counts in parallel, then build prefix-sum offsets.
+    std::vector<int> wpCounts(nAtoms);
+    #pragma omp parallel for schedule(static)
     for (int a = 0; a < nAtoms; ++a)
-        totalWP += atomEnsemble->GetAtom(a)->GetNumberOfWavePackets();
+        wpCounts[a] = atomEnsemble->GetAtom(a)->GetNumberOfWavePackets();
+
+    std::vector<int> atomOffset(nAtoms + 1, 0);
+    for (int a = 0; a < nAtoms; ++a)
+        atomOffset[a + 1] = atomOffset[a] + wpCounts[a];
+    int totalWP = atomOffset[nAtoms];
 
     std::vector<double> h_px(totalWP), h_py(totalWP), h_pz(totalWP);
     std::vector<double> h_vx(totalWP), h_vy(totalWP), h_vz(totalWP);
 
-    {
-        int idx = 0;
-        for (int a = 0; a < nAtoms; ++a) {
-            auto& atom = atomEnsemble->GetAtom(a);
-            int nWP = atom->GetNumberOfWavePackets();
-            for (int j = 0; j < nWP; ++j, ++idx) {
-                auto& wp = atom->GetWavePacket(j);
-                auto pos = wp->GetPosition();
-                auto vel = wp->GetVelocity();
-                h_px[idx] = pos[0]; h_py[idx] = pos[1]; h_pz[idx] = pos[2];
-                h_vx[idx] = vel[0]; h_vy[idx] = vel[1]; h_vz[idx] = vel[2];
-            }
+    #pragma omp parallel for schedule(static)
+    for (int a = 0; a < nAtoms; ++a) {
+        int base = atomOffset[a];
+        auto& atom = atomEnsemble->GetAtom(a);
+        for (int j = 0; j < wpCounts[a]; ++j) {
+            int idx = base + j;
+            auto& wp = atom->GetWavePacket(j);
+            auto pos = wp->GetPosition();
+            auto vel = wp->GetVelocity();
+            h_px[idx] = pos[0]; h_py[idx] = pos[1]; h_pz[idx] = pos[2];
+            h_vx[idx] = vel[0]; h_vy[idx] = vel[1]; h_vz[idx] = vel[2];
         }
     }
 
@@ -195,24 +225,23 @@ void AISKinematicPropagator::PropagateEnsembleGPU(
     // ----------------------------------------------------------------
     // Step 3: write updated pos/vel back + quad phase update (CPU) + timestamp
     // ----------------------------------------------------------------
-    {
-        int idx = 0;
-        for (int a = 0; a < nAtoms; ++a) {
-            auto& atom = atomEnsemble->GetAtom(a);
-            int nWP = atom->GetNumberOfWavePackets();
-            for (int j = 0; j < nWP; ++j, ++idx) {
-                auto& wp = atom->GetWavePacket(j);
+    #pragma omp parallel for schedule(static)
+    for (int a = 0; a < nAtoms; ++a) {
+        int base = atomOffset[a];
+        auto& atom = atomEnsemble->GetAtom(a);
+        for (int j = 0; j < wpCounts[a]; ++j) {
+            int idx = base + j;
+            auto& wp = atom->GetWavePacket(j);
 
-                wp->SetPosition({h_px[idx], h_py[idx], h_pz[idx]});
-                wp->SetVelocity({h_vx[idx], h_vy[idx], h_vz[idx]});
+            wp->SetPosition({h_px[idx], h_py[idx], h_pz[idx]});
+            wp->SetVelocity({h_vx[idx], h_vy[idx], h_vz[idx]});
 
-                // phaseDouble is unchanged in ultrafast mode (no action phase)
-                // phaseQuad: same scalar subtracted from all state==1 wavepackets
-                if (wp->GetState() == 1)
-                    wp->SetPhaseQuad(wp->GetPhaseQuad() - phaseQuadDelta);
+            // phaseDouble is unchanged in ultrafast mode (no action phase)
+            // phaseQuad: same scalar subtracted from all state==1 wavepackets
+            if (wp->GetState() == 1)
+                wp->SetPhaseQuad(wp->GetPhaseQuad() - phaseQuadDelta);
 
-                wp->SetTime(t1);
-            }
+            wp->SetTime(t1);
         }
     }
 }

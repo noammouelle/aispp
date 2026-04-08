@@ -1,4 +1,45 @@
 #include "AISWavePacket.hh"
+#include <vector>
+
+// ---------------------------------------------------------------------------
+// Thread-local free-list pool for AISWavePacket allocations.
+//
+// Why: each simulated pulse creates O(N_atoms) wavepackets via
+//   std::unique_ptr<AISWavePacket> wp1(new AISWavePacket())
+// With 24+ OMP threads all calling malloc simultaneously, lock contention
+// on the global allocator dominates the per-pulse time.
+//
+// Solution: operator new/delete on AISWavePacket route through a per-thread
+// free list.  After the first pulse warms up the pool, every subsequent
+// allocation is just a vector pop_back — no lock, no syscall.
+//
+// The pool is cleaned up automatically when each thread exits.
+// ---------------------------------------------------------------------------
+namespace {
+    struct WPFreeList {
+        std::vector<void*> pool;
+        ~WPFreeList() {
+            for (void* p : pool) ::operator delete(p);
+        }
+    };
+    thread_local WPFreeList g_wpPool;
+}
+
+void* AISWavePacket::operator new(std::size_t sz)
+{
+    auto& pool = g_wpPool.pool;
+    if (!pool.empty()) {
+        void* p = pool.back();
+        pool.pop_back();
+        return p;
+    }
+    return ::operator new(sz);
+}
+
+void AISWavePacket::operator delete(void* p) noexcept
+{
+    if (p) g_wpPool.pool.push_back(p);
+}
 
 AISWavePacket::AISWavePacket(){};
 AISWavePacket::~AISWavePacket(){};

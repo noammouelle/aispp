@@ -22,6 +22,11 @@ public:
     void DeleteWavePackets();
     void AddWavePackets(std::unique_ptr<wavePacketVector>& newWavePacketVector);
 
+    // Swap the atom's WP buffer with newWPs in-place: old WPs are destroyed,
+    // atom gets newWPs' contents, newWPs gets the old (now-empty) buffer back.
+    // No heap allocation — reuses the existing fpWavePacketVector object.
+    void SwapWavePackets(wavePacketVector& newWPs);
+
 private:
     std::unique_ptr<wavePacketVector> fpWavePacketVector;
 };
