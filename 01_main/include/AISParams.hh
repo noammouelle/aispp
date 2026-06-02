@@ -64,6 +64,15 @@ public:
     // Output parameters
     bool printPorts;
     bool printWavePackets;
+
+    // Phase space grid parameters (used when usePhaseSpaceGrid = true)
+    bool usePhaseSpaceGrid = false;
+    double xGridMin = 0.0,  xGridMax = 0.0;  int nGridX = 1;
+    double yGridMin = 0.0,  yGridMax = 0.0;  int nGridY = 1;
+    double zGridMin = 0.0,  zGridMax = 0.0;  int nGridZ = 1;
+    double vxGridMin = 0.0, vxGridMax = 0.0; int nGridVX = 1;
+    double vyGridMin = 0.0, vyGridMax = 0.0; int nGridVY = 1;
+    double vzGridMin = 0.0, vzGridMax = 0.0; int nGridVZ = 1;
 };
 
 

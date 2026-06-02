@@ -19,6 +19,15 @@ public:
     AISAtomEnsemble(int nAtoms, double transtemperature, double longtemp, double width,
                     doubleThreeVector initialPosition, doubleThreeVector initialVelocity,
                     double seed, int initialState);
+
+    AISAtomEnsemble(double xMin,  double xMax,  int nx,
+                    double yMin,  double yMax,  int ny,
+                    double zMin,  double zMax,  int nz,
+                    double vxMin, double vxMax, int nvx,
+                    double vyMin, double vyMax, int nvy,
+                    double vzMin, double vzMax, int nvz,
+                    int initialState);
+
     ~AISAtomEnsemble();
 
     __float128 omega0 = 2 * pi128 * c / 689 * pow(10, 9);

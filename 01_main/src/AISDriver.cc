@@ -3,9 +3,20 @@
 AISDriver::AISDriver(AISParams params)
 {   
     // create the atom ensemble
-    atomEnsemble = std::make_unique<AISAtomEnsemble>(params.nAtoms, params.cloudTransTemperature, params.cloudLongTemperature, params.cloudRadius,
-                                                     params.initialPosition, params.initialVelocity,
-                                                     params.seed, params.initialState);
+    if (params.usePhaseSpaceGrid) {
+        atomEnsemble = std::make_unique<AISAtomEnsemble>(
+            params.xGridMin,  params.xGridMax,  params.nGridX,
+            params.yGridMin,  params.yGridMax,  params.nGridY,
+            params.zGridMin,  params.zGridMax,  params.nGridZ,
+            params.vxGridMin, params.vxGridMax, params.nGridVX,
+            params.vyGridMin, params.vyGridMax, params.nGridVY,
+            params.vzGridMin, params.vzGridMax, params.nGridVZ,
+            params.initialState);
+    } else {
+        atomEnsemble = std::make_unique<AISAtomEnsemble>(params.nAtoms, params.cloudTransTemperature, params.cloudLongTemperature, params.cloudRadius,
+                                                         params.initialPosition, params.initialVelocity,
+                                                         params.seed, params.initialState);
+    }
 
     // create the detector
     //detector = std::make_unique<AISDetector>(atomEnsemble, coherenceLength);
@@ -444,6 +455,97 @@ void AISDriver::WritePortsToFile(std::string fName)
     dataset_phaseShiftErrors.write(phaseShiftErrors.data(), H5::PredType::NATIVE_DOUBLE);
 
     // close the file
+    file.close();
+}
+
+void AISDriver::WritePhaseSpaceMapToFile(std::string fName)
+{
+    int nAtoms = atomEnsemble->GetNumberOfAtoms();
+
+    // Count total wavepackets across all atoms
+    int totalWPs = 0;
+    for (int i = 0; i < nAtoms; ++i)
+        totalWPs += atomEnsemble->GetAtom(i)->GetNumberOfWavePackets();
+
+    // Flat storage: one entry per (atom, wavepacket) pair
+    std::vector<double> initPosFlat(totalWPs * 3), initVelFlat(totalWPs * 3);
+    std::vector<double> finalPosFlat(totalWPs * 3), finalVelFlat(totalWPs * 3);
+    std::vector<double> amplitudes(totalWPs), phases(totalWPs), phaseErrors(totalWPs);
+    std::vector<int>    states(totalWPs), atomIndices(totalWPs);
+    std::vector<std::string> pathStrings(totalWPs);
+
+    int idx = 0;
+    for (int i = 0; i < nAtoms; ++i)
+    {
+        auto& atom = atomEnsemble->GetAtom(i);
+        int nWPs = atom->GetNumberOfWavePackets();
+        for (int j = 0; j < nWPs; ++j)
+        {
+            auto& wp = atom->GetWavePacket(j);
+
+            doubleThreeVector p0 = wp->GetPos0();
+            doubleThreeVector v0 = wp->GetVel0();
+            doubleThreeVector pf = wp->GetPosition();
+            doubleThreeVector vf = wp->GetVelocity();
+
+            for (int k = 0; k < 3; ++k)
+            {
+                initPosFlat [idx*3+k] = p0[k];
+                initVelFlat [idx*3+k] = v0[k];
+                finalPosFlat[idx*3+k] = pf[k];
+                finalVelFlat[idx*3+k] = vf[k];
+            }
+
+            amplitudes [idx] = wp->GetAmplitude();
+            // Full phase = laser phase (quad precision) + classical action (double)
+            // Cast quad to double here; the quad part dominates only in fringe tracking
+            // which the user can reconstruct from phaseErrors if needed.
+            phases     [idx] = static_cast<double>(wp->GetPhaseQuad()) + wp->GetPhaseDouble();
+            phaseErrors[idx] = wp->GetPhaseDoubleError();
+            states     [idx] = wp->GetState();
+            atomIndices[idx] = i;
+            pathStrings[idx] = wp->GetPath();
+
+            ++idx;
+        }
+    }
+
+    H5::H5File file(fName, H5F_ACC_TRUNC);
+
+    hsize_t n = static_cast<hsize_t>(totalWPs);
+    hsize_t dim1D[1] = {n};
+    hsize_t dim2D[2] = {n, 3};
+
+    auto write1D_double = [&](const std::string& name, const std::vector<double>& data) {
+        H5::DataSpace ds(1, dim1D);
+        file.createDataSet(name, H5::PredType::NATIVE_DOUBLE, ds).write(data.data(), H5::PredType::NATIVE_DOUBLE);
+    };
+    auto write1D_int = [&](const std::string& name, const std::vector<int>& data) {
+        H5::DataSpace ds(1, dim1D);
+        file.createDataSet(name, H5::PredType::NATIVE_INT, ds).write(data.data(), H5::PredType::NATIVE_INT);
+    };
+    auto write2D_double = [&](const std::string& name, const std::vector<double>& data) {
+        H5::DataSpace ds(2, dim2D);
+        file.createDataSet(name, H5::PredType::NATIVE_DOUBLE, ds).write(data.data(), H5::PredType::NATIVE_DOUBLE);
+    };
+
+    write2D_double("initial_positions",  initPosFlat);
+    write2D_double("initial_velocities", initVelFlat);
+    write2D_double("final_positions",    finalPosFlat);
+    write2D_double("final_velocities",   finalVelFlat);
+    write1D_double("amplitudes",         amplitudes);
+    write1D_double("phases",             phases);
+    write1D_double("phase_errors",       phaseErrors);
+    write1D_int   ("states",             states);
+    write1D_int   ("atom_indices",       atomIndices);
+
+    // Variable-length strings for path labels
+    H5::StrType strType(H5::PredType::C_S1, H5T_VARIABLE);
+    H5::DataSpace strDS(1, dim1D);
+    std::vector<const char*> pathPtrs(totalWPs);
+    for (int i = 0; i < totalWPs; ++i) pathPtrs[i] = pathStrings[i].c_str();
+    file.createDataSet("paths", strType, strDS).write(pathPtrs.data(), strType);
+
     file.close();
 }
 

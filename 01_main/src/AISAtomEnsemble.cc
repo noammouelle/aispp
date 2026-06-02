@@ -55,6 +55,42 @@ AISAtomEnsemble::AISAtomEnsemble(int nAtoms, double transtemperature, double lon
     }
 };
 
+AISAtomEnsemble::AISAtomEnsemble(double xMin,  double xMax,  int nx,
+                                 double yMin,  double yMax,  int ny,
+                                 double zMin,  double zMax,  int nz,
+                                 double vxMin, double vxMax, int nvx,
+                                 double vyMin, double vyMax, int nvy,
+                                 double vzMin, double vzMax, int nvz,
+                                 int initialState)
+{
+    auto linspace = [](double lo, double hi, int n) {
+        std::vector<double> v(n);
+        if (n == 1) { v[0] = lo; return v; }
+        for (int i = 0; i < n; ++i)
+            v[i] = lo + i * (hi - lo) / (n - 1);
+        return v;
+    };
+
+    auto xs  = linspace(xMin,  xMax,  nx);
+    auto ys  = linspace(yMin,  yMax,  ny);
+    auto zs  = linspace(zMin,  zMax,  nz);
+    auto vxs = linspace(vxMin, vxMax, nvx);
+    auto vys = linspace(vyMin, vyMax, nvy);
+    auto vzs = linspace(vzMin, vzMax, nvz);
+
+    for (double x : xs)
+    for (double y : ys)
+    for (double z : zs)
+    for (double vx : vxs)
+    for (double vy : vys)
+    for (double vz : vzs)
+    {
+        doubleThreeVector pos = {x, y, z};
+        doubleThreeVector vel = {vx, vy, vz};
+        fpAtomVector->push_back(std::make_unique<AISAtom>(pos, vel, 0.0q, initialState));
+    }
+};
+
 AISAtomEnsemble::~AISAtomEnsemble()
 {
     // free all the unique_ptr to the atoms then free the unique_ptr to the atom vector

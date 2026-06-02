@@ -134,7 +134,21 @@ AISParams readParamsFromFile(std::string fName)
                 values.push_back(value);
             }
             StrArrayParams[key] = values;
-        } 
+        }
+        // initmode: "gaussian" (default) or "psgrid"
+        else if (key == "initmode") {
+            std::string value;
+            iss >> value;
+            StrParams[key] = value;
+        }
+        // phase space grid limits: xgrid min max n  (and y/z/vx/vy/vz variants)
+        else if (key == "xgrid"  || key == "ygrid"  || key == "zgrid" ||
+                 key == "vxgrid" || key == "vygrid" || key == "vzgrid") {
+            std::vector<double> values;
+            double value;
+            while (iss >> value) values.push_back(value);
+            DoubleArrayParams[key] = values;
+        }
         // for zernike coeffs, check if line starts with zernikecoeff_
         else if (key.find("zernikecoeff_") == 0) {
             // param goes as zernikecoeff_[n] where n is the zernike index, so we need to extract the index
@@ -280,6 +294,30 @@ AISParams readParamsFromFile(std::string fName)
     params.gslKinRelError = DoubleParams["gslkinoderelerr"];
     params.gslPulseAbsError = DoubleParams["gslpulseodeabserr"];
     params.gslPulseRelError = DoubleParams["gslpulseoderelerr"];
+
+    // Phase space grid mode
+    std::string initMode = "gaussian";
+    if (StrParams.find("initmode") != StrParams.end())
+        initMode = StrParams["initmode"];
+    params.usePhaseSpaceGrid = (initMode == "psgrid");
+
+    if (params.usePhaseSpaceGrid) {
+        auto parseGrid = [&](const std::string& key, double& lo, double& hi, int& n) {
+            auto it = DoubleArrayParams.find(key);
+            if (it == DoubleArrayParams.end() || it->second.size() != 3)
+                throw std::runtime_error("psgrid mode requires '" + key + " min max n'");
+            lo = it->second[0];
+            hi = it->second[1];
+            n  = static_cast<int>(it->second[2]);
+            if (n < 1) throw std::runtime_error(key + ": n must be >= 1");
+        };
+        parseGrid("xgrid",  params.xGridMin,  params.xGridMax,  params.nGridX);
+        parseGrid("ygrid",  params.yGridMin,  params.yGridMax,  params.nGridY);
+        parseGrid("zgrid",  params.zGridMin,  params.zGridMax,  params.nGridZ);
+        parseGrid("vxgrid", params.vxGridMin, params.vxGridMax, params.nGridVX);
+        parseGrid("vygrid", params.vyGridMin, params.vyGridMax, params.nGridVY);
+        parseGrid("vzgrid", params.vzGridMin, params.vzGridMax, params.nGridVZ);
+    }
 
     return params;
 }

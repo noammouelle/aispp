@@ -31,6 +31,7 @@ public:
     void WriteDetectedAtomsToFile(std::string fName);
     void WriteWavePacketsToFile(std::string fName);
     void WritePortsToFile(std::string fName);
+    void WritePhaseSpaceMapToFile(std::string fName);
 
     std::vector<std::string> GetDetectablePaths(doubleThreeVector pos0, doubleThreeVector vel0);
 

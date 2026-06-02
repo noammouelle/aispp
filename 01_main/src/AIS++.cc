@@ -50,28 +50,31 @@ int main(int argc, char* argv[])
     std::chrono::duration<double> elapsed = end - start;
     std::cout << "Propagation: " << elapsed.count() << " s" << std::endl;
 
-    /* DETECT THE ATOMS */
-    auto startDetect = std::chrono::high_resolution_clock::now();
-
-    driver->Detect();
-
-    auto endDetect = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> elapsedDetect = endDetect - startDetect;
-    std::cout << "Detection: " << elapsedDetect.count() << " s" << std::endl;
-
-    // write the detected atoms to file
     auto startWrite = std::chrono::high_resolution_clock::now();
 
-    driver->WriteDetectedAtomsToFile(outputFileName);
+    if (driver->params.usePhaseSpaceGrid) {
+        // Grid mode: write the phase space map directly from wavepackets — no detection step
+        driver->WritePhaseSpaceMapToFile(outputFileName);
+    } else {
+        /* DETECT THE ATOMS */
+        auto startDetect = std::chrono::high_resolution_clock::now();
 
-    // if printPorts = true, print the ports too
-    if (driver->params.printPorts) {
-    std::string portFileName = outputFileName.substr(0, outputFileName.find_last_of('.')) + "_PROB.h5";
-    driver->WritePortsToFile(portFileName);
-    }
-    if (driver->params.printWavePackets) {
-    std::string waveFileName = outputFileName.substr(0, outputFileName.find_last_of('.')) + "_WPK.txt";
-    driver->WriteWavePacketsToFile(waveFileName);
+        driver->Detect();
+
+        auto endDetect = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> elapsedDetect = endDetect - startDetect;
+        std::cout << "Detection: " << elapsedDetect.count() << " s" << std::endl;
+
+        driver->WriteDetectedAtomsToFile(outputFileName);
+
+        if (driver->params.printPorts) {
+            std::string portFileName = outputFileName.substr(0, outputFileName.find_last_of('.')) + "_PROB.h5";
+            driver->WritePortsToFile(portFileName);
+        }
+        if (driver->params.printWavePackets) {
+            std::string waveFileName = outputFileName.substr(0, outputFileName.find_last_of('.')) + "_WPK.txt";
+            driver->WriteWavePacketsToFile(waveFileName);
+        }
     }
 
     auto endWrite = std::chrono::high_resolution_clock::now();
