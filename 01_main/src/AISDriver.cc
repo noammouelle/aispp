@@ -460,51 +460,88 @@ void AISDriver::WritePortsToFile(std::string fName)
 
 void AISDriver::WritePhaseSpaceMapToFile(std::string fName)
 {
+    // Build port frames using the same coherence-length grouping as AISDetector.
+    // This ensures port probabilities are computed correctly in quad precision
+    // (A1²+A2²+2A1A2cos(Δφ) where Δφ includes the kinematic separation phase).
+    AISDetector localDetector(atomEnsemble, params.coherenceLength);
     int nAtoms = atomEnsemble->GetNumberOfAtoms();
 
-    // Count total wavepackets across all atoms
-    int totalWPs = 0;
+    // Count total ports
+    int totalPorts = 0;
     for (int i = 0; i < nAtoms; ++i)
-        totalWPs += atomEnsemble->GetAtom(i)->GetNumberOfWavePackets();
+        totalPorts += localDetector.GetPortFrame(i)->GetNumberOfPorts();
 
-    // Flat storage: one entry per (atom, wavepacket) pair
-    std::vector<double> initPosFlat(totalWPs * 3), initVelFlat(totalWPs * 3);
-    std::vector<double> finalPosFlat(totalWPs * 3), finalVelFlat(totalWPs * 3);
-    std::vector<double> amplitudes(totalWPs), phases(totalWPs), phaseErrors(totalWPs);
-    std::vector<int>    states(totalWPs), atomIndices(totalWPs);
-    std::vector<std::string> pathStrings(totalWPs);
+    // Flat storage — one row per port
+    std::vector<double> initPosFlat(totalPorts * 3), initVelFlat(totalPorts * 3);
+    std::vector<double> finalPosFlat(totalPorts * 3), finalVelFlat(totalPorts * 3);
+    std::vector<double> probabilities(totalPorts);
+    std::vector<double> phaseShifts(totalPorts), phaseShiftErrors(totalPorts);
+    std::vector<int>    states(totalPorts), interferingFlag(totalPorts), atomIndices(totalPorts);
+
+    // Per-wavepacket data for the (up to 2) wavepackets in each port.
+    // For non-interfering ports the second slot is zero / empty string.
+    std::vector<double> amp0(totalPorts, 0.0),  amp1(totalPorts, 0.0);
+    std::vector<double> wp0PosFlat(totalPorts * 3, 0.0), wp1PosFlat(totalPorts * 3, 0.0);
+    std::vector<double> wp0VelFlat(totalPorts * 3, 0.0), wp1VelFlat(totalPorts * 3, 0.0);
+    std::vector<std::string> path0Strs(totalPorts, ""), path1Strs(totalPorts, "");
 
     int idx = 0;
-    for (int i = 0; i < nAtoms; ++i)
+    for (int ai = 0; ai < nAtoms; ++ai)
     {
-        auto& atom = atomEnsemble->GetAtom(i);
-        int nWPs = atom->GetNumberOfWavePackets();
-        for (int j = 0; j < nWPs; ++j)
-        {
-            auto& wp = atom->GetWavePacket(j);
+        auto& atom      = atomEnsemble->GetAtom(ai);
+        auto& portFrame = localDetector.GetPortFrame(ai);
 
-            doubleThreeVector p0 = wp->GetPos0();
-            doubleThreeVector v0 = wp->GetVel0();
-            doubleThreeVector pf = wp->GetPosition();
-            doubleThreeVector vf = wp->GetVelocity();
+        // Initial conditions are the same for every WP of this atom
+        doubleThreeVector p0 = atom->GetWavePacket(0)->GetPos0();
+        doubleThreeVector v0 = atom->GetWavePacket(0)->GetVel0();
+
+        for (int pi = 0; pi < portFrame->GetNumberOfPorts(); ++pi)
+        {
+            auto& port = portFrame->GetPort(pi);
 
             for (int k = 0; k < 3; ++k)
             {
                 initPosFlat [idx*3+k] = p0[k];
                 initVelFlat [idx*3+k] = v0[k];
-                finalPosFlat[idx*3+k] = pf[k];
-                finalVelFlat[idx*3+k] = vf[k];
+                finalPosFlat[idx*3+k] = port->position[k];
+                finalVelFlat[idx*3+k] = port->velocity[k];
             }
 
-            amplitudes [idx] = wp->GetAmplitude();
-            // Full phase = laser phase (quad precision) + classical action (double)
-            // Cast quad to double here; the quad part dominates only in fringe tracking
-            // which the user can reconstruct from phaseErrors if needed.
-            phases     [idx] = static_cast<double>(wp->GetPhaseQuad()) + wp->GetPhaseDouble();
-            phaseErrors[idx] = wp->GetPhaseDoubleError();
-            states     [idx] = wp->GetState();
-            atomIndices[idx] = i;
-            pathStrings[idx] = wp->GetPath();
+            probabilities    [idx] = port->probabilityAmplitude;
+            phaseShifts      [idx] = port->phaseShift;
+            phaseShiftErrors [idx] = port->phaseShiftError;
+            states           [idx] = port->state;
+            interferingFlag  [idx] = static_cast<int>(port->interfering);
+            atomIndices      [idx] = ai;
+
+            // WP 0 — always present
+            {
+                auto& wp = atom->GetWavePacket(port->wavePacketIndices[0]);
+                amp0[idx] = wp->GetAmplitude();
+                path0Strs[idx] = wp->GetPath();
+                doubleThreeVector pos = wp->GetPosition();
+                doubleThreeVector vel = wp->GetVelocity();
+                for (int k = 0; k < 3; ++k)
+                {
+                    wp0PosFlat[idx*3+k] = pos[k];
+                    wp0VelFlat[idx*3+k] = vel[k];
+                }
+            }
+
+            // WP 1 — only for interfering ports
+            if (port->interfering && port->getNumberOfWavePackets() >= 2)
+            {
+                auto& wp = atom->GetWavePacket(port->wavePacketIndices[1]);
+                amp1[idx] = wp->GetAmplitude();
+                path1Strs[idx] = wp->GetPath();
+                doubleThreeVector pos = wp->GetPosition();
+                doubleThreeVector vel = wp->GetVelocity();
+                for (int k = 0; k < 3; ++k)
+                {
+                    wp1PosFlat[idx*3+k] = pos[k];
+                    wp1VelFlat[idx*3+k] = vel[k];
+                }
+            }
 
             ++idx;
         }
@@ -512,7 +549,7 @@ void AISDriver::WritePhaseSpaceMapToFile(std::string fName)
 
     H5::H5File file(fName, H5F_ACC_TRUNC);
 
-    hsize_t n = static_cast<hsize_t>(totalWPs);
+    hsize_t n = static_cast<hsize_t>(totalPorts);
     hsize_t dim1D[1] = {n};
     hsize_t dim2D[2] = {n, 3};
 
@@ -528,23 +565,35 @@ void AISDriver::WritePhaseSpaceMapToFile(std::string fName)
         H5::DataSpace ds(2, dim2D);
         file.createDataSet(name, H5::PredType::NATIVE_DOUBLE, ds).write(data.data(), H5::PredType::NATIVE_DOUBLE);
     };
+    auto write1D_str = [&](const std::string& name, const std::vector<std::string>& strs) {
+        H5::StrType strType(H5::PredType::C_S1, H5T_VARIABLE);
+        H5::DataSpace ds(1, dim1D);
+        std::vector<const char*> ptrs(strs.size());
+        for (size_t i = 0; i < strs.size(); ++i) ptrs[i] = strs[i].c_str();
+        file.createDataSet(name, strType, ds).write(ptrs.data(), strType);
+    };
 
-    write2D_double("initial_positions",  initPosFlat);
-    write2D_double("initial_velocities", initVelFlat);
-    write2D_double("final_positions",    finalPosFlat);
-    write2D_double("final_velocities",   finalVelFlat);
-    write1D_double("amplitudes",         amplitudes);
-    write1D_double("phases",             phases);
-    write1D_double("phase_errors",       phaseErrors);
-    write1D_int   ("states",             states);
-    write1D_int   ("atom_indices",       atomIndices);
+    // Port-level datasets
+    write2D_double("initial_positions",    initPosFlat);
+    write2D_double("initial_velocities",   initVelFlat);
+    write2D_double("final_positions",      finalPosFlat);
+    write2D_double("final_velocities",     finalVelFlat);
+    write1D_double("probabilities",        probabilities);
+    write1D_double("phase_shifts",         phaseShifts);
+    write1D_double("phase_shift_errors",   phaseShiftErrors);
+    write1D_int   ("states",               states);
+    write1D_int   ("is_interfering",       interferingFlag);
+    write1D_int   ("atom_indices",         atomIndices);
 
-    // Variable-length strings for path labels
-    H5::StrType strType(H5::PredType::C_S1, H5T_VARIABLE);
-    H5::DataSpace strDS(1, dim1D);
-    std::vector<const char*> pathPtrs(totalWPs);
-    for (int i = 0; i < totalWPs; ++i) pathPtrs[i] = pathStrings[i].c_str();
-    file.createDataSet("paths", strType, strDS).write(pathPtrs.data(), strType);
+    // Per-wavepacket datasets (second slot is zero/empty for non-interfering ports)
+    write1D_double("amp0",                 amp0);
+    write1D_double("amp1",                 amp1);
+    write2D_double("wp0_final_positions",  wp0PosFlat);
+    write2D_double("wp0_final_velocities", wp0VelFlat);
+    write2D_double("wp1_final_positions",  wp1PosFlat);
+    write2D_double("wp1_final_velocities", wp1VelFlat);
+    write1D_str   ("path0",               path0Strs);
+    write1D_str   ("path1",               path1Strs);
 
     file.close();
 }
