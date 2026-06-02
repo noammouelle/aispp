@@ -50,21 +50,21 @@ int main(int argc, char* argv[])
     std::chrono::duration<double> elapsed = end - start;
     std::cout << "Propagation: " << elapsed.count() << " s" << std::endl;
 
+    /* DETECT THE ATOMS */
+    auto startDetect = std::chrono::high_resolution_clock::now();
+
+    driver->Detect();
+
+    auto endDetect = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsedDetect = endDetect - startDetect;
+    std::cout << "Detection: " << elapsedDetect.count() << " s" << std::endl;
+
     auto startWrite = std::chrono::high_resolution_clock::now();
 
     if (driver->params.usePhaseSpaceGrid) {
-        // Grid mode: write the phase space map directly from wavepackets — no detection step
+        // Grid mode: save per-port (x0,v0, amp0, amp1, dphi) without sampling
         driver->WritePhaseSpaceMapToFile(outputFileName);
     } else {
-        /* DETECT THE ATOMS */
-        auto startDetect = std::chrono::high_resolution_clock::now();
-
-        driver->Detect();
-
-        auto endDetect = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> elapsedDetect = endDetect - startDetect;
-        std::cout << "Detection: " << elapsedDetect.count() << " s" << std::endl;
-
         driver->WriteDetectedAtomsToFile(outputFileName);
 
         if (driver->params.printPorts) {
