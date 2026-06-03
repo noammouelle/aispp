@@ -850,7 +850,7 @@ void AISPulsePropagator::ApplyCutoff(std::unique_ptr<wavePacketVector>& newWaveP
     {
         // if the amplitude is above the threshold, add the wavepacket to the new vector
         std::unique_ptr<AISWavePacket>& currentWavepacket = newWavePackets->at(i);
-        if(abs(currentWavepacket->GetAmplitude()) > this->amplitudeThreshold)
+        if(abs(currentWavepacket->GetAmplitude()) >= this->amplitudeThreshold)
         {
             newWavePacketsTemp->push_back(std::move(currentWavepacket));
         }
