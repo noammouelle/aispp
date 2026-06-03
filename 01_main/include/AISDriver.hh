@@ -32,6 +32,9 @@ public:
     void WriteWavePacketsToFile(std::string fName);
     void WritePortsToFile(std::string fName);
     void WritePhaseSpaceMapToFile(std::string fName);
+    void WriteTrajectoryToFile(std::string fName);
+
+    void RecordSnapshot(double time, const std::string& label);
 
     std::vector<std::string> GetDetectablePaths(doubleThreeVector pos0, doubleThreeVector vel0);
 
@@ -47,6 +50,17 @@ public:
     std::vector<int> sampledPortIndices;
     std::vector<std::string> interferingPaths;
     std::map<std::string, doubleThreeVector> pathToFinalPosMap;
+
+    // Trajectory snapshots (populated when printTrajectory = true)
+    std::vector<double>      fTrajTimes;
+    std::vector<std::string> fTrajLabels;
+    std::vector<int>         fTrajSnapIdx;
+    std::vector<int>         fTrajAtomIdx;
+    std::vector<std::string> fTrajPaths;
+    std::vector<int>         fTrajStates;
+    std::vector<double>      fTrajAmplitudes;
+    std::vector<std::array<double,3>> fTrajPositions;
+    std::vector<std::array<double,3>> fTrajVelocities;
 };
 
 #endif

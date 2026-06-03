@@ -64,6 +64,7 @@ public:
     // Output parameters
     bool printPorts;
     bool printWavePackets;
+    bool printTrajectory = false;
 
     // Phase space grid parameters (used when usePhaseSpaceGrid = true)
     bool usePhaseSpaceGrid = false;

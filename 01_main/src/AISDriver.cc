@@ -200,12 +200,20 @@ void AISDriver::Run()
 
 void AISDriver::RunAll()
 {
-    __float128 t0, t1;
+    bool traj = params.printTrajectory;
+    if (traj && atomEnsemble->GetNumberOfAtoms() > 10)
+        std::cerr << "Warning: printtrajectory=1 with >10 atoms — "
+                     "trajectory files may be large." << std::endl;
+
+    if (traj) RecordSnapshot(0.0, "initial");
+
     // initial propagation, if the initial pulse time is not zero
     if(params.initialPulseTimes[0] != 0.0q)
     {
         kinematicPropagator->SetAddEnergyPhase(false);
         kinematicPropagator->PropagateEnsemble(atomEnsemble, params.initialPulseTimes[0]);
+        if (traj) RecordSnapshot(static_cast<double>(params.initialPulseTimes[0]),
+                                  "pulse_0_start");
     }
 
     // loop over the pulse propagators, and kinematic propagators in between
@@ -213,12 +221,16 @@ void AISDriver::RunAll()
     {
         // pulse propagation
         pulsePropagators[i]->PropagateEnsemble(atomEnsemble);
+        if (traj) RecordSnapshot(static_cast<double>(params.finalPulseTimes[i]),
+                                  "pulse_" + std::to_string(i) + "_end");
 
         // kinematic propagation (unless it is the last pulse)
         if(i < pulsePropagators.size() - 1)
         {
             kinematicPropagator->SetAddEnergyPhase(true);
-            kinematicPropagator->PropagateEnsemble(atomEnsemble, params.initialPulseTimes[i + 1]); // propagate to the start of the next pulse
+            kinematicPropagator->PropagateEnsemble(atomEnsemble, params.initialPulseTimes[i + 1]);
+            if (traj) RecordSnapshot(static_cast<double>(params.initialPulseTimes[i+1]),
+                                      "pulse_" + std::to_string(i+1) + "_start");
         }
     }
 
@@ -227,6 +239,7 @@ void AISDriver::RunAll()
     {
         kinematicPropagator->SetAddEnergyPhase(false);
         kinematicPropagator->PropagateEnsemble(atomEnsemble, params.detectionTime);
+        if (traj) RecordSnapshot(static_cast<double>(params.detectionTime), "detection");
     }
 }
 
@@ -562,6 +575,107 @@ void AISDriver::WritePhaseSpaceMapToFile(std::string fName)
     write1D_str   ("path1",             path1Strs);
 
     file.close();
+}
+
+void AISDriver::RecordSnapshot(double time, const std::string& label)
+{
+    int snapIdx = static_cast<int>(fTrajTimes.size());
+    fTrajTimes.push_back(time);
+    fTrajLabels.push_back(label);
+
+    int nAtoms = atomEnsemble->GetNumberOfAtoms();
+    for (int ai = 0; ai < nAtoms; ++ai)
+    {
+        auto& atom = atomEnsemble->GetAtom(ai);
+        for (int wi = 0; wi < atom->GetNumberOfWavePackets(); ++wi)
+        {
+            auto& wp = atom->GetWavePacket(wi);
+            doubleThreeVector pos = wp->GetPosition();
+            doubleThreeVector vel = wp->GetVelocity();
+            fTrajSnapIdx.push_back(snapIdx);
+            fTrajAtomIdx.push_back(ai);
+            fTrajPaths.push_back(wp->GetPath());
+            fTrajStates.push_back(wp->GetState());
+            fTrajAmplitudes.push_back(wp->GetAmplitude());
+            fTrajPositions.push_back({pos[0], pos[1], pos[2]});
+            fTrajVelocities.push_back({vel[0], vel[1], vel[2]});
+        }
+    }
+}
+
+void AISDriver::WriteTrajectoryToFile(std::string fName)
+{
+    int nSnap = static_cast<int>(fTrajTimes.size());
+    int nRec  = static_cast<int>(fTrajSnapIdx.size());
+
+    if (nRec == 0)
+    {
+        std::cerr << "WriteTrajectoryToFile: no snapshots recorded. "
+                     "Did you set printtrajectory 1?" << std::endl;
+        return;
+    }
+
+    H5::H5File file(fName, H5F_ACC_TRUNC);
+
+    // ── snapshot-level datasets ───────────────────────────────────────────────
+    {
+        hsize_t dim[1] = {static_cast<hsize_t>(nSnap)};
+        H5::DataSpace ds(1, dim);
+        file.createDataSet("snapshot_times", H5::PredType::NATIVE_DOUBLE, ds)
+            .write(fTrajTimes.data(), H5::PredType::NATIVE_DOUBLE);
+
+        H5::StrType strType(H5::PredType::C_S1, H5T_VARIABLE);
+        std::vector<const char*> labelPtrs(nSnap);
+        for (int i = 0; i < nSnap; ++i) labelPtrs[i] = fTrajLabels[i].c_str();
+        file.createDataSet("snapshot_labels", strType, ds)
+            .write(labelPtrs.data(), strType);
+    }
+
+    // ── per-record datasets ───────────────────────────────────────────────────
+    hsize_t n   = static_cast<hsize_t>(nRec);
+    hsize_t n3[2] = {n, 3};
+    H5::DataSpace ds1D(1, &n);
+    H5::DataSpace ds2D(2, n3);
+
+    auto write1D_int = [&](const std::string& name, const std::vector<int>& v) {
+        file.createDataSet(name, H5::PredType::NATIVE_INT, ds1D)
+            .write(v.data(), H5::PredType::NATIVE_INT);
+    };
+    auto write1D_dbl = [&](const std::string& name, const std::vector<double>& v) {
+        file.createDataSet(name, H5::PredType::NATIVE_DOUBLE, ds1D)
+            .write(v.data(), H5::PredType::NATIVE_DOUBLE);
+    };
+    auto write1D_str = [&](const std::string& name, const std::vector<std::string>& v) {
+        H5::StrType strType(H5::PredType::C_S1, H5T_VARIABLE);
+        std::vector<const char*> ptrs(v.size());
+        for (size_t i = 0; i < v.size(); ++i) ptrs[i] = v[i].c_str();
+        file.createDataSet(name, strType, ds1D).write(ptrs.data(), strType);
+    };
+
+    write1D_int("snapshot_idx", fTrajSnapIdx);
+    write1D_int("atom_indices", fTrajAtomIdx);
+    write1D_str("paths",        fTrajPaths);
+    write1D_int("states",       fTrajStates);
+    write1D_dbl("amplitudes",   fTrajAmplitudes);
+
+    // Flatten 3-vectors
+    std::vector<double> posFlat(nRec*3), velFlat(nRec*3);
+    for (int i = 0; i < nRec; ++i)
+    {
+        for (int k = 0; k < 3; ++k)
+        {
+            posFlat[i*3+k] = fTrajPositions[i][k];
+            velFlat[i*3+k] = fTrajVelocities[i][k];
+        }
+    }
+    file.createDataSet("positions",  H5::PredType::NATIVE_DOUBLE, ds2D)
+        .write(posFlat.data(), H5::PredType::NATIVE_DOUBLE);
+    file.createDataSet("velocities", H5::PredType::NATIVE_DOUBLE, ds2D)
+        .write(velFlat.data(), H5::PredType::NATIVE_DOUBLE);
+
+    file.close();
+    std::cout << "Trajectory: " << nSnap << " snapshots, "
+              << nRec << " records → " << fName << std::endl;
 }
 
 std::vector<std::string> AISDriver::GetDetectablePaths(doubleThreeVector pos0, doubleThreeVector vel0)

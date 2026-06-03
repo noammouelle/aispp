@@ -1,5 +1,14 @@
 # AIS++ v0.0.1
 
+## Branch compatibility
+
+| aispp branch | works with aispy branch | description |
+|---|---|---|
+| `phase-space-grid` | `psmap-surrogate` | Phase space grid (`psgrid`) init mode, PSMAP output, GPU surrogate |
+| `trajectory-plots` *(this branch)* | `trajectory-plots` | Trajectory snapshots (`printtrajectory`) and spacetime diagram plotting |
+
+The `trajectory-plots` branch is based on `phase-space-grid` and includes all its changes.
+
 Atom Interferometry Simulator in C++ (AIS++) is a compiled semi-classical simulation framework
 for modelling atom interferometry sequences in arbitrary inertial and laser potentials.
 

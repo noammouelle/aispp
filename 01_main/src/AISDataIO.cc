@@ -135,6 +135,12 @@ AISParams readParamsFromFile(std::string fName)
             }
             StrArrayParams[key] = values;
         }
+        // printtrajectory: optional bool, default false
+        else if (key == "printtrajectory") {
+            bool value;
+            iss >> value;
+            BoolParams[key] = value;
+        }
         // initmode: "gaussian" (default) or "psgrid"
         else if (key == "initmode") {
             std::string value;
@@ -271,6 +277,7 @@ AISParams readParamsFromFile(std::string fName)
     params.seed = DoubleParams["seed"];
 
     params.printPorts = BoolParams["printprobs"];
+    params.printTrajectory = BoolParams.count("printtrajectory") ? BoolParams["printtrajectory"] : false;
     params.useMcBranching = BoolParams["usemcbranching"];
     params.ignoreDetuning = BoolParams["ignoredetuning"];
     params.printWavePackets = BoolParams["printwavepackets"];

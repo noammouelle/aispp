@@ -13,6 +13,7 @@ myconfig.cmake
 # ignore the output files (let user run them ?)
 /examples/output-files/*
 !/examples/output-files/.gitkeep
+!/examples/output-files/*_TRAJ.h5
 
 # ignore notebook-generated figures
 /examples/*.png

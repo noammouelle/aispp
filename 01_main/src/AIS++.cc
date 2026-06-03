@@ -61,6 +61,11 @@ int main(int argc, char* argv[])
 
     auto startWrite = std::chrono::high_resolution_clock::now();
 
+    if (driver->params.printTrajectory) {
+        std::string trajFileName = outputFileName.substr(0, outputFileName.find_last_of('.')) + "_TRAJ.h5";
+        driver->WriteTrajectoryToFile(trajFileName);
+    }
+
     if (driver->params.usePhaseSpaceGrid) {
         // Grid mode: save per-port (x0,v0, amp0, amp1, dphi) without sampling
         driver->WritePhaseSpaceMapToFile(outputFileName);
