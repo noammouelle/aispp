@@ -88,6 +88,10 @@ AISDriver::AISDriver(AISParams params)
         {
             beamType_ = "gaussian";
         }
+        else if(params.wavefrontTypeVector[i] == "confocal")
+        {
+            beamType_ = "confocal";
+        }
         else{
             std::cerr << "Wavefront type " << params.wavefrontTypeVector[i] << " not recognized. Exiting." << std::endl;
             exit(1);
