@@ -62,7 +62,7 @@ double AISLaserBeam::GetPhi(const doubleThreeVector& pos)
         return phi0;
     }
     else if(beamType == "gaussian")
-    {       
+    {
         // define the phase shift for the reflection symmetry
         double reflectionShift;
         if(k[2] > 0)
@@ -85,6 +85,19 @@ double AISLaserBeam::GetPhi(const doubleThreeVector& pos)
         }
 
         return phi0 + reflectionShift + gaussianWavefront(shiftedPos, k[2], w0);
+    }
+    else if(beamType == "confocal")
+    {
+        // Confocal concave mirror: incoming and outgoing foci coincide at z = focalLength.
+        // Both directions share the same local coordinate from the focus, so the intensity
+        // profiles are identical. The reflected (+z) beam has the negated spatial phase;
+        // no extra pi shift.
+        doubleThreeVector shiftedPos = {pos[0], pos[1], focalLength - pos[2]};
+        double wavefront = gaussianWavefront(shiftedPos, k[2], w0);
+        if(k[2] > 0)
+            return phi0 - wavefront;
+        else
+            return phi0 + wavefront;
     }
 }
 
@@ -118,15 +131,20 @@ double AISLaserBeam::GetRabiFreq(const doubleThreeVector& pos, const __float128&
         double zPos;
         if (k[2] > 0)
         {
-            zPos = focalLength + pos[2]; 
+            zPos = focalLength + pos[2];
         }
         else if (k[2] < 0)
         {
             zPos = focalLength - pos[2];
         }
-        doubleThreeVector shiftedPos = {pos[0], pos[1], zPos}; // shift the position to account for position of the lens
-                                                                          // and the laser focal length
-        effectiveRabiFreq = rabiFreq * gaussianEnvelope(shiftedPos, w0, t0, t); // central rabi freq times envelope
+        doubleThreeVector shiftedPos = {pos[0], pos[1], zPos};
+        effectiveRabiFreq = rabiFreq * gaussianEnvelope(shiftedPos, w0, t0, t);
+    }
+    else if(beamType == "confocal")
+    {
+        // Same intensity profile for both directions: both measure distance from the shared focus.
+        doubleThreeVector shiftedPos = {pos[0], pos[1], focalLength - pos[2]};
+        effectiveRabiFreq = rabiFreq * gaussianEnvelope(shiftedPos, w0, t0, t);
     }
     return effectiveRabiFreq;
 }
@@ -179,7 +197,7 @@ double AISLaserBeam::GetBeamRadius()
 void AISLaserBeam::SetBeamType(std::string beamTypeValue)
 {
     // check if 'flat_square' or 'gaussian'
-    if(beamTypeValue == "flat_square" || beamTypeValue == "gaussian")
+    if(beamTypeValue == "flat_square" || beamTypeValue == "gaussian" || beamTypeValue == "confocal")
     {
         beamType = beamTypeValue;
     }
