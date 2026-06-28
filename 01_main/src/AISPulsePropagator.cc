@@ -149,8 +149,10 @@ void AISPulsePropagator::ApplyU2(std::unique_ptr<AISWavePacket>& wavepacket, __f
         double phi = laserBeam->GetPhi(posStar);
         doubleThreeVector gradPhi = laserBeam->GetDelPhi(posStar);
 
-        double dPhaseDouble = - dotProduct(matrixAdd(kT0,gradPhi),pos) - phi + dotProduct(posStar,gradPhi);
-        __float128 dPhaseQuad = omegaT0 * t0;
+        // dot(kT0,pos) ≈ kz*z ~ 450 Mrad; keeping it in float64 causes ~65 µrad rounding noise
+        // across the x0 grid. Store it in phaseQuad (__float128) to avoid precision loss.
+        double dPhaseDouble = - phi + dotProduct(posStar,gradPhi);
+        __float128 dPhaseQuad = omegaT0 * t0 - static_cast<__float128>(dotProduct(kT0, pos));
 
         wavepacket->SetPhaseDouble(currentPhaseDouble + dPhaseDouble);
         wavepacket->SetPhaseQuad(currentPhaseQuad + dPhaseQuad);
@@ -192,12 +194,14 @@ void AISPulsePropagator::ApplyU2Dagger(std::unique_ptr<AISWavePacket>& wavepacke
         doubleThreeVector AdotKPrime = dotProduct(A,kPrime);
         AdotKPrime = scalarMultiply(AdotKPrime,-hbar/(2*massSr87));
         doubleThreeVector BdotAdotKPrime = dotProduct(B,AdotKPrime);
-        double propTerm = dotProduct(kPrime, 
+        double propTerm = dotProduct(kPrime,
                                      matrixAdd(matrixAdd(AdotPos, BdotAdotKPrime), Xi));
 
-
-        double dPhaseDouble = phi - dotProduct(posStar,gradPhi) + propTerm;
-        __float128 dPhaseQuad = - (omegaT1 - omegaSr87) * t1 - omegaSr87*t0;
+        // dot(kPrime, AdotPos) ≈ kz*z ~ 450 Mrad; keeping it in float64 causes ~65 µrad rounding
+        // noise across the x0 grid. Store it in phaseQuad (__float128) to avoid precision loss.
+        double dPhaseDouble = phi - dotProduct(posStar,gradPhi) + propTerm - dotProduct(kPrime, AdotPos);
+        __float128 dPhaseQuad = - (omegaT1 - omegaSr87) * t1 - omegaSr87*t0
+                                + static_cast<__float128>(dotProduct(kPrime, AdotPos));
 
         wavepacket->SetPhaseDouble(currentPhaseDouble + dPhaseDouble);
         wavepacket->SetPhaseQuad(currentPhaseQuad + dPhaseQuad);
