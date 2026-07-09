@@ -1,6 +1,7 @@
 #include "AISPortFrame.hh"
 
-AISPortFrame::AISPortFrame(std::unique_ptr<AISAtom>& anAtom, double coherenceLength)
+AISPortFrame::AISPortFrame(std::unique_ptr<AISAtom>& anAtom, double coherenceLength, bool ultraFast)
+    : ultraFast(ultraFast)
 {
     // initialize the port vector
     fpPortVector = std::make_unique<portVector>();
@@ -264,7 +265,7 @@ void AISPortFrame::setPortParameters(std::unique_ptr<AISAtom>& anAtom)
                 doubleThreeVector deltaX = matrixAdd(r2, scalarMultiply(r1, -1.0)); // note the inverted order
                 doubleThreeVector meanV  = matrixAdd(v1, v2);
                 meanV = scalarMultiply(meanV, 0.5);
-                double dphi = phi1 - phi2 + phi1Quad - phi2Quad + dotProduct(meanV, deltaX) / hbar * massSr87;
+                double dphi = phi1 - phi2 + (double)(phi1Quad - phi2Quad) + dotProduct(meanV, deltaX) / hbar * massSr87;
                 double dphiError = sqrt(pow(error1, 2) + pow(error2, 2));
                 port->phaseShift = dphi;
                 port->phaseShiftError = dphiError;

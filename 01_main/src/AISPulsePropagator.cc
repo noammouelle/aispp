@@ -149,22 +149,12 @@ void AISPulsePropagator::ApplyU2(std::unique_ptr<AISWavePacket>& wavepacket, __f
         double phi = laserBeam->GetPhi(posStar);
         doubleThreeVector gradPhi = laserBeam->GetDelPhi(posStar);
 
-        // In ultraFast mode AISPortFrame ignores phaseQuad (dphi = phaseDouble1 - phaseDouble2).
-        // The two MZI arms are at different z-positions during the interferometer, so dot(kT0,pos)
-        // is arm-dependent and must stay in phaseDouble; moving it to phaseQuad drops it entirely.
-        // In non-ultraFast mode phaseQuad is included in dphi, so we can safely put dot(kT0,pos)
-        // there to avoid float64 precision loss on the ~450 Mrad kz*z term.
-        double dPhaseDouble;
-        __float128 dPhaseQuad;
-        if (this->ultraFast) {
-            // Pre-f591895 formula: all position-dependent terms in phaseDouble
-            dPhaseDouble = - dotProduct(matrixAdd(kT0,gradPhi),pos) - phi + dotProduct(posStar,gradPhi);
-            dPhaseQuad = omegaT0 * t0;
-        } else {
-            // Move kz*z to phaseQuad for float128 precision; gradPhi·pos stays in phaseDouble
-            dPhaseDouble = - phi + dotProduct(matrixAdd(posStar, scalarMultiply(pos, -1.0)), gradPhi);
-            dPhaseQuad = omegaT0 * t0 - static_cast<__float128>(dotProduct(kT0, pos));
-        }
+        // dot(kT0,pos) ≈ kz*z ~ 450 Mrad in float64 introduces ~65 µrad rounding noise
+        // across the x0 grid. Store it in phaseQuad (__float128) to avoid precision loss.
+        // AISPortFrame always includes phi1Quad-phi2Quad in dphi (regardless of ultraFast),
+        // so kz*z is correctly captured even in ultraFast mode.
+        double dPhaseDouble = - phi + dotProduct(matrixAdd(posStar, scalarMultiply(pos, -1.0)), gradPhi);
+        __float128 dPhaseQuad = omegaT0 * t0 - static_cast<__float128>(dotProduct(kT0, pos));
 
         wavepacket->SetPhaseDouble(currentPhaseDouble + dPhaseDouble);
         wavepacket->SetPhaseQuad(currentPhaseQuad + dPhaseQuad);
@@ -209,22 +199,13 @@ void AISPulsePropagator::ApplyU2Dagger(std::unique_ptr<AISWavePacket>& wavepacke
         double propTerm = dotProduct(kPrime,
                                      matrixAdd(matrixAdd(AdotPos, BdotAdotKPrime), Xi));
 
-        // In ultraFast mode AISPortFrame ignores phaseQuad; moving dot(kPrime, AdotPos) out of
-        // phaseDouble drops arm-dependent terms (kz*z, gradPhi·pos) entirely, breaking ddphi.
-        // In non-ultraFast mode phaseQuad is included in dphi, so dot(kPrime, AdotPos) can go
-        // there for float128 precision on the ~450 Mrad kz*z term.
-        double dPhaseDouble;
-        __float128 dPhaseQuad;
-        if (this->ultraFast) {
-            // Pre-f591895 formula: all position-dependent terms in phaseDouble
-            dPhaseDouble = phi - dotProduct(posStar,gradPhi) + propTerm;
-            dPhaseQuad = - (omegaT1 - omegaSr87) * t1 - omegaSr87*t0;
-        } else {
-            // Move kPrime·AdotPos ≈ kz*z to phaseQuad for float128 precision
-            dPhaseDouble = phi - dotProduct(posStar,gradPhi) + propTerm - dotProduct(kPrime, AdotPos);
-            dPhaseQuad = - (omegaT1 - omegaSr87) * t1 - omegaSr87*t0
-                         + static_cast<__float128>(dotProduct(kPrime, AdotPos));
-        }
+        // dot(kPrime,AdotPos) ≈ kz*z ~ 450 Mrad in float64 introduces ~65 µrad rounding noise
+        // across the x0 grid. Store it in phaseQuad (__float128) to avoid precision loss.
+        // AISPortFrame always includes phi1Quad-phi2Quad in dphi (regardless of ultraFast),
+        // so kz*z is correctly captured even in ultraFast mode.
+        double dPhaseDouble = phi - dotProduct(posStar,gradPhi) + propTerm - dotProduct(kPrime, AdotPos);
+        __float128 dPhaseQuad = - (omegaT1 - omegaSr87) * t1 - omegaSr87*t0
+                                + static_cast<__float128>(dotProduct(kPrime, AdotPos));
 
         wavepacket->SetPhaseDouble(currentPhaseDouble + dPhaseDouble);
         wavepacket->SetPhaseQuad(currentPhaseQuad + dPhaseQuad);
