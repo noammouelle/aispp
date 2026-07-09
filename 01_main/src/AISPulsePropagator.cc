@@ -199,11 +199,15 @@ void AISPulsePropagator::ApplyU2Dagger(std::unique_ptr<AISWavePacket>& wavepacke
         double propTerm = dotProduct(kPrime,
                                      matrixAdd(matrixAdd(AdotPos, BdotAdotKPrime), Xi));
 
-        // dot(kPrime, AdotPos) ≈ kz*z ~ 450 Mrad; keeping it in float64 causes ~65 µrad rounding
+        // dot(kT1, AdotPos) ≈ kz*z ~ 450 Mrad; keeping it in float64 causes ~65 µrad rounding
         // noise across the x0 grid. Store it in phaseQuad (__float128) to avoid precision loss.
-        double dPhaseDouble = phi - dotProduct(posStar,gradPhi) + propTerm - dotProduct(kPrime, AdotPos);
+        // dot(gradPhi, AdotPos) is the wavefront-curvature term; it differs between the two MZI
+        // arms and must stay in phaseDouble so the port phase relationship is preserved in
+        // ultraFast mode (which ignores phaseQuad when computing dphi).
+        double kT1dotAdotPos = dotProduct(kT1, AdotPos);
+        double dPhaseDouble = phi - dotProduct(posStar,gradPhi) + propTerm - kT1dotAdotPos;
         __float128 dPhaseQuad = - (omegaT1 - omegaSr87) * t1 - omegaSr87*t0
-                                + static_cast<__float128>(dotProduct(kPrime, AdotPos));
+                                + static_cast<__float128>(kT1dotAdotPos);
 
         wavepacket->SetPhaseDouble(currentPhaseDouble + dPhaseDouble);
         wavepacket->SetPhaseQuad(currentPhaseQuad + dPhaseQuad);
