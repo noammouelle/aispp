@@ -151,7 +151,9 @@ void AISPulsePropagator::ApplyU2(std::unique_ptr<AISWavePacket>& wavepacket, __f
 
         // dot(kT0,pos) ≈ kz*z ~ 450 Mrad; keeping it in float64 causes ~65 µrad rounding noise
         // across the x0 grid. Store it in phaseQuad (__float128) to avoid precision loss.
-        double dPhaseDouble = - phi + dotProduct(posStar,gradPhi);
+        // dot(gradPhi,pos) is the wavefront-curvature term; it is small (~few rad) so float64 is
+        // fine — keep it in phaseDouble so the MZI port phase relationship is preserved.
+        double dPhaseDouble = - phi + dotProduct(matrixAdd(posStar, scalarMultiply(pos, -1.0)), gradPhi);
         __float128 dPhaseQuad = omegaT0 * t0 - static_cast<__float128>(dotProduct(kT0, pos));
 
         wavepacket->SetPhaseDouble(currentPhaseDouble + dPhaseDouble);
