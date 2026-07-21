@@ -14,7 +14,7 @@ using portFrameVector = std::vector<std::unique_ptr<AISPortFrame>>;
 class AISDetector
 {
 public:
-    AISDetector(std::unique_ptr<AISAtomEnsemble>& pAtomEnsemble, double coherenceLength);
+    AISDetector(std::unique_ptr<AISAtomEnsemble>& pAtomEnsemble, double coherenceLength, bool ultraFast = false);
     ~AISDetector();
 
     intVector SampleAllPorts();

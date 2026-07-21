@@ -287,7 +287,7 @@ void AISDriver::RunPathFinder()
 void AISDriver::Detect()
 {   
     // init the detector
-    detector = std::make_unique<AISDetector>(atomEnsemble, params.coherenceLength);
+    detector = std::make_unique<AISDetector>(atomEnsemble, params.coherenceLength, params.ultraFast);
     sampledPortIndices = detector->SampleAllPorts();
 }
 
