@@ -115,7 +115,36 @@ double AISLaserBeam::GetPhiWrapper(double xi, void* params)
 
 doubleThreeVector AISLaserBeam::GetDelPhi(const doubleThreeVector& pos)
 {
-    return {0., 0., 0.}; // TODO: implement 
+    // Local (transverse + longitudinal) correction to the plane-wave
+    // wavevector from the beam's curved wavefront (Gouy phase + radius of
+    // curvature), i.e. grad(GetPhi(pos)) with the k*z plane-wave term
+    // removed (that part is already handled separately via GetK). Mirrors
+    // GetPhi's own shiftedPos construction exactly so the two stay consistent.
+    if(beamType == "gaussian")
+    {
+        doubleThreeVector shiftedPos = {pos[0], pos[1], pos[2]};
+        double zSign;
+        if(k[2] < 0)
+        {
+            shiftedPos[2] = focalLength - pos[2];
+            zSign = -1.0;
+        }
+        else
+        {
+            shiftedPos[2] = focalLength + pos[2];
+            zSign = 1.0;
+        }
+        std::array<double,3> grad = gaussianGradientWavefront(shiftedPos, k[2], w0);
+        return {grad[0], grad[1], zSign * grad[2]};
+    }
+    else if(beamType == "confocal")
+    {
+        doubleThreeVector shiftedPos = {pos[0], pos[1], focalLength - pos[2]};
+        std::array<double,3> grad = gaussianGradientWavefront(shiftedPos, k[2], w0);
+        double sign = (k[2] > 0) ? -1.0 : 1.0; // matches GetPhi's +-wavefront choice
+        return {sign*grad[0], sign*grad[1], -sign*grad[2]};
+    }
+    return {0., 0., 0.};
 }
 
 double AISLaserBeam::GetRabiFreq(const doubleThreeVector& pos, const __float128& t0, const __float128& t)
