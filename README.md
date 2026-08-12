@@ -78,72 +78,116 @@ makes it the first potential in ais++ with a genuine velocity dependence. Everyt
 input and output boundaries stays in ordinary frame velocities $\dot{\vec r}$, and $\vec\Omega=0$
 reproduces the inertial potentials bit for bit.
 
-![Arm traces of a single-loop Mach–Zehnder projected onto the three coordinate planes, with the
-enclosed Sagnac area shaded.](examples/coriolis/coriolis_planes.png)
+### Example geometry
 
-*Interferometer arms in position space at Earth rotation rate (latitude 45°), projected onto the
-$x$–$y$, $x$–$z$ and $y$–$z$ planes. The arm separation is exaggerated by the stated factor so the
-loop is visible — the quoted areas are the true ones. The shaded area $A_y$ gives the Sagnac phase
-$\Delta\varphi = 2m\,\vec\Omega\cdot\vec A/\hbar$.*
+Every figure below is drawn at **true scale**. The examples are LMT-101 fountains launched so the
+atom returns to its starting height at detection, with 2.5 s of total free fall and a 7.7 m apex.
+The arms separate by $n\hbar k/m \cdot T$ = 83 cm, which is what makes the loop visible without
+any drawing trick — with a single photon recoil it would be 8.2 mm on a 7.7 m trajectory.
 
-![Enclosed area for 1-, 2- and 4-loop sequences, showing the cancellation for even loop
-counts.](examples/coriolis/coriolis_loops.png)
+Two things are easy to get wrong when setting such a sequence up, and both are enforced by
+`tests/coriolis_common.py`:
 
-*Successive loops are traversed in opposite senses, so the signed area — and with it the rotation
-phase — collapses for even loop counts: $9.3\times10^{-2}$ rad for one loop against
-$\sim10^{-8}$ rad for two and four.*
+- **The launch velocity must account for LMT.** The two arms are not symmetric about the launch
+  trajectory: one carries $n$ extra recoils for the first half of each loop and the other for the
+  second, so the *mean* arm travels at $v_{0z} + n\hbar k/2m$ and the cloud lands
+  $n\hbar k/m\cdot T$ high — 0.83 m at LMT-101. The fountain launch subtracts it.
+- **A stronger pulse is needed at high LMT.** The sequence builder's LMT blocks leave an
+  uncorrected vertical separation of order $(\hbar k/m)\,\delta t_\pi\, n(n-1)/2$, which at
+  LMT-101 and a 10 kHz Rabi frequency is 3.3 mm — larger than the coherence length, so nothing
+  interferes. This is a property of the pulse sequence, not of the rotating frame: it is
+  identical at $\vec\Omega = 0$. It scales with the $\pi$-pulse duration, so 100 kHz brings it to
+  0.34 mm.
 
-### Long-baseline sequences
+![Arm traces of a single-loop LMT-101 fountain projected onto the three coordinate planes, with
+the enclosed Sagnac area shaded.](examples/coriolis/coriolis_planes.png)
 
-The same machinery at fountain scale: $T = 1.25$ s with the launch velocity chosen so the atom
-returns to its starting height at recombination, giving a total free-fall time of $2LT$ — 2.5 s,
-5 s and 10 s for 1, 2 and 4 loops, reaching 7.7 m, 31 m and 123 m.
+*Interferometer arms in position space at Earth rotation rate (latitude 45°). The shaded area
+$A_y$ gives the Sagnac phase $\Delta\varphi = 2m\,\vec\Omega\cdot\vec A/\hbar$. The $y$–$z$ panel
+shows the arms genuinely overlapping at the micron level — that is real, not a plotting artefact.*
+
+![Enclosed area for 1-, 2- and 4-loop sequences at fixed total free-fall time, showing the
+cancellation for even loop counts.](examples/coriolis/coriolis_loops.png)
+
+*Loop counts compared at **fixed total free-fall time** (2.5 s, so $T = T_\mathrm{tot}/2L$), which
+is the real design question. Successive loops are traversed in opposite senses, so the signed area
+— and with it the rotation phase — collapses for even loop counts: $1.0\times10^{-2}$ m² against
+$4\times10^{-8}$ m².*
+
+![Arm separations vs time for 1, 2 and 4 loops, showing the sign
+reversals.](examples/coriolis/coriolis_separation.png)
+
+*The mechanism behind that cancellation: $\Delta z$ reverses sign once per loop, so both the signed
+area and the differential Coriolis kick average away over an even number of loops.*
 
 ![Uniform-gravity fountain with Coriolis: the parabolic trajectory, the eastward deflection, and
-the arm separations.](examples/coriolis/coriolis_fountain.png)
+the arm separation.](examples/coriolis/coriolis_fountain.png)
 
-*Uniform gravity + Coriolis over a 2.5 s free fall. The eastward deflection of the cloud grows
+*Uniform gravity + Coriolis over a 2.5 s fountain. The eastward deflection of the cloud grows
 fastest at the apex and then levels off, because $\dot z$ — and with it the Coriolis acceleration
-$-2\vec\Omega\times\dot{\vec r}$ — reverses there. The arms separate by 8 mm in $z$ from the photon
-recoil and by ~1 µm in $x$ from the differential Coriolis force.*
-
-![Enclosed area for 1-, 2- and 4-loop long-baseline fountains.](examples/coriolis/coriolis_longbaseline_loops.png)
-
-*Long-baseline fountains, 2.5–10 s of free fall. A single loop encloses $1.0\times10^{-4}$ m² and
-accumulates 14.5 rad of Sagnac phase; two and four loops cancel to $\sim10^{-5}$ rad.*
-
-Note that these figures are generated with `ultrafast 1`. That skips the classical action phase
-but leaves the trajectories untouched, and the quoted Sagnac phases come from the enclosed area
-rather than the simulated phase. It is needed because the action reaches $\sim10^3$ m²/s² over a
-multi-second flight, which puts the tight absolute quadrature tolerance the short runs use below
-double precision — loosen `gslqagabserr` if you need the action phase at these timescales.
-
-These examples use `lmt_order 1`, i.e. a single photon recoil, not LMT. The arm separation is
-$\hbar k/m \cdot T$ = 6.57 mm/s × 1.25 s = **8.2 mm** — large because $T$ is long, not because of
-LMT. In the plane plots the separation is drawn exaggerated by the factor stated in each panel.
+$-2\vec\Omega\times\dot{\vec r}$ — reverses there.*
 
 ### Closing the interferometer
 
-A Mach–Zehnder **does not close** in a rotating frame. The two arms differ by the recoil velocity
-$\hbar k/m$ along $\vec k$, and the Coriolis force $-2\vec\Omega\times\dot{\vec r}$ acts on that
-difference, leaving them transversely separated at recombination by
+A Mach–Zehnder **does not close** in a rotating frame. The two arms differ by $n\hbar k/m$ along
+$\vec k$, and the Coriolis force acts on that difference, leaving them transversely separated at
+recombination by
 
-$$\Delta x = 2\,\Omega_\perp\,\frac{\hbar k}{m}\,T^2$$
+$$\Delta x = 2\,\Omega_\perp\,\frac{n\hbar k}{m}\,T^2$$
 
-which the simulation reproduces to 0.05 %. Because this is a *differential* effect, **no
-common-mode launch velocity removes it** — scanning $v_{0x}$ from 0 to 0.2 m/s leaves the residual
-unchanged to nine significant figures. What does work is counter-rotating $\vec k_\mathrm{eff}$
-with the frame, the simulation counterpart of a tip-tilt retroreflector:
-`coriolis_common.apply_tilt_compensation` rewrites the per-pulse `kx`/`ky` so that
-$\vec k$ is held fixed in the *inertial* frame, $\vec k(t) = \vec k(0) - (\vec\Omega\times\vec k(0))\,t$.
+which the simulation reproduces to 0.05 %, and which at LMT-101 is 107 µm — 45 times the
+coherence length of a 1 nK cloud, so contrast is destroyed. Because this is a *differential*
+effect, **no common-mode launch velocity removes it**: scanning $v_{0x}$ from 0 to 0.2 m/s leaves
+the residual unchanged to nine significant figures.
 
 ![Launch velocity cannot close a rotating-frame interferometer, but counter-rotating the
 wavevector can.](examples/coriolis/coriolis_closure.png)
 
-*(a) Four launch velocities spanning 0–0.2 m/s give identical arm openings, all landing on
-$-2\Omega_\perp(\hbar k/m)T^2$. (b) Counter-rotating $\vec k$ at a fraction of $\Omega$; the matched
-rate brings the arms back together. (c) The residual falls by $\sim10^6$ at the matched rate and
-grows linearly with the mismatch, changing sign through it.*
+*(a) Four launch velocities give identical arm openings. (b) Counter-rotating $\vec k$ at a
+fraction of $\Omega$; the matched rate brings the arms back together. (c) The residual falls by
+$\sim10^3$ at the matched rate, well under the coherence length, and grows linearly with the
+mismatch.*
+
+### Long baselines: what to do instead of tip-tilt
+
+Counter-rotating $\vec k$ works, but it **does not scale to a gradiometer with a long baseline**.
+Holding $\vec k$ in the inertial frame means the beam direction rotates at $\Omega_\perp$, so over
+a sequence of duration $T_\mathrm{tot}$ the pointing changes by $\Omega_\perp T_\mathrm{tot}$ and
+the beam centre walks by $\Omega_\perp T_\mathrm{tot} L$ at a station a distance $L$ away:
+
+| $T_\mathrm{tot}$ | tilt | walk-off @ 100 m | @ 1 km | @ 2 km |
+|---|---|---|---|---|
+| 2.5 s | 129 µrad | 13 mm | 129 mm | 258 mm |
+| 5 s | 258 µrad | 26 mm | 258 mm | 516 mm |
+| 10 s | 516 µrad | 52 mm | 516 mm | 1031 mm |
+
+Against a 2 cm beam radius, 100 m is already marginal and 2 km is hopeless. The alternative is to
+split the two jobs:
+
+- **Closure → use an even number of loops, with no tilt at all.** Successive loops reverse the sign
+  of the arm separation and hence of the differential Coriolis kick. Simulated at LMT-101 and fixed
+  total time, the residual opening drops from 107 µm at one loop to 0.42 nm at two or four — a
+  factor $2.5\times10^5$, and $1.8\times10^{-4}$ of the coherence length.
+- **Staying on the beam axis → use a small launch velocity.** That is a *common-mode* problem, which
+  is exactly what a launch velocity can fix. For a symmetric fountain the Coriolis drift is
+  $\Omega_\perp g T_\mathrm{tot}^3/6$, cancelled at the end point by
+  $v_{0x} = \Omega_\perp g T_\mathrm{tot}^2/6$, which also cuts the worst mid-flight excursion by
+  10.4×.
+
+| $T_\mathrm{tot}$ | closing $v_{0x}$ | drift, $v_{0x}=0$ | max excursion, compensated |
+|---|---|---|---|
+| 2.5 s | 0.53 mm/s | 1.3 mm | **0.13 mm** |
+| 5 s | 2.11 mm/s | 10.5 mm | **1.02 mm** |
+| 10 s | 8.43 mm/s | 84.3 mm | **8.12 mm** |
+
+![Long-baseline strategy: tip-tilt does not scale, even loop counts close the interferometer, and
+a small launch velocity keeps the cloud on axis.](examples/coriolis/coriolis_longbaseline.png)
+
+So a 5 s sequence stays inside ~1 mm of the beam axis and closes to sub-nanometre with two loops,
+needing no tip-tilt at all. The excursion scales as $T_\mathrm{tot}^3$, so 10 s costs 8 mm and is
+the point where this stops being comfortable. `coriolis_common.solve_closing_v0x` solves for the
+exact launch velocity (the transverse motion is linear in $v_{0x}$, so two runs determine it);
+it agrees with the closed form above to 0.08 %.
 
 ### Tests
 

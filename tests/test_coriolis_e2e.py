@@ -355,6 +355,49 @@ def test_tilt_compensation():
           'the residual changes sign through the matched tilt rate')
 
 
+# ── 9. LMT fountain geometry ─────────────────────────────────────────────────
+
+def test_lmt_fountain(quick):
+    section('9. LMT fountain: launch velocity and arm separation')
+    if quick:
+        print('    skipped (--quick)')
+        return
+
+    from aispy.trajectory import reconstruct_trajectories
+
+    T_TOT = 2.5
+
+    def geometry(tag, n):
+        r = run(tag, utype='rotating_linear_pot', rotation=[0, OMEGA, 0],
+                loopnumber=1, interrogation_time=T_TOT / 2, fountain=True,
+                ultrafast=1, lmt_order=n, rabi_freq=1e5, printtrajectory=True)
+        sm = reconstruct_trajectories(load_trajectory(r['trajectory']),
+                                      potential='rotating_linear_pot',
+                                      arm_grouping=True)
+        up, lo = sm['upper'], sm['lower']
+        t = up['t']
+        zc = 0.5 * (up['z'] + np.interp(t, lo['t'], lo['z']))
+        sep = np.abs(up['z'] - np.interp(t, lo['t'], lo['z'])).max()
+        return zc[-1] - zc[0], sep
+
+    # The arm separation is n photon recoils' worth, which is the whole point of
+    # LMT: it is what makes the loop visible at true scale.
+    for n in (1, 11, 101):
+        drift, sep = geometry(f'LF_n{n}', n)
+        want = n * (1.054571817e-34 * cc.K_EFF /
+                    (86.90888 * 1.660539066e-27)) * T_TOT / 2
+        print(f'    n={n:4d}: arm separation {sep*100:7.2f} cm '
+              f'(expect {want*100:7.2f})   vertical drift {drift*1e3:+8.3f} mm')
+        check_close(sep, want, 2e-2, f'arm separation is n*(hbar k/m)*T at n={n}')
+
+        # With LMT the mean arm carries n*(hbar k/m)/2 of extra velocity, so a
+        # naive fountain lands n*(hbar k/m)*T high -- 0.83 m at n=101. The launch
+        # velocity must subtract it, or the "fountain" does not come back.
+        check(abs(drift) < 1e-3,
+              f'LMT-{n} fountain returns to its launch height',
+              f'drift {drift*1e3:+.3f} mm, vs {want*1e3:.0f} mm if uncorrected')
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--quick', action='store_true',
@@ -375,6 +418,7 @@ def main():
     test_multiloop(args.quick)
     test_closure()
     test_tilt_compensation()
+    test_lmt_fountain(args.quick)
 
     print(f'\n{_checks} checks, {_failures} failures  '
           f'({len(_cache)} simulations, {time.time()-t0:.1f} s)')

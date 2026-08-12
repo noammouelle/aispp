@@ -64,30 +64,59 @@ OMEGA_EARTH = 7.292115e-5                     # rad/s
 # effective wavevector, rad/m — used for the analytic Coriolis phase
 K_EFF = float(kz)
 
+# single-photon recoil velocity hbar k / m, m/s
+MASS_SR87 = 86.90888 * 1.660539066e-27
+RECOIL_V = float(hbar) * K_EFF / MASS_SR87
+
 
 def build_param_dict(utype='linear_pot', rotation=None, loopnumber=1,
                      interrogation_time=None, v0x=None, v0y=0.0,
                      printtrajectory=False,
                      rabi_freq=None, v0z=None, fountain=False,
-                     ultrafast=0, qag_abs=1e-13, qag_rel=1e-13):
+                     ultrafast=0, qag_abs=1e-13, qag_rel=1e-13,
+                     lmt_order=1, dt_lmt=1e-7, v0z_offset=0.0):
     """
     Parameter dictionary for one run. Mirrors examples/build_inputs.py.
 
     ``fountain=True`` picks the launch velocity that brings the atom back to its
-    starting height exactly at the end of the sequence (v0z = g * L * T), which
-    is what a real long-baseline fountain does.
+    starting height at detection, which is what a real long-baseline fountain
+    does:
+
+        v0z = g * t_det / 2 - lmt_order * (hbar k / m) / 2
+
+    Both corrections matter. The second one is easy to miss: with LMT the arms
+    are not symmetric about the launch trajectory. One arm carries lmt_order
+    extra photon recoils for the first half of each loop and the other for the
+    second, so the *mean* arm travels at v0z + lmt_order*(hbar k/m)/2 the whole
+    way and the cloud lands lmt_order*(hbar k/m)*T high. At LMT-101 over a
+    2.5 s fountain that is 0.83 m. The first correction matters for a duller
+    reason: detection sits ~1 ms after the last pulse, and at 12 m/s that is
+    another 12 mm.
     """
     T = INTERROGATION_TIME if interrogation_time is None else mp.mpf(str(interrogation_time))
     vx = V0X if v0x is None else mp.mpf(str(v0x))
     rabi = RABI_FREQ if rabi_freq is None else 2 * pi * mp.mpf(str(rabi_freq))
-    if fountain:
-        # apex at the midpoint of the whole sequence, which lasts 2*L*T
-        vz = mp.mpf('9.81') * loopnumber * T
-    else:
-        vz = V0Z if v0z is None else mp.mpf(str(v0z))
 
     # a full L-loop sequence lasts 2*L*T; leave a little margin before detection
     detection_time = 2 * loopnumber * T + mp.mpf('0.001')
+
+    if fountain:
+        # Apex at the midpoint of the whole sequence, which lasts 2*L*T.
+        #
+        # With LMT the two arms are not symmetric about the launch trajectory:
+        # one arm carries lmt_order extra photon recoils for the first half of
+        # each loop and the other for the second, so the *mean* arm travels at
+        # v0z + lmt_order*(hbar k/m)/2 throughout, and the cloud lands
+        # lmt_order*(hbar k/m)*T higher than it started. Subtract that mean
+        # recoil from the launch velocity so the fountain really does close.
+        # Close at the detection time rather than at 2*L*T: detection sits a
+        # little after the final pulse, and at ~12 m/s even a millisecond of
+        # extra free fall is over a centimetre.
+        vz = (mp.mpf('9.81') * detection_time / 2
+              - mp.mpf(str(lmt_order * RECOIL_V / 2.0)))
+    else:
+        vz = V0Z if v0z is None else mp.mpf(str(v0z))
+    vz = vz + mp.mpf(str(v0z_offset))
 
     # AISFlow mirrors the interrogation-time list into a palindrome to build the
     # diamond chain, so a D-diamond sequence needs ceil(D/2) entries. Passing a
@@ -114,8 +143,10 @@ def build_param_dict(utype='linear_pot', rotation=None, loopnumber=1,
             't_init':             mp.mpf('0.0'),
             'detectiontime':      detection_time,
             'interrogation_time': t_list,
-            'lmt_order':          1,
-            'dt_lmt':             0,
+            # LMT multiplies the arm separation by lmt_order, since the arms
+            # differ by lmt_order photon recoils rather than one
+            'lmt_order':          lmt_order,
+            'dt_lmt':             dt_lmt if lmt_order != 1 else 0,
             'automaticdetuning':  1,
             'frequencychirp':     0,
             'kchirp':             0,
@@ -286,6 +317,68 @@ def run_case(name, workdir, tilt_compensation=None, **kwargs):
         'trajectory': traj if kwargs.get('printtrajectory') else None,
         'stdout': proc.stdout,
     }
+
+
+def analytic_closing_v0x(omega_perp, total_time, g=9.81):
+    """
+    Launch velocity that returns a symmetric fountain to its starting transverse
+    position, to leading order in Omega.
+
+    The common-mode Coriolis acceleration is a_x = -2 Omega_perp v_z, and for a
+    symmetric fountain (v0z = g T/2, so v_z = g(T/2 - t)),
+
+        x(t) = v0x t - Omega g T t^2 / 2 + Omega g t^3 / 3
+        x(T) = v0x T - Omega g T^3 / 6
+
+    so x(T) = 0 for v0x = Omega_perp g T^2 / 6. With that choice the worst
+    mid-flight excursion is 0.016037 * Omega g T^3, at t/T = (1 -+ 3^-1/2)/2,
+    which is 10.4x smaller than the uncompensated end-point drift of
+    Omega g T^3 / 6.
+
+    Use :func:`solve_closing_v0x` for the exact value: this expression ignores
+    the finite pulse durations and any Omega component along the launch axis.
+    """
+    return omega_perp * g * total_time ** 2 / 6.0
+
+
+def solve_closing_v0x(name, workdir, guess=None, **kwargs):
+    """
+    Solve for the launch velocity that returns the cloud to its starting
+    transverse position, exactly.
+
+    The transverse motion is linear in v0x -- the Coriolis force does not couple
+    v0x back into x at this order -- so two runs determine the root exactly, and
+    a third confirms it.
+
+    Returns ``(v0x, residual_x, info)`` where *info* holds the three probes.
+    """
+    import numpy as _np
+    sys.path.insert(0, AISPY_PATH)
+    from aispy.trajectory import load_trajectory, reconstruct_trajectories
+
+    potential = kwargs.get('utype', 'rotating_linear_pot')
+
+    def final_x(tag, v0x):
+        r = run_case(tag, workdir, v0x=v0x, printtrajectory=True, **kwargs)
+        sm = reconstruct_trajectories(load_trajectory(r['trajectory']),
+                                      potential=potential, arm_grouping=True)
+        up, lo = sm['upper'], sm['lower']
+        xc = 0.5 * (up['x'] + _np.interp(up['t'], lo['t'], lo['x']))
+        return float(xc[-1]), float(_np.abs(xc).max())
+
+    v1 = 0.0
+    v2 = guess if guess is not None else 1e-3
+    x1, maxx_uncomp = final_x(f'{name}_p0', v1)
+    x2, _ = final_x(f'{name}_p1', v2)
+    if x2 == x1:
+        raise RuntimeError('transverse motion is insensitive to v0x')
+    v0x = v1 - x1 * (v2 - v1) / (x2 - x1)
+    x3, maxx = final_x(f'{name}_sol', v0x)
+
+    return v0x, x3, {'probe0': (v1, x1), 'probe1': (v2, x2),
+                     'solution': (v0x, x3),
+                     'max_excursion': maxx,
+                     'max_excursion_uncompensated': maxx_uncomp}
 
 
 def analytic_coriolis_phase(omega_y, v_x, T, loopnumber=1):
