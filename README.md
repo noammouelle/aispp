@@ -118,6 +118,33 @@ rather than the simulated phase. It is needed because the action reaches $\sim10
 multi-second flight, which puts the tight absolute quadrature tolerance the short runs use below
 double precision — loosen `gslqagabserr` if you need the action phase at these timescales.
 
+These examples use `lmt_order 1`, i.e. a single photon recoil, not LMT. The arm separation is
+$\hbar k/m \cdot T$ = 6.57 mm/s × 1.25 s = **8.2 mm** — large because $T$ is long, not because of
+LMT. In the plane plots the separation is drawn exaggerated by the factor stated in each panel.
+
+### Closing the interferometer
+
+A Mach–Zehnder **does not close** in a rotating frame. The two arms differ by the recoil velocity
+$\hbar k/m$ along $\vec k$, and the Coriolis force $-2\vec\Omega\times\dot{\vec r}$ acts on that
+difference, leaving them transversely separated at recombination by
+
+$$\Delta x = 2\,\Omega_\perp\,\frac{\hbar k}{m}\,T^2$$
+
+which the simulation reproduces to 0.05 %. Because this is a *differential* effect, **no
+common-mode launch velocity removes it** — scanning $v_{0x}$ from 0 to 0.2 m/s leaves the residual
+unchanged to nine significant figures. What does work is counter-rotating $\vec k_\mathrm{eff}$
+with the frame, the simulation counterpart of a tip-tilt retroreflector:
+`coriolis_common.apply_tilt_compensation` rewrites the per-pulse `kx`/`ky` so that
+$\vec k$ is held fixed in the *inertial* frame, $\vec k(t) = \vec k(0) - (\vec\Omega\times\vec k(0))\,t$.
+
+![Launch velocity cannot close a rotating-frame interferometer, but counter-rotating the
+wavevector can.](examples/coriolis/coriolis_closure.png)
+
+*(a) Four launch velocities spanning 0–0.2 m/s give identical arm openings, all landing on
+$-2\Omega_\perp(\hbar k/m)T^2$. (b) Counter-rotating $\vec k$ at a fraction of $\Omega$; the matched
+rate brings the arms back together. (c) The residual falls by $\sim10^6$ at the matched rate and
+grows linearly with the mismatch, changing sign through it.*
+
 ### Tests
 
 ```bash
@@ -135,6 +162,13 @@ The end-to-end suite decomposes the phase into parts odd and even in $\vec\Omega
 $\pm\vec\Omega$), which cleanly separates the Sagnac term from the centrifugal one. It confirms
 the odd part against $2m\vec\Omega\cdot\vec A/\hbar$ to $2\times10^{-5}$, its linearity in
 $\Omega$ to $7\times10^{-5}$, and its $T^2$ scaling to $8\times10^{-4}$.
+
+Note the Sagnac phases quoted on the figures are computed **geometrically**, from
+$2m\vec\Omega\cdot\vec A/\hbar$ with $\vec A$ the area enclosed by the simulated trajectories — not
+read back from the ais++ phase output. The end-to-end tests are what tie the two together.
+Trajectory curves are real `_TRAJ.h5` snapshots at every pulse boundary, joined by the *exact*
+free-flight solution between pulses (a matrix exponential in the rotating case), so the
+interpolation introduces no error.
 
 ## Examples
 

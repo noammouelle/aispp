@@ -66,7 +66,8 @@ K_EFF = float(kz)
 
 
 def build_param_dict(utype='linear_pot', rotation=None, loopnumber=1,
-                     interrogation_time=None, v0x=None, printtrajectory=False,
+                     interrogation_time=None, v0x=None, v0y=0.0,
+                     printtrajectory=False,
                      rabi_freq=None, v0z=None, fountain=False,
                      ultrafast=0, qag_abs=1e-13, qag_rel=1e-13):
     """
@@ -106,7 +107,7 @@ def build_param_dict(utype='linear_pot', rotation=None, loopnumber=1,
             'longtemp':     0,
             'transtemp':    0,
             'x0':           [0.0, 0.0, 0.0],
-            'v0':           [float(vx), 0.0, float(vz)],
+            'v0':           [float(vx), float(v0y), float(vz)],
         },
         'potential_params': potential_params,
         'sequence_params': {
@@ -174,7 +175,69 @@ def build_param_dict(utype='linear_pot', rotation=None, loopnumber=1,
     }
 
 
-def run_case(name, workdir, **kwargs):
+def apply_tilt_compensation(aisi_path, omega):
+    """
+    Rewrite the kx/ky lines of an .aisi file so that the effective wavevector is
+    held fixed in the *inertial* frame rather than in the rotating one.
+
+    This is the simulation counterpart of counter-rotating the retroreflector
+    ("tip-tilt compensation"), the standard way real experiments recover the
+    contrast a rotating frame would otherwise destroy.
+
+    Why it is needed: a Mach-Zehnder does not close in a rotating frame. The two
+    arms differ by the recoil velocity u = hbar k / m along k, and the Coriolis
+    acceleration -2 Omega x v acts on that difference, leaving the arms
+    transversely separated by 2 |Omega_perp| u T^2 at recombination. That is a
+    *differential* effect, so no common-mode launch velocity can undo it -- only
+    changing the direction of the momentum kicks can.
+
+    Holding k fixed in inertial space means its rotating-frame components obey
+    k(t) = R(-Omega t) k(0), i.e. to first order in Omega t
+
+        k(t) = k(0) - (Omega x k(0)) t.
+
+    Each pulse gets the tilt appropriate to its own firing time, with the sign
+    following that pulse's beam direction.
+    """
+    omega = np.asarray(omega, dtype=float)
+
+    lines = open(aisi_path).read().splitlines()
+    values = {}
+    for ln in lines:
+        parts = ln.split()
+        if parts and parts[0] in ('t0', 'kx', 'ky', 'kz'):
+            values[parts[0]] = [float(x) for x in parts[1:]]
+
+    for key in ('t0', 'kx', 'ky', 'kz'):
+        if key not in values:
+            raise RuntimeError(f'{aisi_path}: no "{key}" line to tilt-compensate')
+
+    t0, kx, ky, kz = values['t0'], values['kx'], values['ky'], values['kz']
+    if not (len(t0) == len(kx) == len(ky) == len(kz)):
+        raise RuntimeError(f'{aisi_path}: pulse arrays have inconsistent lengths')
+
+    new_kx, new_ky = [], []
+    for t, x, y, z in zip(t0, kx, ky, kz):
+        k = np.array([x, y, z])
+        tilted = k - np.cross(omega, k) * t
+        # plain Python floats: repr() of a numpy scalar is "np.float64(...)" on
+        # numpy >= 2, which the ais++ parser silently fails to read
+        new_kx.append(float(tilted[0]))
+        new_ky.append(float(tilted[1]))
+
+    out = []
+    for ln in lines:
+        parts = ln.split()
+        if parts and parts[0] == 'kx':
+            out.append('kx ' + ' '.join(f'{v:.17g}' for v in new_kx) + ' ')
+        elif parts and parts[0] == 'ky':
+            out.append('ky ' + ' '.join(f'{v:.17g}' for v in new_ky) + ' ')
+        else:
+            out.append(ln)
+    open(aisi_path, 'w').write('\n'.join(out) + '\n')
+
+
+def run_case(name, workdir, tilt_compensation=None, **kwargs):
     """
     Build an input, run ais++, and return a dict with the interfering phase
     shift and the paths of the output files.
@@ -188,6 +251,9 @@ def run_case(name, workdir, **kwargs):
     out  = os.path.join(workdir, name + '.h5')
     prob = os.path.join(workdir, name + '_PROB.h5')
     traj = os.path.join(workdir, name + '_TRAJ.h5')
+
+    if tilt_compensation is not None:
+        apply_tilt_compensation(aisi, tilt_compensation)
 
     proc = subprocess.run([AISPP_BIN, '-i', aisi, '-o', out],
                           capture_output=True, text=True)

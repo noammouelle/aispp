@@ -302,6 +302,59 @@ def test_closure():
               f'{gaps[L]:.3e} m vs {gaps[1]:.3e} m at L=1')
 
 
+# ── 8. what closes a rotating-frame interferometer ───────────────────────────
+
+def test_tilt_compensation():
+    section('8. Closing the interferometer: launch velocity vs tilting k')
+
+    from aispy.trajectory import arm_loop
+
+    T = float(cc.INTERROGATION_TIME)
+    recoil_v = 1.054571817e-34 * cc.K_EFF / (86.90888 * 1.660539066e-27)
+    predicted = 2 * OMEGA * recoil_v * T * T
+
+    def sep(tag, **kw):
+        ref = run(tag, utype='rotating_linear_pot', rotation=[0, OMEGA, 0],
+                  loopnumber=1, printtrajectory=True, **kw)
+        loop = arm_loop(load_trajectory(ref['trajectory']),
+                        potential='rotating_linear_pot')
+        return (loop['upper'] - loop['lower'])[-1]
+
+    # (a) the opening is exactly the predicted differential Coriolis effect
+    base = sep('TC_base')
+    check_close(abs(base[0]), predicted, 1e-3,
+                'transverse opening equals 2 Omega (hbar k/m) T^2')
+
+    # (b) no launch velocity changes it: the opening is differential, and a
+    # launch velocity is common mode
+    for v0x in (0.05, 0.2):
+        d = sep(f'TC_vx{v0x}', v0x=v0x)
+        check_close(d[0], base[0], 1e-9,
+                    f'launch velocity v0x={v0x} does not change the opening')
+    d = sep('TC_vy', v0y=0.05)
+    check_close(d[0], base[0], 1e-9, 'launch velocity v0y does not change it either')
+
+    # (c) counter-rotating k_eff with the frame does close it
+    omega_vec = np.array([0.0, OMEGA, 0.0])
+    matched = sep('TC_tilt1', v0x=0.01, tilt_compensation=omega_vec)
+    print(f'    uncompensated |dx| = {abs(base[0]):.4e} m')
+    print(f'    tilt-compensated   = {abs(matched[0]):.4e} m')
+    check(abs(matched[0]) < 1e-4 * abs(base[0]),
+          'counter-rotating k closes the interferometer',
+          f'reduced by {abs(base[0])/abs(matched[0]):.3g}x')
+
+    # (d) a mismatched tilt leaves a residual proportional to the mismatch,
+    # which is what pins the mechanism down
+    half = sep('TC_tilt05', v0x=0.01, tilt_compensation=0.5 * omega_vec)
+    over = sep('TC_tilt15', v0x=0.01, tilt_compensation=1.5 * omega_vec)
+    check_close(abs(half[0]), 0.5 * abs(base[0]), 1e-3,
+                'half tilt leaves half the opening')
+    check_close(abs(over[0]), 0.5 * abs(base[0]), 1e-3,
+                'over-tilting by the same amount overshoots symmetrically')
+    check(np.sign(half[0]) == -np.sign(over[0]),
+          'the residual changes sign through the matched tilt rate')
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--quick', action='store_true',
@@ -321,6 +374,7 @@ def main():
     test_centrifugal()
     test_multiloop(args.quick)
     test_closure()
+    test_tilt_compensation()
 
     print(f'\n{_checks} checks, {_failures} failures  '
           f'({len(_cache)} simulations, {time.time()-t0:.1f} s)')

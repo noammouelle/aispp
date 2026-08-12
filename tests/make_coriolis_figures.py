@@ -27,6 +27,9 @@ coriolis_fountain.png              long: uniform gravity + Coriolis, the full
                                    parabolic fountain and its deflections
 coriolis_longbaseline_planes.png   long: arm traces on the three planes
 coriolis_longbaseline_loops.png    long: 1/2/4-loop enclosed areas, 2.5-10 s
+coriolis_closure.png               long: why no launch velocity closes a
+                                   rotating-frame interferometer, and how
+                                   counter-rotating k does
 
 The rotation vector is Earth's, oriented for latitude 45 deg with z vertical and
 x pointing east, so all three coordinate planes carry some signal.
@@ -255,6 +258,89 @@ def fig_loops(runs, outdir, name, loops=(1, 2, 4), labels=None):
     return p
 
 
+# ── figure: what actually closes the interferometer ──────────────────────────
+
+def fig_closure(outdir, workdir):
+    """
+    A Mach-Zehnder does not close in a rotating frame. Show why no launch
+    velocity fixes it, and what does.
+    """
+    T, L = 1.25, 1
+    hbar, mass = 1.054571817e-34, 86.90888 * 1.660539066e-27
+    u = hbar * cc.K_EFF / mass                       # single-photon recoil
+    predicted = 2 * OMEGA_VEC[1] * u * T * T
+
+    def case(tag, **kw):
+        r = cc.run_case(tag, workdir, utype=POT, rotation=OMEGA_VEC,
+                        loopnumber=L, interrogation_time=T, fountain=True,
+                        ultrafast=1, printtrajectory=True, **kw)
+        up, lo = arms(r)
+        t, ip = common_grid(up, lo)
+        return t, np.array([ip(up, k) - ip(lo, k) for k in 'xyz'])
+
+    v0x_list = [0.0, 0.01, 0.05, 0.2]
+    vel_runs = [(v, case(f'close_vx{v}', v0x=v)) for v in v0x_list]
+    tilt_scan = [0.0, 0.5, 0.9, 1.0, 1.1, 1.5, 2.0]
+    tilt_runs = [(f, case(f'close_tilt{f}', v0x=0.01,
+                          tilt_compensation=OMEGA_VEC * f)) for f in tilt_scan]
+
+    fig, axs = plt.subplots(1, 3, figsize=(14, 4.4))
+
+    # (a) launch velocity does nothing to the closure
+    cmap = plt.get_cmap('viridis')
+    for i, (v, (t, d)) in enumerate(vel_runs):
+        axs[0].plot(t, d[0] * 1e9, lw=1.4, color=cmap(i / max(1, len(vel_runs) - 1)),
+                    label=f'$v_{{0x}}$ = {v:g} m/s')
+    axs[0].axhline(-predicted * 1e9, color='k', ls=':', lw=1.0)
+    axs[0].annotate('$-2\\,\\Omega_\\perp\\,(\\hbar k/m)\\,T^2$',
+                    xy=(t[len(t)//2], -predicted * 1e9), fontsize=8,
+                    xytext=(0.08, 0.12), textcoords='axes fraction',
+                    arrowprops=dict(arrowstyle='->', lw=0.8))
+    axs[0].set_ylabel('$\\Delta x$ between arms [nm]')
+    axs[0].set_title('(a) launch velocity cannot close it —\n'
+                     'all four curves coincide', fontsize=9)
+    axs[0].legend(fontsize=7)
+
+    # (b) tilting the wavevector does
+    for i, (f, (t, d)) in enumerate(tilt_runs):
+        lw = 2.0 if f == 1.0 else 1.1
+        col = '#d62728' if f == 1.0 else cmap(i / max(1, len(tilt_runs) - 1))
+        axs[1].plot(t, d[0] * 1e9, lw=lw, color=col,
+                    label=f'{f:g}$\\,\\Omega$' + (' (matched)' if f == 1.0 else ''))
+    axs[1].set_ylabel('$\\Delta x$ between arms [nm]')
+    axs[1].set_title('(b) counter-rotating $\\vec{k}$ does:\n'
+                     'tilt rate as a fraction of $\\Omega$', fontsize=9)
+    axs[1].legend(fontsize=7, ncol=2)
+
+    # (c) residual vs tilt rate
+    resid = [abs(d[0][-1]) for _, (t, d) in tilt_runs]
+    axs[2].plot(tilt_scan, np.array(resid) * 1e9, 'o-', color='#1f77b4', lw=1.4)
+    axs[2].set_yscale('log')
+    axs[2].set_xlabel('tilt rate / $\\Omega$')
+    axs[2].set_ylabel('$|\\Delta x|$ at recombination [nm]')
+    axs[2].set_title('(c) residual opening vs tilt rate\n'
+                     f'{resid[0]*1e9:.0f} nm $\\rightarrow$ '
+                     f'{resid[tilt_scan.index(1.0)]*1e12:.2f} pm at matched rate',
+                     fontsize=9)
+
+    for ax in axs[:2]:
+        ax.set_xlabel('$t$ [s]')
+    for ax in axs:
+        ax.grid(alpha=0.25, lw=0.5)
+        ax.axhline(0, color='k', lw=0.6, alpha=0.4)
+
+    fig.suptitle('Closing a rotating-frame interferometer. The arms differ by the '
+                 'recoil velocity $\\hbar k/m$ along $\\vec{k}$, and the Coriolis '
+                 'force acts on that difference — a *differential* effect, so no '
+                 'common-mode launch velocity can undo it.', fontsize=11)
+    fig.tight_layout()
+    p = save(fig, outdir, 'coriolis_closure.png')
+    print(f'      predicted opening 2*Om*(hbar k/m)*T^2 = {predicted:.4e} m')
+    for f, (t, d) in tilt_runs:
+        print(f'      tilt {f:4.2f} x Omega -> |dx| = {abs(d[0][-1]):.4e} m')
+    return p
+
+
 def save(fig, outdir, name):
     p = os.path.join(outdir, name)
     fig.savefig(p, dpi=150, bbox_inches='tight')
@@ -295,9 +381,10 @@ def main():
                    'long-baseline fountain: $T$ = 1.25 s, 2.5 s free fall, '
                    '7.7 m apex')
         fig_loops(runs, outdir, 'coriolis_longbaseline_loops.png',
-                  labels=['1 loop\n2.5 s, 7.7 m',
-                          '2 loops\n5.0 s, 31 m',
-                          '4 loops\n10.0 s, 123 m'])
+                  labels=['1 loop — 2.5 s, 7.7 m',
+                          '2 loops — 5.0 s, 31 m',
+                          '4 loops — 10.0 s, 123 m'])
+        fig_closure(outdir, workdir)
 
 
 if __name__ == '__main__':
