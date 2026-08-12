@@ -36,6 +36,10 @@ public:
 
     void RecordSnapshot(double time, const std::string& label);
 
+    // Write the frame angular velocity (rad/s) as a "rotation" dataset, so that
+    // downstream analysis can tell a rotating run from an inertial one.
+    void WriteRotationRate(H5::H5File& file);
+
     std::vector<std::string> GetDetectablePaths(doubleThreeVector pos0, doubleThreeVector vel0);
 
 // private:

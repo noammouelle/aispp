@@ -395,20 +395,61 @@ double AISKinematicPropagator::get_dL(const double& t, void *params)
     doubleThreeVector dx = matrixAdd(newPos,scalarMultiply(newPosTilde,-1));
     doubleThreeVector dv = matrixAdd(newVel,scalarMultiply(newVelTilde,-1));
 
-    // compute the terms in the perturbations about unperturbed trajectory's Lagrangian
-    double dxDotDUdx = dotProduct(dx,get_dUdx(newPosTilde,newVelTilde)); // first order perturbations
-    double dvDotDUdp = dotProduct(dv,get_dUdp(newPosTilde,newVelTilde));
-    double dvDotVTilde = dotProduct(dv,newVelTilde);
-    double dvDotDv   = dotProduct(dv,dv);
-    double dvDotD2UdvdvDotDv = dotProduct(dv,dotProduct(get_d2Udpdp(newPosTilde,newVelTilde),dv));
-    double dxDotD2UdxdvDotDv = dotProduct(dx,dotProduct(get_d2Udxdp(newPosTilde,newVelTilde),dv));
-    double dxDotD2Udxdx = dotProduct(dx,dotProduct(get_d2Udxdx(newPosTilde,newVelTilde),dx));
+    // The Lagrangian per unit mass, in the canonical variables (x, v = p/m) this
+    // propagator integrates, is
+    //
+    //     L/m = p.xdot/m - H/m = (1/2) v^2 + v.(dU/dp) - U/m,
+    //
+    // where the v.(dU/dp) term is present whenever the potential is velocity
+    // dependent (a rotating frame; see AISPotentials.hh). Expanding to second
+    // order about the reference trajectory (xTilde, vTilde) and dropping the
+    // reference value itself -- which is common to every arm of a given atom and
+    // therefore cancels in the interferometric phase difference -- gives
+    //
+    //     dL = vTilde.dv + (1/2) dv.dv
+    //          - dx.U_x/m - (1/2) dx.U_xx.dx/m
+    //          + vTilde.(U_px dx) + m vTilde.(U_pp dv) + (1/2) m dv.U_pp.dv.
+    //
+    // Two cancellations are worth recording, because they are the reason this
+    // expression is shorter than the number of available derivatives suggests:
+    // the dv.U_p contributions from v.(dU/dp) and from -U/m cancel exactly, and
+    // dv.(U_px dx) cancels -dx.(U_xp dv) because U_px = transpose(U_xp).
+    //
+    // Terms involving third derivatives of U have been dropped. That is exact
+    // for the quadratic Hamiltonians this code supports, and is the same
+    // assumption already made by funcLinearized() and get_ABXi().
+    //
+    // Consistency check: for a pure rotation U_x = m (Omega x vTilde) and
+    // U_px = -[Omega]x, so -dx.U_x/m = +Omega.(dx x vTilde) exactly cancels
+    // vTilde.(U_px dx) = -Omega.(dx x vTilde), leaving dL = vTilde.dv + dv.dv/2,
+    // i.e. L/m = v^2/2 - V/m. That is the correct rotating-frame Lagrangian
+    // written in canonical variables, and is exercised by the unit tests.
+    doubleThreeVector dUdxTilde = get_dUdx(newPosTilde,newVelTilde);
+    double3x3Matrix d2UdxdxTilde = get_d2Udxdx(newPosTilde,newVelTilde);
+    double3x3Matrix d2UdxdpTilde = get_d2Udxdp(newPosTilde,newVelTilde);
+    double3x3Matrix d2UdpdpTilde = get_d2Udpdp(newPosTilde,newVelTilde);
 
-    // compute and sum the perturbations up to second order(divided by m)
-    double dL = - dxDotDUdx/massSr87 + (dvDotVTilde - dvDotDUdp)
-                + 0.5 * (dvDotDv - dvDotD2UdvdvDotDv) 
-                - dxDotD2UdxdvDotDv/massSr87
-                - 0.5 * dxDotD2Udxdx/massSr87;
+    // first order perturbations
+    double dxDotDUdx = dotProduct(dx,dUdxTilde);
+    double dvDotVTilde = dotProduct(dv,newVelTilde);
+
+    // second order perturbations
+    double dvDotDv   = dotProduct(dv,dv);
+    double dxDotD2Udxdx = dotProduct(dx,dotProduct(d2UdxdxTilde,dx));
+
+    // velocity-dependent (rotating frame) contributions; all identically zero
+    // for the inertial potentials, which reduces dL to its original form
+    double vTildeDotD2UdpdxDotDx = dotProduct(newVelTilde,dotProduct(transpose(d2UdxdpTilde),dx));
+    double vTildeDotD2UdpdpDotDv = dotProduct(newVelTilde,dotProduct(d2UdpdpTilde,dv));
+    double dvDotD2UdpdpDotDv = dotProduct(dv,dotProduct(d2UdpdpTilde,dv));
+
+    // compute and sum the perturbations up to second order (divided by m)
+    double dL = - dxDotDUdx/massSr87 + dvDotVTilde
+                + 0.5 * dvDotDv
+                - 0.5 * dxDotD2Udxdx/massSr87
+                + vTildeDotD2UdpdxDotDx
+                + massSr87 * vTildeDotD2UdpdpDotDv
+                + 0.5 * massSr87 * dvDotD2UdpdpDotDv;
 
     return dL;
 }

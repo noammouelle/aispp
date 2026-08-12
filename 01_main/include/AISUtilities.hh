@@ -120,6 +120,21 @@ inline double dotProduct(const doubleThreeVector& A, const doubleThreeVector& B)
     return result;
 }
 
+inline doubleThreeVector crossProduct(const doubleThreeVector& A, const doubleThreeVector& B){
+
+    return {A[1] * B[2] - A[2] * B[1],
+            A[2] * B[0] - A[0] * B[2],
+            A[0] * B[1] - A[1] * B[0]};
+}
+
+// Skew-symmetric matrix [A]x such that dotProduct(crossMatrix(A), B) == crossProduct(A, B)
+inline double3x3Matrix crossMatrix(const doubleThreeVector& A){
+
+    return {{{  0.0, -A[2],  A[1]},
+             { A[2],   0.0, -A[0]},
+             {-A[1],  A[0],   0.0}}};
+}
+
 inline double3x3Matrix scalarMultiply(const double3x3Matrix& A, const double& B){
     
     double3x3Matrix result = {};

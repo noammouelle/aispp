@@ -2,6 +2,7 @@
 #include <random>
 
 #include "AISAtomEnsemble.hh"
+#include "AISPotentials.hh"
 
 AISAtomEnsemble::AISAtomEnsemble(int nAtoms, double transtemperature, double longtemperature, double width,
                                  doubleThreeVector initialPosition, doubleThreeVector initialVelocity,
@@ -48,8 +49,12 @@ AISAtomEnsemble::AISAtomEnsemble(int nAtoms, double transtemperature, double lon
     }
 
     for(int atom_i = 0; atom_i < nAtoms; ++atom_i){
+        // The sampled velocities are frame velocities (what a user means by v0
+        // and by a thermal spread); the propagator works in canonical momenta.
+        // In an inertial frame the conversion is the identity.
         std::unique_ptr<AISAtom> currentAtom(new AISAtom(sampledPos[atom_i],
-                                                         sampledVel[atom_i],
+                                                         canonicalFromFrameVelocity(sampledPos[atom_i],
+                                                                                    sampledVel[atom_i]),
                                                          0.0q, initialState));
         fpAtomVector->push_back(std::move(currentAtom));
     }
@@ -86,7 +91,9 @@ AISAtomEnsemble::AISAtomEnsemble(double xMin,  double xMax,  int nx,
     for (double vz : vzs)
     {
         doubleThreeVector pos = {x, y, z};
-        doubleThreeVector vel = {vx, vy, vz};
+        // Grid velocities are frame velocities; convert to canonical momenta
+        // (identity in an inertial frame). See AISPotentials.hh.
+        doubleThreeVector vel = canonicalFromFrameVelocity(pos, {vx, vy, vz});
         fpAtomVector->push_back(std::make_unique<AISAtom>(pos, vel, 0.0q, initialState));
     }
 };

@@ -66,11 +66,38 @@ v0 0.0 0.0 19.62
 
 | Key     | Type   | Description |
 |---------|--------|-------------|
-| `utype` | string | External potential type. Options: `zero_pot` (no force), `linear_pot` (uniform gravity, $g = 9.81$ m/s²), `quadratic_pot` (gravity gradient). |
+| `utype` | string | External potential type. Inertial: `zero_pot` (no force), `linear_pot` (uniform gravity, $g = 9.81$ m/s²), `quadratic_pot` (gravity gradient). Rotating-frame counterparts: `rotating_pot`, `rotating_linear_pot`, `rotating_quadratic_pot`. |
+| `rotation` | 3 × double | *Optional, default `0 0 0`.* Angular velocity $\vec\Omega$ of the frame in rad/s, in simulation-frame components. Only accepted with a `rotating_*` `utype`; supplying it with an inertial `utype` is an error. |
 
 **Example:**
 ```
 utype linear_pot
+```
+
+### Rotating frame
+
+The `rotating_*` potentials add the Coriolis and centrifugal forces of a frame
+rotating at constant $\vec\Omega$. The equation of motion integrated is
+
+$$m\ddot{\vec r} = -\nabla V - 2m\,\vec\Omega\times\dot{\vec r} - m\,\vec\Omega\times(\vec\Omega\times\vec r).$$
+
+Internally this is done by promoting the Hamiltonian to
+$H = p^2/2m - \vec\Omega\cdot(\vec r\times\vec p) + V(\vec r)$, so the centrifugal
+term is generated automatically from $p^2/2m$ and is *not* added separately.
+
+Because the canonical momentum is $\vec p = m(\dot{\vec r} + \vec\Omega\times\vec r)$,
+it is not $m\dot{\vec r}$ when the frame rotates. This is invisible at the input
+and output boundaries: `v0`, the `vgrid` limits and the thermal spreads are all
+**frame** velocities $\dot{\vec r}$, and every velocity written to file is a frame
+velocity too. The conversion is the identity when $\vec\Omega = 0$, so inertial
+runs are bit-for-bit unchanged.
+
+Every output file gains a `rotation` dataset holding the $\vec\Omega$ actually used.
+
+**Example** — Earth rotation at latitude 45° N, with $z$ vertical and $x$ pointing east:
+```
+utype rotating_linear_pot
+rotation 0.0 5.156e-5 5.156e-5
 ```
 
 ---

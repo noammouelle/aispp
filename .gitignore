@@ -7,8 +7,14 @@
 # ignore personalized config file
 myconfig.cmake
 
-# ignore tests (not up to date)
+# ignore tests (not up to date), except the rotating-frame suite and the
+# scratch directories it writes (_coriolis_e2e / _coriolis_figs stay ignored)
 /tests/*
+!/tests/CMakeLists.txt
+!/tests/test_rotating.cc
+!/tests/coriolis_common.py
+!/tests/test_coriolis_e2e.py
+!/tests/make_coriolis_figures.py
 
 # ignore the output files (let user run them ?)
 /examples/output-files/*

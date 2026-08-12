@@ -1,4 +1,5 @@
 #include "AISDataIO.hh"
+#include "AISPotentials.hh"
 
 void writeAtomEnsembleToFile(std::string fName, std::unique_ptr<AISAtomEnsemble>& atomEnsemble)
 {
@@ -19,7 +20,10 @@ void writeAtomEnsembleToFile(std::string fName, std::unique_ptr<AISAtomEnsemble>
             int currentState = currentWavePacket->GetState();
             double currentAmplitude = currentWavePacket->GetAmplitude();
             doubleThreeVector currentPos = currentWavePacket->GetPosition();
-            doubleThreeVector currentVel = currentWavePacket->GetVelocity();
+            // report the frame velocity, not the canonical p/m (identical unless
+            // the frame is rotating)
+            doubleThreeVector currentVel = frameFromCanonicalVelocity(currentPos,
+                                                                      currentWavePacket->GetVelocity());
             double currentPhaseDouble = currentWavePacket->GetPhaseDouble();
             double currentPhaseDoubleErr = currentWavePacket->GetPhaseDoubleError();
             __float128 currentPhaseQuad = currentWavePacket->GetPhaseQuad();
@@ -135,6 +139,15 @@ AISParams readParamsFromFile(std::string fName)
             }
             StrArrayParams[key] = values;
         }
+        // rotation: optional frame angular velocity "rotation wx wy wz" in rad/s,
+        // default (0,0,0). Not in DoubleArrayParamsKeys because every key in that
+        // set is mandatory.
+        else if (key == "rotation") {
+            std::vector<double> values;
+            double value;
+            while (iss >> value) values.push_back(value);
+            DoubleArrayParams[key] = values;
+        }
         // printtrajectory: optional bool, default false
         else if (key == "printtrajectory") {
             bool value;
@@ -235,6 +248,13 @@ AISParams readParamsFromFile(std::string fName)
     params.cloudTransTemperature = DoubleParams["transtemp"];
     params.cloudLongTemperature = DoubleParams["longtemp"];
     params.potentialType    = StrParams["utype"];
+    if (DoubleArrayParams.count("rotation")) {
+        const std::vector<double>& rot = DoubleArrayParams["rotation"];
+        if (rot.size() != 3) {
+            throw std::runtime_error("rotation must have exactly 3 components (rad/s)");
+        }
+        params.rotationRate = {rot[0], rot[1], rot[2]};
+    }
     params.initialPosition  = {DoubleArrayParams["x0"][0], DoubleArrayParams["x0"][1], DoubleArrayParams["x0"][2]};
     params.initialVelocity  = {DoubleArrayParams["v0"][0], DoubleArrayParams["v0"][1], DoubleArrayParams["v0"][2]};
     params.initialPulseTimes = QuadArrayParams["t0"];

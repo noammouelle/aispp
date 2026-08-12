@@ -24,6 +24,11 @@ public:
 
     // Potential parameters
     std::string potentialType;
+    // Angular velocity of the rotating frame, rad/s, in simulation-frame
+    // components. Only used by the rotating_* potential types; zero means the
+    // frame is inertial. Note the input key is "rotation": "omega" is already
+    // taken by the laser angular frequencies.
+    doubleThreeVector rotationRate = {0.0, 0.0, 0.0};
 
     // Laser parameters
     std::vector<double> rabiFrequencies;

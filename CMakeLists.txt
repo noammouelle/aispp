@@ -28,6 +28,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS} -O3 -march=native")
 add_subdirectory(01_main/src)
 add_subdirectory(02_aispotentials)
 add_subdirectory(03_aisbeams)
+add_subdirectory(tests)
 
 # Specify the executable target
 add_executable(ais++ 01_main/src/AIS++.cc)

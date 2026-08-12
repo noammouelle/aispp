@@ -1,7 +1,25 @@
 #include "AISDriver.hh"
 
 AISDriver::AISDriver(AISParams params)
-{   
+{
+    // Set the frame rotation rate before anything else: the atom ensemble
+    // constructors convert the requested frame velocities into the canonical
+    // momenta the propagator works with, and that conversion needs Omega.
+    bool rotatingPotential = (params.potentialType.rfind("rotating_", 0) == 0);
+    bool rotationRequested = (params.rotationRate[0] != 0.0 ||
+                              params.rotationRate[1] != 0.0 ||
+                              params.rotationRate[2] != 0.0);
+    if (rotationRequested && !rotatingPotential)
+    {
+        std::cerr << "Error: a non-zero 'rotation' was given but utype is '"
+                  << params.potentialType << "', which ignores it. Use one of "
+                  << "rotating_pot, rotating_linear_pot, rotating_quadratic_pot."
+                  << std::endl;
+        exit(1);
+    }
+    SetRotationRate(rotatingPotential ? params.rotationRate
+                                      : doubleThreeVector{0.0, 0.0, 0.0});
+
     // create the atom ensemble
     if (params.usePhaseSpaceGrid) {
         atomEnsemble = std::make_unique<AISAtomEnsemble>(
@@ -56,6 +74,36 @@ AISDriver::AISDriver(AISParams params)
         dUdp = std::make_shared<gradPotentialFunctionType>(zeroGrad);
         d2Udxdx = std::make_shared<hessianPotentialFunctionType>(linearGravityHess);
         d2Udxdp = std::make_shared<hessianPotentialFunctionType>(zeroHess);
+        d2Udpdp = std::make_shared<hessianPotentialFunctionType>(zeroHess);
+    }
+    // Rotating-frame variants. These differ from their inertial counterparts only
+    // by the velocity-dependent Coriolis terms (dUdp and d2Udxdp); the
+    // centrifugal force comes out of p^2/2m automatically. See AISPotentials.hh.
+    else if(params.potentialType == "rotating_pot")
+    {
+        U = std::make_shared<potentialFunctionType>(rotatingU);
+        dUdx = std::make_shared<gradPotentialFunctionType>(rotatingGrad);
+        dUdp = std::make_shared<gradPotentialFunctionType>(rotationDUdp);
+        d2Udxdx = std::make_shared<hessianPotentialFunctionType>(zeroHess);
+        d2Udxdp = std::make_shared<hessianPotentialFunctionType>(rotationD2Udxdp);
+        d2Udpdp = std::make_shared<hessianPotentialFunctionType>(zeroHess);
+    }
+    else if(params.potentialType == "rotating_linear_pot")
+    {
+        U = std::make_shared<potentialFunctionType>(rotatingUniformGravityU);
+        dUdx = std::make_shared<gradPotentialFunctionType>(rotatingUniformGravityGrad);
+        dUdp = std::make_shared<gradPotentialFunctionType>(rotationDUdp);
+        d2Udxdx = std::make_shared<hessianPotentialFunctionType>(zeroHess);
+        d2Udxdp = std::make_shared<hessianPotentialFunctionType>(rotationD2Udxdp);
+        d2Udpdp = std::make_shared<hessianPotentialFunctionType>(zeroHess);
+    }
+    else if(params.potentialType == "rotating_quadratic_pot")
+    {
+        U = std::make_shared<potentialFunctionType>(rotatingLinearGravityU);
+        dUdx = std::make_shared<gradPotentialFunctionType>(rotatingLinearGravityGrad);
+        dUdp = std::make_shared<gradPotentialFunctionType>(rotationDUdp);
+        d2Udxdx = std::make_shared<hessianPotentialFunctionType>(linearGravityHess);
+        d2Udxdp = std::make_shared<hessianPotentialFunctionType>(rotationD2Udxdp);
         d2Udpdp = std::make_shared<hessianPotentialFunctionType>(zeroHess);
     }
     else
@@ -185,7 +233,10 @@ void AISDriver::Run()
         for(int i = 0; i < params.nAtoms; ++i)
         {
             std::unique_ptr<AISWavePacket>& currentWavePacket = this->atomEnsemble->GetAtom(i)->GetWavePacket(0);
-            currentWavePacket->SetDetectablePaths(GetDetectablePaths(currentWavePacket->GetPosition(), currentWavePacket->GetVelocity()));
+            // compare frame velocities: params.initialVelocity is a frame velocity
+            doubleThreeVector wpPos = currentWavePacket->GetPosition();
+            currentWavePacket->SetDetectablePaths(
+                GetDetectablePaths(wpPos, frameFromCanonicalVelocity(wpPos, currentWavePacket->GetVelocity())));
         }
     }
 
@@ -318,7 +369,9 @@ void AISDriver::WriteDetectedAtomsToFile(std::string filename)
             std::unique_ptr<AISPort>& port = portFrame->GetPort(sampledPortIndex);
             // get the data
             doubleThreeVector currentPosition = port->position;
-            doubleThreeVector currentVelocity = port->velocity;
+            // report the frame velocity, not the canonical p/m
+            doubleThreeVector currentVelocity = frameFromCanonicalVelocity(currentPosition,
+                                                                           port->velocity);
             int currentState = port->state;
             int currentInterferingFlag = static_cast<int>(port->interfering);
             double currentPhaseShift = port->phaseShift;
@@ -366,6 +419,8 @@ void AISDriver::WriteDetectedAtomsToFile(std::string filename)
     dataset_interferingFlag.write(interferingFlag.data(), H5::PredType::NATIVE_INT);
     dataset_phaseShifts.write(phaseShifts.data(), H5::PredType::NATIVE_DOUBLE);
     dataset_phaseShiftErrors.write(phaseShiftErrors.data(), H5::PredType::NATIVE_DOUBLE);
+
+    WriteRotationRate(file);
 
     // close the file
     file.close();
@@ -415,7 +470,9 @@ void AISDriver::WritePortsToFile(std::string fName)
             std::unique_ptr<AISPort>& port = portFrame->GetPort(portIndex);
             // get the data
             doubleThreeVector currentPosition = port->position;
-            doubleThreeVector currentVelocity = port->velocity;
+            // report the frame velocity, not the canonical p/m
+            doubleThreeVector currentVelocity = frameFromCanonicalVelocity(currentPosition,
+                                                                           port->velocity);
             int currentState = port->state;
             int currentInterferingFlag = static_cast<int>(port->interfering);
             double currentProbability = abs(port->probabilityAmplitude);
@@ -471,6 +528,8 @@ void AISDriver::WritePortsToFile(std::string fName)
     dataset_phaseShifts.write(phaseShifts.data(), H5::PredType::NATIVE_DOUBLE);
     dataset_phaseShiftErrors.write(phaseShiftErrors.data(), H5::PredType::NATIVE_DOUBLE);
 
+    WriteRotationRate(file);
+
     // close the file
     file.close();
 }
@@ -501,7 +560,8 @@ void AISDriver::WritePhaseSpaceMapToFile(std::string fName)
 
         // Initial phase-space coords — same for every wavepacket of this atom
         doubleThreeVector p0 = atom->GetWavePacket(0)->GetPos0();
-        doubleThreeVector v0 = atom->GetWavePacket(0)->GetVel0();
+        // report frame velocities, not canonical p/m
+        doubleThreeVector v0 = frameFromCanonicalVelocity(p0, atom->GetWavePacket(0)->GetVel0());
 
         for (int pi = 0; pi < portFrame->GetNumberOfPorts(); ++pi)
         {
@@ -512,7 +572,8 @@ void AISDriver::WritePhaseSpaceMapToFile(std::string fName)
                 initPosFlat [idx*3+k] = p0[k];
                 initVelFlat [idx*3+k] = v0[k];
                 finalPosFlat[idx*3+k] = port->position[k];
-                finalVelFlat[idx*3+k] = port->velocity[k];
+                finalVelFlat[idx*3+k] = frameFromCanonicalVelocity(port->position,
+                                                                    port->velocity)[k];
             }
 
             phaseShifts     [idx] = port->phaseShift;
@@ -578,7 +639,19 @@ void AISDriver::WritePhaseSpaceMapToFile(std::string fName)
     write1D_str   ("path0",             path0Strs);
     write1D_str   ("path1",             path1Strs);
 
+    WriteRotationRate(file);
+
     file.close();
+}
+
+void AISDriver::WriteRotationRate(H5::H5File& file)
+{
+    hsize_t dim[1] = {3};
+    H5::DataSpace ds(1, dim);
+    // use the rate the physics actually ran with, not the requested one
+    std::array<double,3> rot = {gRotationRate[0], gRotationRate[1], gRotationRate[2]};
+    file.createDataSet("rotation", H5::PredType::NATIVE_DOUBLE, ds)
+        .write(rot.data(), H5::PredType::NATIVE_DOUBLE);
 }
 
 void AISDriver::RecordSnapshot(double time, const std::string& label)
@@ -595,7 +668,9 @@ void AISDriver::RecordSnapshot(double time, const std::string& label)
         {
             auto& wp = atom->GetWavePacket(wi);
             doubleThreeVector pos = wp->GetPosition();
-            doubleThreeVector vel = wp->GetVelocity();
+            // snapshots record the frame velocity so that the trajectory traces
+            // aispy reconstructs are the physical ones
+            doubleThreeVector vel = frameFromCanonicalVelocity(pos, wp->GetVelocity());
             fTrajSnapIdx.push_back(snapIdx);
             fTrajAtomIdx.push_back(ai);
             fTrajPaths.push_back(wp->GetPath());
@@ -676,6 +751,10 @@ void AISDriver::WriteTrajectoryToFile(std::string fName)
         .write(posFlat.data(), H5::PredType::NATIVE_DOUBLE);
     file.createDataSet("velocities", H5::PredType::NATIVE_DOUBLE, ds2D)
         .write(velFlat.data(), H5::PredType::NATIVE_DOUBLE);
+
+    // Frame rotation rate, so that aispy can reconstruct the free flight between
+    // snapshots without having to re-read the input file.
+    WriteRotationRate(file);
 
     file.close();
     std::cout << "Trajectory: " << nSnap << " snapshots, "
