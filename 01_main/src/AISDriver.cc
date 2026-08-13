@@ -122,8 +122,8 @@ AISDriver::AISDriver(AISParams params)
 
     __float128 omega_, omegaChirp_;
     doubleThreeVector k_, kChirp_;
-    double rabiFreq_, phi0_, w0_, zLaser_, focalLength_, beamRadius_, baselineLength_;
-    std::string beamType_;
+    double rabiFreq_, phi0_, w0_, zLaser_, focalLength_, beamRadius_, baselineLength_, tiptiltX_, tiptiltY_;
+    std::string beamType_, beamInterpolationParamsFilename_;
     std::map<int, double> zernikeCoeffs_;
 
     for(int i = 0; i < params.rabiFrequencies.size(); ++i)
@@ -139,6 +139,10 @@ AISDriver::AISDriver(AISParams params)
         else if(params.wavefrontTypeVector[i] == "confocal")
         {
             beamType_ = "confocal";
+        }
+        else if(params.wavefrontTypeVector[i] == "interpolated")
+        {
+            beamType_ = "interpolated";
         }
         else{
             std::cerr << "Wavefront type " << params.wavefrontTypeVector[i] << " not recognized. Exiting." << std::endl;
@@ -156,6 +160,17 @@ AISDriver::AISDriver(AISParams params)
         focalLength_ = params.focalLengthVector[i];
         beamRadius_ = params.beamRadiusVector[i];
         baselineLength_ = params.baselineLengthVector[i];
+        // These three keys are optional, so their arrays are empty unless the
+        // input file supplies them. Index defensively rather than reading past
+        // the end of an absent vector.
+        auto optionalDouble = [i](const std::vector<double>& v, double fallback) {
+            return i < static_cast<int>(v.size()) ? v[i] : fallback;
+        };
+        beamInterpolationParamsFilename_ =
+            i < static_cast<int>(params.beamInterpolationParamsFilenames.size())
+                ? params.beamInterpolationParamsFilenames[i] : std::string();
+        tiptiltX_ = optionalDouble(params.tiptiltX, 0.0);
+        tiptiltY_ = optionalDouble(params.tiptiltY, 0.0);
 
 
         // get the zernike coeffs
@@ -175,6 +190,12 @@ AISDriver::AISDriver(AISParams params)
         beam->SetBeamRadius(beamRadius_);
         beam->SetBeamType(beamType_);
         beam->SetBaselineLength(baselineLength_);
+        // Only sampled beams read a grid file. Calling this unconditionally (as
+        // the interpolation branch did) made every flat_square or gaussian run
+        // fail on a missing file.
+        if(beamType_ == "interpolated")
+            beam->SetInterpolationGrids(beamInterpolationParamsFilename_);
+        beam->SetTipTilt(tiptiltX_, tiptiltY_);
 
         // create the propagator
         auto pulsePropagator = std::make_shared<AISPulsePropagator>(beam, params.initialPulseTimes[i], params.finalPulseTimes[i], kinematicPropagator,

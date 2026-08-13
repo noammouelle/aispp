@@ -1,5 +1,6 @@
 #include "AISUtilities.hh"
 #include <iostream>
+#include <algorithm>
 
 // complex number routines
 double complexAbs(complexDouble z){
@@ -254,4 +255,66 @@ std::array<int, 2> nollToZernike(int j) {
     int m = pow(-1,j) * ((n % 2) + 2 * std::floor((j1+((n+1)%2)) / 2.0 ));
 
     return {n, m};
+}
+
+double trilinearInterpolation(
+    double x, double y, double z,
+    const std::vector<double>& x_grid,
+    const std::vector<double>& y_grid,
+    const std::vector<double>& z_grid,
+    const std::vector<double>& values,
+    int Nx, int Ny, int Nz
+) {
+    // Locate the cell containing val, clamped to a valid cell at BOTH ends.
+    // The previous linear scan returned the *top* cell for anything below
+    // grid[0], which made the weight large and negative and sent out-of-grid
+    // atoms off to a garbage phase. Binary search also drops this from O(N) to
+    // O(log N), which matters: it runs once per atom per pulse.
+    auto lower_index = [](double val, const std::vector<double>& grid) -> size_t {
+        if (val <= grid.front()) return 0;
+        if (val >= grid.back())  return grid.size() - 2;
+        // first element strictly greater than val, so idx-1 is the lower corner
+        size_t idx = std::upper_bound(grid.begin(), grid.end(), val) - grid.begin();
+        return idx - 1;
+    };
+
+    size_t i = lower_index(x, x_grid);
+    size_t j = lower_index(y, y_grid);
+    size_t k = lower_index(z, z_grid);
+
+    double x0 = x_grid[i], x1 = x_grid[i+1];
+    double y0 = y_grid[j], y1 = y_grid[j+1];
+    double z0 = z_grid[k], z1 = z_grid[k+1];
+
+    // Clamp the weights to [0,1] so a point outside the grid takes the nearest
+    // edge value (constant extrapolation) instead of diverging linearly. This
+    // matches the intent of aisoptics' bounds_policy on the Python side.
+    auto clamp01 = [](double v) { return v < 0.0 ? 0.0 : (v > 1.0 ? 1.0 : v); };
+    double xd = clamp01((x - x0) / (x1 - x0));
+    double yd = clamp01((y - y0) / (y1 - y0));
+    double zd = clamp01((z - z0) / (z1 - z0));
+
+    // size_t throughout: Nx*Ny*Nz overflows a 32-bit int for large grids.
+    auto at = [&](size_t ii, size_t jj, size_t kk) {
+        return values[ii * static_cast<size_t>(Ny) * Nz + jj * static_cast<size_t>(Nz) + kk];
+    };
+
+    double c000 = at(i, j, k);
+    double c100 = at(i+1, j, k);
+    double c010 = at(i, j+1, k);
+    double c001 = at(i, j, k+1);
+    double c101 = at(i+1, j, k+1);
+    double c011 = at(i, j+1, k+1);
+    double c110 = at(i+1, j+1, k);
+    double c111 = at(i+1, j+1, k+1);
+
+    double c00 = c000 * (1 - xd) + c100 * xd;
+    double c01 = c001 * (1 - xd) + c101 * xd;
+    double c10 = c010 * (1 - xd) + c110 * xd;
+    double c11 = c011 * (1 - xd) + c111 * xd;
+
+    double c0 = c00 * (1 - yd) + c10 * yd;
+    double c1 = c01 * (1 - yd) + c11 * yd;
+
+    return c0 * (1 - zd) + c1 * zd;
 }

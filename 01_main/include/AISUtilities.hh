@@ -251,6 +251,12 @@ int factorial(int n);
 /*Zernike routines*/
 std::array<int,2> nollToZernike(int noll);
 
-
+/*Interpolation*/
+double trilinearInterpolation(double x, double y, double z,
+                              const std::vector<double>& xGrid,
+                                const std::vector<double>& yGrid,
+                                const std::vector<double>& zGrid,
+                                const std::vector<double>& values,
+                                int nx, int ny, int nz);
 
 #endif

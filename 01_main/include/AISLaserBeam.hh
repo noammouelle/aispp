@@ -10,6 +10,7 @@
 #include <map>
 
 #include <gsl/gsl_deriv.h>
+#include <H5Cpp.h>
 
 class AISLaserBeam
 {
@@ -58,7 +59,21 @@ public:
 
     static double GetPhiWrapper(double xi, void* params);
 
+    // Load the sampled beam (datasets x, y, z, phase, amplitude) written by
+    // aisoptics' AISPPExporter. Only meaningful for beamType == "interpolated";
+    // AISDriver calls it only for that type.
+    void SetInterpolationGrids(std::string filename);
+    bool HasInterpolationGrids() const;
+
+    void SetTipTilt(double tiptiltX, double tiptiltY);
+    std::pair<double, double> GetTipTilt();
+
 private:
+    // Shear the sample point to model a tipped/tilted retroreflector.
+    doubleThreeVector ApplyTipTilt(const doubleThreeVector& pos) const;
+    // Zernike aberration phase over the aperture; 0 when no coefficients are set.
+    double GetZernikePhase(const doubleThreeVector& pos) const;
+
     double rabiFreq; // central rabi frequency
 
     doubleThreeVector k;
@@ -72,6 +87,15 @@ private:
     double baselineLength;
 
     std::map<int, double> zernikeCoeffs;
+
+    std::vector<double> interpolationGridX;
+    std::vector<double> interpolationGridY;
+    std::vector<double> interpolationGridZ;
+    std::vector<double> phaseInterpolationGridValues;
+    std::vector<double> amplitudeInterpolationGridValues;
+
+    double tiptiltX = 0.0;
+    double tiptiltY = 0.0;
 
     // options params
     std::string beamType;

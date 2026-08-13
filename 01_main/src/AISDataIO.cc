@@ -76,9 +76,9 @@ AISParams readParamsFromFile(std::string fName)
     std::set<std::string> StrParamsKeys = {"utype"};
     std::set<std::string> DoubleArrayParamsKeys = {"x0", "v0", "kx", "ky", "kz","rabifreq", "phi0", "xdet", "ydet", "zdet",
                                                    "kxchirp", "kychirp", "kzchirp", "waist", "zlaser", "focallength",
-                                                   "beamradius", "baseline"};
+                                                   "beamradius", "baseline", "tiptiltx", "tiptilty"};
     std::set<std::string> QuadArrayParamsKeys = {"t0", "t1", "omega","frequencychirp"};
-    std::set<std::string> StrArrayParamsKeys = {"wtype","pathstosimulate"};
+    std::set<std::string> StrArrayParamsKeys = {"wtype","pathstosimulate","beaminterpolationparamsfilenames"};
 
     std::string line;
 
@@ -274,6 +274,7 @@ AISParams readParamsFromFile(std::string fName)
     params.phi0 = DoubleArrayParams["phi0"];
     params.omegaVector = QuadArrayParams["omega"];
     params.wavefrontTypeVector = StrArrayParams["wtype"];
+    params.beamInterpolationParamsFilenames = StrArrayParams["beaminterpolationparamsfilenames"];
 
     params.frequencyChirpVector = QuadArrayParams["frequencychirp"];
     params.kXChirpVector = DoubleArrayParams["kxchirp"];
@@ -345,6 +346,10 @@ AISParams readParamsFromFile(std::string fName)
         parseGrid("vygrid", params.vyGridMin, params.vyGridMax, params.nGridVY);
         parseGrid("vzgrid", params.vzGridMin, params.vzGridMax, params.nGridVZ);
     }
+
+    // Beam tip-tilt (degrees), per pulse. Zero when absent.
+    params.tiptiltX = DoubleArrayParams["tiptiltx"];
+    params.tiptiltY = DoubleArrayParams["tiptilty"];
 
     return params;
 }
