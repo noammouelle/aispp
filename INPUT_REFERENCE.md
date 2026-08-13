@@ -60,6 +60,30 @@ x0 0.0 0.0 0.0
 v0 0.0 0.0 19.62
 ```
 
+### Phase-space grid mode
+
+| Key        | Type            | Description |
+|------------|-----------------|-------------|
+| `initmode` | string          | `gaussian` (default) samples the thermal cloud described above. `psgrid` instead places atoms on a deterministic 6-D grid. |
+| `xgrid`, `ygrid`, `zgrid` | `min max n` | Position grid limits (m) and point count per axis. |
+| `vxgrid`, `vygrid`, `vzgrid` | `min max n` | Velocity grid limits (m/s) and point count per axis. These are **frame** velocities; see the rotating-frame note above. |
+
+All six axis keys are required when `initmode psgrid` is set, and each `n` must
+be at least 1. The Gaussian cloud keys must still be present — the parser
+requires them — but they are ignored in this mode. The total atom count is the
+product of the six point counts, not `natoms`.
+
+**Example** — a transverse position/velocity map at fixed $z$:
+```
+initmode psgrid
+xgrid  -0.002 0.002 41
+ygrid  -0.002 0.002 41
+zgrid   0.0   0.0    1
+vxgrid -0.01  0.01  21
+vygrid -0.01  0.01  21
+vzgrid  0.0   0.0    1
+```
+
 ---
 
 ## 2. Potential parameters
@@ -150,6 +174,7 @@ relevant when `ultrafast = 0`.
 |------------------|------|-------------|
 | `printprobs`     | 0/1  | Write detection probabilities to the HDF5 output file. |
 | `printwavepackets`| 0/1 | Write full wavepacket data (position, velocity, amplitude, phase) to the HDF5 output file. Produces large files for big ensembles. |
+| `printtrajectory`| 0/1  | Write a snapshot of every wavepacket at every pulse boundary to a companion `*_TRAJ.h5` file. Consumed by `aispy.trajectory` for arm reconstruction, enclosed-area and Sagnac-phase analysis. Optional; default `0`. |
 
 ---
 
@@ -170,12 +195,14 @@ as space-separated lists on a single line.
 | `omega`          | rad/s    | Angular frequency of the laser field for each pulse. For each pulse, `omega` is computed to put the transition on resonance accounting for the Doppler shift of the atom at that time. Computed automatically by `AISFlow`. |
 | `rabifreq`       | rad/s    | On-axis Rabi frequency $\Omega_0$ for each pulse. |
 | `phi0`           | rad      | Constant phase offset added to the laser phase $\varphi(\boldsymbol{r})$ for each pulse. Usually `0`. |
-| `wtype`          | string   | Beam profile type. Options: `gaussian` (Gaussian intensity and wavefront), `flat_square` (uniform intensity, flat wavefront). |
-| `waist`          | m        | Beam waist $w_0$ at focus (Gaussian beam only). |
+| `wtype`          | string   | Beam profile type. Options: `gaussian` (analytic Gaussian intensity and wavefront), `confocal` (concave mirror with coincident in/out foci), `flat_square` (uniform intensity, flat wavefront), `interpolated` (sampled beam read from an HDF5 grid — see below). |
+| `waist`          | m        | Beam waist $w_0$ at focus. Used by `gaussian` and `confocal`; ignored by `interpolated` and `flat_square`. |
 | `focallength`    | m        | Focus position $f$ along the beam axis (distance from the mirror at $z = 0$). Set to `0` for focus at the mirror (HEHN configuration). |
-| `zlaser`         | m        | $z$-position of the laser source (top of the vacuum chamber). Used to set the overall beam geometry. |
-| `beamradius`     | m        | Physical aperture radius of the laser beam. Atoms outside this radius are treated as receiving zero intensity. |
-| `baseline`       | m        | Vertical separation between the two interferometers in a gradiometer configuration. Used to compute the spatially varying Rabi frequency. |
+| `zlaser`         | m        | **Inert.** Parsed and stored but never read; beam geometry comes from `focallength` and the sign of `kz`. Retained for input compatibility — see `KNOWN_ISSUES.md` #5. |
+| `beamradius`     | m        | Normalisation radius $r_\text{beam}$ for the Zernike expansion below. Required (and must be positive) when any `zernikecoeff_N` is non-zero. It does **not** clip the beam: atoms outside this radius still receive intensity from the envelope. |
+| `baseline`       | m        | Vertical separation between the two interferometers in a gradiometer configuration. |
+| `beaminterpolationparamsfilenames` | path | Per-pulse path to the HDF5 beam file, required when `wtype` is `interpolated` and ignored otherwise. |
+| `tiptiltx`, `tiptilty` | deg | Tip/tilt of the retroreflector about the $x$ and $y$ axes. Applied to `interpolated` beams as a shear of the sample point, $x \to x - z\tan\theta_x$. Optional; default `0`. |
 | `kxchirp`, `kychirp`, `kzchirp` | rad/m/s | Linear time-derivative of the wavevector (wavevector chirp). Set to `0` for no chirp. |
 | `frequencychirp` | rad/s²   | Linear time-derivative of the laser frequency. Set to `0` for no chirp. |
 | `zernikecoeff_N` | rad/m²   | Zernike coefficient $N$ of the wavefront aberration (see below). Multiple coefficients can be included with different indices. |
@@ -190,7 +217,44 @@ $$\varphi(\boldsymbol{r}) = \sum_N c_N Z_N(\boldsymbol{r}/r_{\text{beam}})$$
 Each coefficient is specified as a per-pulse array with key `zernikecoeff_N` where
 `N` is the Zernike Noll index. Set all coefficients to `0` to use the analytic Gaussian wavefront profile alone
 (wavefront curvature from the beam geometry is still included via `focallength` and
-`waist`).
+`waist`). `beamradius` sets $r_\text{beam}$ and must be positive whenever any
+coefficient is non-zero.
+
+> **Restored in v0.0.2.** Between commit `adbebdf` and this release the Zernike
+> block was absent from `GetPhi`, so `zernikecoeff_N` was parsed and silently
+> ignored. Results produced in that window contain no aberration. Note also that
+> the aberration contributes to the phase but **not** to the wavefront gradient —
+> see `KNOWN_ISSUES.md` #1.
+
+---
+
+## 6b. Interpolated (sampled) beams
+
+Setting `wtype interpolated` replaces the analytic profile with a beam sampled on
+a regular 3-D grid, as written by the `AISPPExporter` in the companion
+**aisoptics** package:
+
+```python
+from aisoptics import AISPPExporter
+AISPPExporter().export_total_field("beam.h5", field_grid)
+```
+
+The file must contain 1-D coordinate datasets `x`, `y`, `z` and flattened
+`phase` and `amplitude` datasets in C order, indexed `i*Ny*Nz + j*Nz + k`. It
+should carry the attribute `export_format = "aispp_current_interpolation_hdf5"`;
+ais++ rejects any other value and warns if the attribute is absent.
+
+Conventions, matching the exporter:
+
+- `phase` is the slowly varying envelope phase in radians and **excludes** the
+  $\pm k z$ carrier, which ais++ handles separately.
+- `amplitude` is field amplitude relative to the configured `rabifreq`, so the
+  effective Rabi frequency is `rabifreq × amplitude`.
+
+Points outside the sampled volume take the nearest edge value (constant
+extrapolation) rather than extrapolating linearly. `waist`, and the Zernike
+coefficients are not applied to interpolated beams — the grid is taken as the
+complete description of the beam.
 
 ---
 

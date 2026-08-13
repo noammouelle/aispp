@@ -12,6 +12,8 @@ myconfig.cmake
 /tests/*
 !/tests/CMakeLists.txt
 !/tests/test_rotating.cc
+!/tests/test_interpolation.cc
+!/tests/test_aisoptics_roundtrip.py
 !/tests/coriolis_common.py
 !/tests/test_coriolis_e2e.py
 !/tests/make_coriolis_figures.py
