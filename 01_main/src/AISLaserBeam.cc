@@ -111,9 +111,9 @@ double AISLaserBeam::GetPhi(const doubleThreeVector& pos)
         doubleThreeVector shiftedPos = ApplyTipTilt(pos);
         double spatiallyVaryingPhase = trilinearInterpolation(
             shiftedPos[0], shiftedPos[1], shiftedPos[2],
-            interpolationGridX, interpolationGridY, interpolationGridZ,
-            phaseInterpolationGridValues,
-            interpolationGridX.size(), interpolationGridY.size(), interpolationGridZ.size());
+            interpolationGrids->x, interpolationGrids->y, interpolationGrids->z,
+            interpolationGrids->phase,
+            interpolationGrids->x.size(), interpolationGrids->y.size(), interpolationGrids->z.size());
 
         return phi0 + spatiallyVaryingPhase;
     }
@@ -227,9 +227,9 @@ double AISLaserBeam::GetRabiFreq(const doubleThreeVector& pos, const __float128&
         doubleThreeVector shiftedPos = ApplyTipTilt(pos);
         double amplitude = trilinearInterpolation(
             shiftedPos[0], shiftedPos[1], shiftedPos[2],
-            interpolationGridX, interpolationGridY, interpolationGridZ,
-            amplitudeInterpolationGridValues,
-            interpolationGridX.size(), interpolationGridY.size(), interpolationGridZ.size());
+            interpolationGrids->x, interpolationGrids->y, interpolationGrids->z,
+            interpolationGrids->amplitude,
+            interpolationGrids->x.size(), interpolationGrids->y.size(), interpolationGrids->z.size());
 
         effectiveRabiFreq = amplitude * rabiFreq;
     }
@@ -342,7 +342,19 @@ std::pair<double, double> AISLaserBeam::GetTipTilt()
 
 bool AISLaserBeam::HasInterpolationGrids() const
 {
-    return !interpolationGridX.empty();
+    return interpolationGrids != nullptr;
+}
+
+std::map<std::string, std::shared_ptr<const AISLaserBeam::InterpolationGrids>>&
+AISLaserBeam::InterpolationCache()
+{
+    static std::map<std::string, std::shared_ptr<const InterpolationGrids>> cache;
+    return cache;
+}
+
+size_t AISLaserBeam::InterpolationCacheSize()
+{
+    return InterpolationCache().size();
 }
 
 void AISLaserBeam::SetInterpolationGrids(std::string filename)
@@ -353,6 +365,21 @@ void AISLaserBeam::SetInterpolationGrids(std::string filename)
                      "'beaminterpolationparamsfilenames'. Exiting." << std::endl;
         exit(1);
     }
+
+    // A real pulse sequence typically has hundreds to thousands of pulses
+    // sharing one or two beam files; load each distinct file once and share
+    // it by shared_ptr across every beam that references it; see the
+    // InterpolationGrids/InterpolationCache comment in the header for why
+    // a naive per-beam copy is not just wasteful but can exhaust memory.
+    auto& cache = InterpolationCache();
+    auto cached = cache.find(filename);
+    if(cached != cache.end())
+    {
+        interpolationGrids = cached->second;
+        return;
+    }
+
+    auto grids = std::make_shared<InterpolationGrids>();
 
     try
     {
@@ -389,11 +416,11 @@ void AISLaserBeam::SetInterpolationGrids(std::string filename)
             dataset.read(out.data(), H5::PredType::NATIVE_DOUBLE);
         };
 
-        readVector("x", interpolationGridX);
-        readVector("y", interpolationGridY);
-        readVector("z", interpolationGridZ);
-        readVector("phase", phaseInterpolationGridValues);
-        readVector("amplitude", amplitudeInterpolationGridValues);
+        readVector("x", grids->x);
+        readVector("y", grids->y);
+        readVector("z", grids->z);
+        readVector("phase", grids->phase);
+        readVector("amplitude", grids->amplitude);
 
         file.close();
     }
@@ -407,19 +434,22 @@ void AISLaserBeam::SetInterpolationGrids(std::string filename)
     // trilinearInterpolation needs at least one cell along each axis, and the flat
     // value arrays must match the product of the axis lengths under the C-order
     // index i*Ny*Nz + j*Nz + k that aisoptics documents.
-    if(interpolationGridX.size() < 2 || interpolationGridY.size() < 2 || interpolationGridZ.size() < 2)
+    if(grids->x.size() < 2 || grids->y.size() < 2 || grids->z.size() < 2)
     {
         std::cerr << "Beam file " << filename << " needs at least 2 points on each axis. Exiting." << std::endl;
         exit(1);
     }
 
-    const size_t expected = interpolationGridX.size() * interpolationGridY.size() * interpolationGridZ.size();
-    if(phaseInterpolationGridValues.size() != expected || amplitudeInterpolationGridValues.size() != expected)
+    const size_t expected = grids->x.size() * grids->y.size() * grids->z.size();
+    if(grids->phase.size() != expected || grids->amplitude.size() != expected)
     {
         std::cerr << "Beam file " << filename << ": phase/amplitude length ("
-                  << phaseInterpolationGridValues.size() << "/" << amplitudeInterpolationGridValues.size()
+                  << grids->phase.size() << "/" << grids->amplitude.size()
                   << ") does not match Nx*Ny*Nz = " << expected << ". Exiting." << std::endl;
         exit(1);
     }
+
+    cache[filename] = grids;
+    interpolationGrids = grids;
 }
 

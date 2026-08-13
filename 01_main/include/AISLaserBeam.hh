@@ -64,6 +64,10 @@ public:
     // AISDriver calls it only for that type.
     void SetInterpolationGrids(std::string filename);
     bool HasInterpolationGrids() const;
+    // Number of distinct beam files currently held in the shared cache --
+    // exposed for tests to pin the sharing behaviour (see InterpolationCache
+    // in the private section), not meant for use by simulation code.
+    static size_t InterpolationCacheSize();
 
     void SetTipTilt(double tiptiltX, double tiptiltY);
     std::pair<double, double> GetTipTilt();
@@ -88,11 +92,21 @@ private:
 
     std::map<int, double> zernikeCoeffs;
 
-    std::vector<double> interpolationGridX;
-    std::vector<double> interpolationGridY;
-    std::vector<double> interpolationGridZ;
-    std::vector<double> phaseInterpolationGridValues;
-    std::vector<double> amplitudeInterpolationGridValues;
+    // Sampled beam data (x, y, z, phase, amplitude) loaded by
+    // SetInterpolationGrids. Held via a filename-keyed static cache
+    // (InterpolationCache()) rather than a per-beam copy: AISDriver builds
+    // one AISLaserBeam per pulse, and a real pulse sequence commonly has
+    // hundreds to thousands of pulses referencing the same one or two beam
+    // files, so a naive per-beam copy multiplies the field's memory
+    // footprint by the pulse count -- large enough to exhaust system memory
+    // for a big field and a long sequence even though the file itself is
+    // only read once.
+    struct InterpolationGrids
+    {
+        std::vector<double> x, y, z, phase, amplitude;
+    };
+    static std::map<std::string, std::shared_ptr<const InterpolationGrids>>& InterpolationCache();
+    std::shared_ptr<const InterpolationGrids> interpolationGrids;
 
     double tiptiltX = 0.0;
     double tiptiltY = 0.0;

@@ -268,6 +268,54 @@ static void testAmplitudeConvention()
     checkClose(beam.GetRabiFreq({0.5, 0.5, 0.5}, 0, 0), 0.50 * rabi, 1e-12, "amplitude at x=0.5");
 }
 
+// A real pulse sequence has one AISLaserBeam per pulse, commonly hundreds to
+// thousands of them referencing the same one or two beam files. Loading each
+// occurrence independently once meant the field's memory footprint scaled
+// with pulse count rather than distinct file count -- for a large field and
+// a long sequence, enough to exhaust system memory even though the same one
+// or two files were being read over and over. Pins that beams sharing a
+// filename share the cached grids (cache size stays at the distinct-file
+// count, not the beam count) and that results stay correct either way.
+static void testInterpolationGridsAreSharedAcrossBeams()
+{
+    section("Beams sharing a filename share the cached interpolation grids");
+
+    auto zero = [](double, double, double) { return 0.0; };
+    auto phaseA = [](double x, double, double) { return x; };
+    auto phaseB = [](double x, double, double) { return 2.0 * x; };
+    GridSpec gA = sampleGrid(4, 4, 4, 0.0, 1.0, phaseA, zero);
+    GridSpec gB = sampleGrid(4, 4, 4, 0.0, 1.0, phaseB, zero);
+
+    const std::string pathA = scratchDir() + "/cache_a.h5";
+    const std::string pathB = scratchDir() + "/cache_b.h5";
+    writeBeamFile(pathA, gA);
+    writeBeamFile(pathB, gB);
+
+    const size_t before = AISLaserBeam::InterpolationCacheSize();
+
+    AISLaserBeam beam1({0.0, 0.0, 9.0e6}, 0, 1.0, 0.0);
+    beam1.SetBeamType("interpolated");
+    beam1.SetInterpolationGrids(pathA);
+
+    AISLaserBeam beam2({0.0, 0.0, 9.0e6}, 0, 1.0, 0.0);
+    beam2.SetBeamType("interpolated");
+    beam2.SetInterpolationGrids(pathA); // same file as beam1
+
+    check(AISLaserBeam::InterpolationCacheSize() == before + 1,
+          "two beams loading the same file add exactly one cache entry");
+    checkClose(beam1.GetPhi({0.5, 0.5, 0.5}), beam2.GetPhi({0.5, 0.5, 0.5}), 1e-12,
+               "beams sharing a cached file agree on phase");
+
+    AISLaserBeam beam3({0.0, 0.0, 9.0e6}, 0, 1.0, 0.0);
+    beam3.SetBeamType("interpolated");
+    beam3.SetInterpolationGrids(pathB); // distinct file
+
+    check(AISLaserBeam::InterpolationCacheSize() == before + 2,
+          "a genuinely new file adds a second cache entry");
+    check(std::abs(beam1.GetPhi({0.5, 0.5, 0.5}) - beam3.GetPhi({0.5, 0.5, 0.5})) > 0.1,
+          "beams loading distinct files see distinct (uncorrupted) data");
+}
+
 // phi0 must survive as an additive offset on the interpolated phase.
 static void testPhaseOffset()
 {
@@ -460,6 +508,7 @@ int main()
     testOutOfGridClamping();
     testAgainstAnalyticGaussian();
     testAmplitudeConvention();
+    testInterpolationGridsAreSharedAcrossBeams();
     testPhaseOffset();
     testTipTilt();
     testExportFormatIsChecked();
