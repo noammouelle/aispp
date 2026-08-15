@@ -169,3 +169,54 @@ double sgn(double val)
         return 0.0;
     }
 }
+
+
+std::complex<double> gaussianCarrierField(const std::array<double, 3>& shiftedPos,
+                                          const double& kz, const double& w0)
+{
+    // gaussianEnvelope's own formula, inlined to avoid depending on the pulse
+    // time arguments it takes but does not use for the spatial profile.
+    double r  = std::sqrt(shiftedPos[0]*shiftedPos[0] + shiftedPos[1]*shiftedPos[1]);
+    double z  = shiftedPos[2];
+    double zR = pi * w0 * w0 / lambdaSr87;
+    double w  = w0 * std::sqrt(1 + (z/zR)*(z/zR));
+    double amplitude = std::exp(-r*r/(w*w)) * w0 / w;
+
+    double phase = gaussianWavefront(shiftedPos, kz, w0);
+    return std::polar(amplitude, phase);
+}
+
+std::complex<double> fourierModeField(const std::array<double, 3>& shiftedPos,
+                                      const double& transverseX,
+                                      const double& transverseY,
+                                      const double& dzFromMirror,
+                                      const double& kz, const double& w0,
+                                      const FourierMode& mode)
+{
+    std::complex<double> carrier = gaussianCarrierField(shiftedPos, kz, w0);
+    if(!mode.active())
+    {
+        return carrier;
+    }
+
+    const double k = std::abs(kz);
+    const double q = mode.q();
+
+    // Each sideband walks off by q dz / k, along the mode's own direction.
+    const double walk = q * dzFromMirror / k;
+    const double ux = (q > 0.0) ? mode.qx / q : 0.0;
+    const double uy = (q > 0.0) ? mode.qy / q : 0.0;
+
+    std::array<double,3> plusPos  = {shiftedPos[0] - walk*ux, shiftedPos[1] - walk*uy, shiftedPos[2]};
+    std::array<double,3> minusPos = {shiftedPos[0] + walk*ux, shiftedPos[1] + walk*uy, shiftedPos[2]};
+
+    const double carrierPhase = mode.qx*transverseX + mode.qy*transverseY + mode.psi;
+    const std::complex<double> talbot =
+        std::polar(1.0, -q*q*dzFromMirror/(2.0*k));
+
+    std::complex<double> sidebands =
+          std::polar(1.0,  carrierPhase) * gaussianCarrierField(plusPos,  kz, w0)
+        + std::polar(1.0, -carrierPhase) * gaussianCarrierField(minusPos, kz, w0);
+
+    return carrier + std::complex<double>(0.0, 0.5*mode.epsilon) * talbot * sidebands;
+}

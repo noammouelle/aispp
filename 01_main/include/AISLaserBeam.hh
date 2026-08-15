@@ -72,6 +72,22 @@ public:
     void SetTipTilt(double tiptiltX, double tiptiltY);
     std::pair<double, double> GetTipTilt();
 
+    // Analytic single transverse Fourier mode on the carrier. Inactive when
+    // epsilon == 0, so setting it is backward compatible: gaussian and confocal
+    // beams behave exactly as before until a mode is supplied. Unlike
+    // wtype=interpolated this needs no sampled field and therefore no grid, so
+    // there is nothing to fall outside of -- the same call is valid for a
+    // source at 0-20 m and one at 100-120 m.
+    void SetFourierMode(const FourierMode& mode);
+    FourierMode GetFourierMode() const;
+
+    // Whether GetDelPhi returns the mode's wavefront gradient or zero. Zero
+    // reproduces the historical behaviour (see KNOWN_ISSUES.md), and keeping it
+    // switchable is what allows a run with and without the gradient recoil to
+    // be compared directly.
+    void SetWavefrontGradientEnabled(bool enabled);
+    bool GetWavefrontGradientEnabled() const;
+
 private:
     // Shear the sample point to model a tipped/tilted retroreflector.
     doubleThreeVector ApplyTipTilt(const doubleThreeVector& pos) const;
@@ -110,6 +126,27 @@ private:
 
     double tiptiltX = 0.0;
     double tiptiltY = 0.0;
+
+    FourierMode fourierMode;
+    bool wavefrontGradientEnabled = true;
+
+    // Mode contributions RELATIVE to the carrier, so callers layer them on top
+    // of the existing beam-type branches without touching their conventions.
+    double GetFourierModePhase(const doubleThreeVector& pos) const;
+    double GetFourierModeAmplitudeFactor(const doubleThreeVector& pos) const;
+    doubleThreeVector GetFourierModeGradPhase(const doubleThreeVector& pos) const;
+    // Signed contributions actually applied, honouring beam direction and the
+    // per-beam-type phase sign convention.
+    double ModePhaseContribution(const doubleThreeVector& pos) const;
+    double ModeAmplitudeContribution(const doubleThreeVector& pos) const;
+    doubleThreeVector ModeGradContribution(const doubleThreeVector& pos) const;
+
+    // Carrier coordinate for the current beam type, matching GetPhi exactly.
+    // Returns the shifted position and the signed distance from the mirror.
+    void CarrierCoordinates(const doubleThreeVector& pos,
+                            doubleThreeVector& shiftedPos,
+                            double& dzFromMirror,
+                            double& zSign) const;
 
     // options params
     std::string beamType;

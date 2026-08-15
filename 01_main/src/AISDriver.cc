@@ -187,6 +187,18 @@ AISDriver::AISDriver(AISParams params)
         beam->SetZLaser(zLaser_);
         beam->SetFocalLength(focalLength_);        
         beam->SetZernikeCoeffs(zernikeCoeffs_);
+
+        // Analytic transverse Fourier mode. Absent parameters leave epsilon at
+        // zero, in which case FourierMode::active() is false and every beam
+        // behaves exactly as before.
+        FourierMode mode_;
+        mode_.qx      = optionalDouble(params.modeQx, 0.0);
+        mode_.qy      = optionalDouble(params.modeQy, 0.0);
+        mode_.epsilon = optionalDouble(params.modeAmp, 0.0);
+        mode_.psi     = optionalDouble(params.modePhase, 0.0);
+        mode_.mirrorZ = optionalDouble(params.modeMirrorZ, 0.0);
+        beam->SetFourierMode(mode_);
+        beam->SetWavefrontGradientEnabled(optionalDouble(params.modeGradient, 1.0) != 0.0);
         beam->SetBeamRadius(beamRadius_);
         beam->SetBeamType(beamType_);
         beam->SetBaselineLength(baselineLength_);

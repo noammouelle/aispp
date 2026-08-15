@@ -148,6 +148,16 @@ AISParams readParamsFromFile(std::string fName)
             while (iss >> value) values.push_back(value);
             DoubleArrayParams[key] = values;
         }
+        // Analytic transverse Fourier mode on the carrier: optional, one value
+        // per pulse, all absent by default so existing input files are
+        // unaffected. Not in DoubleArrayParamsKeys, whose keys are mandatory.
+        else if (key == "modeqx" || key == "modeqy" || key == "modeamp" ||
+                 key == "modephase" || key == "modemirrorz" || key == "modegradient") {
+            std::vector<double> values;
+            double value;
+            while (iss >> value) values.push_back(value);
+            DoubleArrayParams[key] = values;
+        }
         // printtrajectory: optional bool, default false
         else if (key == "printtrajectory") {
             bool value;
@@ -350,6 +360,17 @@ AISParams readParamsFromFile(std::string fName)
     // Beam tip-tilt (degrees), per pulse. Zero when absent.
     params.tiptiltX = DoubleArrayParams["tiptiltx"];
     params.tiptiltY = DoubleArrayParams["tiptilty"];
+    // Optional; empty vectors mean "no mode", handled defensively downstream.
+    auto optionalArray = [&](const std::string& key) {
+        auto it = DoubleArrayParams.find(key);
+        return it != DoubleArrayParams.end() ? it->second : std::vector<double>();
+    };
+    params.modeQx      = optionalArray("modeqx");
+    params.modeQy      = optionalArray("modeqy");
+    params.modeAmp     = optionalArray("modeamp");
+    params.modePhase   = optionalArray("modephase");
+    params.modeMirrorZ = optionalArray("modemirrorz");
+    params.modeGradient = optionalArray("modegradient");
 
     return params;
 }

@@ -51,6 +51,14 @@ public:
     std::vector<std::string> beamInterpolationParamsFilenames;
     std::vector<double> tiptiltX;
     std::vector<double> tiptiltY;
+    // Analytic transverse Fourier mode, one entry per pulse. Empty when the
+    // input file does not ask for one, which is the default.
+    std::vector<double> modeQx;        // rad/m
+    std::vector<double> modeQy;        // rad/m
+    std::vector<double> modeAmp;       // peak optical phase at the mirror, rad
+    std::vector<double> modePhase;     // spatial phase of the ripple, rad
+    std::vector<double> modeMirrorZ;   // plane the ripple is imprinted at, m
+    std::vector<double> modeGradient;  // 1 = apply wavefront-gradient recoil, 0 = do not
 
     // Kinematic parameters
     __float128 detectionTime;

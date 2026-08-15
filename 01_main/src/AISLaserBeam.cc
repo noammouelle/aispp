@@ -141,7 +141,7 @@ double AISLaserBeam::GetPhi(const doubleThreeVector& pos)
         }
 
         return phi0 + reflectionShift + gaussianWavefront(shiftedPos, k[2], w0)
-                    + GetZernikePhase(pos);
+                    + GetZernikePhase(pos) + ModePhaseContribution(pos);
     }
     else if(beamType == "confocal")
     {
@@ -152,9 +152,9 @@ double AISLaserBeam::GetPhi(const doubleThreeVector& pos)
         doubleThreeVector shiftedPos = {pos[0], pos[1], focalLength - pos[2]};
         double wavefront = gaussianWavefront(shiftedPos, k[2], w0);
         if(k[2] > 0)
-            return phi0 - wavefront + GetZernikePhase(pos);
+            return phi0 - wavefront + GetZernikePhase(pos) + ModePhaseContribution(pos);
         else
-            return phi0 + wavefront + GetZernikePhase(pos);
+            return phi0 + wavefront + GetZernikePhase(pos) + ModePhaseContribution(pos);
     }
     return phi0; // unreachable: SetBeamType rejects anything else
 }
@@ -193,14 +193,17 @@ doubleThreeVector AISLaserBeam::GetDelPhi(const doubleThreeVector& pos)
             zSign = 1.0;
         }
         std::array<double,3> grad = gaussianGradientWavefront(shiftedPos, k[2], w0);
-        return {grad[0], grad[1], zSign * grad[2]};
+        doubleThreeVector modeGrad = ModeGradContribution(pos);
+        return {grad[0] + modeGrad[0], grad[1] + modeGrad[1], zSign*grad[2] + modeGrad[2]};
     }
     else if(beamType == "confocal")
     {
         doubleThreeVector shiftedPos = {pos[0], pos[1], focalLength - pos[2]};
         std::array<double,3> grad = gaussianGradientWavefront(shiftedPos, k[2], w0);
         double sign = (k[2] > 0) ? -1.0 : 1.0; // matches GetPhi's +-wavefront choice
-        return {sign*grad[0], sign*grad[1], -sign*grad[2]};
+        doubleThreeVector modeGrad = ModeGradContribution(pos);
+        return {sign*grad[0] + modeGrad[0], sign*grad[1] + modeGrad[1],
+                -sign*grad[2] + modeGrad[2]};
     }
     // KNOWN ISSUE (v0.0.2): beamType == "interpolated" returns a zero gradient,
     // so sampled beams carry no wavefront-gradient recoil. GetPhiWrapper and
@@ -245,13 +248,15 @@ double AISLaserBeam::GetRabiFreq(const doubleThreeVector& pos, const __float128&
             zPos = focalLength - pos[2];
         }
         doubleThreeVector shiftedPos = {pos[0], pos[1], zPos};
-        effectiveRabiFreq = rabiFreq * gaussianEnvelope(shiftedPos, w0, t0, t);
+        effectiveRabiFreq = rabiFreq * gaussianEnvelope(shiftedPos, w0, t0, t)
+                                     * ModeAmplitudeContribution(pos);
     }
     else if(beamType == "confocal")
     {
         // Same intensity profile for both directions: both measure distance from the shared focus.
         doubleThreeVector shiftedPos = {pos[0], pos[1], focalLength - pos[2]};
-        effectiveRabiFreq = rabiFreq * gaussianEnvelope(shiftedPos, w0, t0, t);
+        effectiveRabiFreq = rabiFreq * gaussianEnvelope(shiftedPos, w0, t0, t)
+                                     * ModeAmplitudeContribution(pos);
     }
     return effectiveRabiFreq;
 }
@@ -453,3 +458,166 @@ void AISLaserBeam::SetInterpolationGrids(std::string filename)
     interpolationGrids = grids;
 }
 
+
+
+void AISLaserBeam::SetFourierMode(const FourierMode& mode)
+{
+    fourierMode = mode;
+}
+
+FourierMode AISLaserBeam::GetFourierMode() const
+{
+    return fourierMode;
+}
+
+void AISLaserBeam::SetWavefrontGradientEnabled(bool enabled)
+{
+    wavefrontGradientEnabled = enabled;
+}
+
+bool AISLaserBeam::GetWavefrontGradientEnabled() const
+{
+    return wavefrontGradientEnabled;
+}
+
+void AISLaserBeam::CarrierCoordinates(const doubleThreeVector& pos,
+                                      doubleThreeVector& shiftedPos,
+                                      double& dzFromMirror,
+                                      double& zSign) const
+{
+    // Reproduces GetPhi's own shiftedPos construction for each beam type, so
+    // the mode is evaluated in exactly the coordinate the carrier uses.
+    if(beamType == "confocal")
+    {
+        shiftedPos = {pos[0], pos[1], focalLength - pos[2]};
+        zSign = -1.0;
+    }
+    else if(k[2] < 0)
+    {
+        shiftedPos = {pos[0], pos[1], focalLength - pos[2]};
+        zSign = -1.0;
+    }
+    else
+    {
+        shiftedPos = {pos[0], pos[1], focalLength + pos[2]};
+        zSign = 1.0;
+    }
+    dzFromMirror = pos[2] - fourierMode.mirrorZ;
+}
+
+double AISLaserBeam::GetFourierModePhase(const doubleThreeVector& pos) const
+{
+    // Phase the mode ADDS to the carrier, so the caller keeps every existing
+    // convention (phi0, reflection shift, Zernike) untouched and simply adds
+    // this. Wrapped to (-pi, pi]: it is small by construction, of order eps.
+    if(!fourierMode.active())
+    {
+        return 0.0;
+    }
+    doubleThreeVector shiftedPos;
+    double dzFromMirror, zSign;
+    CarrierCoordinates(pos, shiftedPos, dzFromMirror, zSign);
+
+    std::complex<double> carrier = gaussianCarrierField(shiftedPos, k[2], w0);
+    std::complex<double> field   = fourierModeField(shiftedPos, pos[0], pos[1],
+                                                    dzFromMirror, k[2], w0, fourierMode);
+    if(std::abs(carrier) <= 0.0)
+    {
+        return 0.0;
+    }
+    return std::arg(field / carrier);
+}
+
+double AISLaserBeam::GetFourierModeAmplitudeFactor(const doubleThreeVector& pos) const
+{
+    // Multiplicative correction to the carrier amplitude. Propagation converts
+    // the mode's phase into amplitude and back with Talbot period, so this is
+    // NOT 1: at 500 cycles/m and 5 m from the mirror it departs from unity by
+    // ~7e-3 for a 1 nm ripple, comparable to the phase modulation itself.
+    if(!fourierMode.active())
+    {
+        return 1.0;
+    }
+    doubleThreeVector shiftedPos;
+    double dzFromMirror, zSign;
+    CarrierCoordinates(pos, shiftedPos, dzFromMirror, zSign);
+
+    std::complex<double> carrier = gaussianCarrierField(shiftedPos, k[2], w0);
+    std::complex<double> field   = fourierModeField(shiftedPos, pos[0], pos[1],
+                                                    dzFromMirror, k[2], w0, fourierMode);
+    double carrierAmplitude = std::abs(carrier);
+    if(carrierAmplitude <= 0.0)
+    {
+        return 1.0;
+    }
+    return std::abs(field) / carrierAmplitude;
+}
+
+doubleThreeVector AISLaserBeam::GetFourierModeGradPhase(const doubleThreeVector& pos) const
+{
+    // Gradient of the phase the mode adds, by central differences on an
+    // analytic, infinitely differentiable function. This is the crucial
+    // difference from the sampled-beam case: trilinear interpolation is only
+    // C0, so differentiating it gives a gradient that jumps across cell
+    // boundaries (KNOWN_ISSUES.md). Here the underlying function is smooth, so
+    // a centred difference is well conditioned.
+    if(!fourierMode.active() || !wavefrontGradientEnabled)
+    {
+        return {0.0, 0.0, 0.0};
+    }
+    const double q = fourierMode.q();
+    const double h = (q > 0.0) ? std::min(1.0e-6, 0.001 * 2.0 * pi / q) : 1.0e-6;
+
+    doubleThreeVector grad{0.0, 0.0, 0.0};
+    for(int axis = 0; axis < 3; ++axis)
+    {
+        doubleThreeVector plus = pos, minus = pos;
+        plus[axis]  += h;
+        minus[axis] -= h;
+        grad[axis] = (GetFourierModePhase(plus) - GetFourierModePhase(minus)) / (2.0 * h);
+    }
+    return grad;
+}
+
+
+double AISLaserBeam::ModePhaseContribution(const doubleThreeVector& pos) const
+{
+    // The ripple is a property of the MIRROR, imprinted on reflection, so it
+    // rides only on the outgoing (+z) beam. The downgoing beam is unaberrated,
+    // which is the same split the (up_file, down_file) pair expresses for
+    // sampled beams.
+    if(!fourierMode.active() || k[2] <= 0)
+    {
+        return 0.0;
+    }
+    // The ripple's sign is a property of the mirror surface, not of how the
+    // carrier's Gouy/curvature phase is bookkept, so it is NOT negated for
+    // confocal. Validated against the sampled-beam route, which reproduces the
+    // reference project's PSMAPs: negating it here flipped the sign of the
+    // wavefront phase relative to that reference.
+    return GetFourierModePhase(pos);
+}
+
+double AISLaserBeam::ModeAmplitudeContribution(const doubleThreeVector& pos) const
+{
+    if(!fourierMode.active() || k[2] <= 0)
+    {
+        return 1.0;
+    }
+    return GetFourierModeAmplitudeFactor(pos);
+}
+
+
+doubleThreeVector AISLaserBeam::ModeGradContribution(const doubleThreeVector& pos) const
+{
+    // Gradient of exactly what ModePhaseContribution adds, so GetDelPhi stays
+    // the gradient of GetPhi. This is the term GetDelPhi has always returned as
+    // zero for aberrated beams; with an analytic mode it is available, and
+    // SetWavefrontGradientEnabled(false) restores the old behaviour so runs
+    // with and without the gradient recoil can be compared.
+    if(!fourierMode.active() || k[2] <= 0 || !wavefrontGradientEnabled)
+    {
+        return {0.0, 0.0, 0.0};
+    }
+    return GetFourierModeGradPhase(pos);
+}
