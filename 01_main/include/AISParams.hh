@@ -58,7 +58,8 @@ public:
     std::vector<double> modeAmp;       // peak optical phase at the mirror, rad
     std::vector<double> modePhase;     // spatial phase of the ripple, rad
     std::vector<double> modeMirrorZ;   // plane the ripple is imprinted at, m
-    std::vector<double> modeGradient;  // 1 = apply wavefront-gradient recoil, 0 = do not
+    std::vector<double> modeGradient;  // 1 = apply wavefront-gradient recoil, 0 = do not.
+                                       // Defaults to 0: not yet correct, see KNOWN_ISSUES.md
 
     // Kinematic parameters
     __float128 detectionTime;

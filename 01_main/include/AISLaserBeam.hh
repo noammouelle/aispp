@@ -128,10 +128,12 @@ private:
     double tiptiltY = 0.0;
 
     FourierMode fourierMode;
-    bool wavefrontGradientEnabled = true;
+    bool wavefrontGradientEnabled = false;  // not yet correct; see KNOWN_ISSUES.md
 
     // Mode contributions RELATIVE to the carrier, so callers layer them on top
     // of the existing beam-type branches without touching their conventions.
+    void FourierModeContributions(const doubleThreeVector& pos,
+                                  double& phase, double& amplitudeFactor) const;
     double GetFourierModePhase(const doubleThreeVector& pos) const;
     double GetFourierModeAmplitudeFactor(const doubleThreeVector& pos) const;
     doubleThreeVector GetFourierModeGradPhase(const doubleThreeVector& pos) const;

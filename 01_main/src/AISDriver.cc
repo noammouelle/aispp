@@ -198,7 +198,10 @@ AISDriver::AISDriver(AISParams params)
         mode_.psi     = optionalDouble(params.modePhase, 0.0);
         mode_.mirrorZ = optionalDouble(params.modeMirrorZ, 0.0);
         beam->SetFourierMode(mode_);
-        beam->SetWavefrontGradientEnabled(optionalDouble(params.modeGradient, 1.0) != 0.0);
+        // Default OFF: the mode's wavefront gradient is not yet correct (see
+        // KNOWN_ISSUES.md), so it must be opted into explicitly rather than
+        // silently applied.
+        beam->SetWavefrontGradientEnabled(optionalDouble(params.modeGradient, 0.0) != 0.0);
         beam->SetBeamRadius(beamRadius_);
         beam->SetBeamType(beamType_);
         beam->SetBaselineLength(baselineLength_);

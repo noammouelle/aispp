@@ -220,3 +220,56 @@ std::complex<double> fourierModeField(const std::array<double, 3>& shiftedPos,
 
     return carrier + std::complex<double>(0.0, 0.5*mode.epsilon) * talbot * sidebands;
 }
+
+
+void fourierModeFirstOrder(const std::array<double, 3>& shiftedPos,
+                           const double& transverseX,
+                           const double& transverseY,
+                           const double& dzFromMirror,
+                           const double& kz, const double& w0,
+                           const FourierMode& mode,
+                           bool conjugateCarrier,
+                           double& phaseOut,
+                           double& amplitudeFactorOut)
+{
+    phaseOut = 0.0;
+    amplitudeFactorOut = 1.0;
+    if(!mode.active())
+    {
+        return;
+    }
+
+    const double k = std::abs(kz);
+    const double q = mode.q();
+    const double walk = q * dzFromMirror / k;
+    const double ux = (q > 0.0) ? mode.qx / q : 0.0;
+    const double uy = (q > 0.0) ? mode.qy / q : 0.0;
+
+    std::array<double,3> plusPos  = {shiftedPos[0] - walk*ux, shiftedPos[1] - walk*uy, shiftedPos[2]};
+    std::array<double,3> minusPos = {shiftedPos[0] + walk*ux, shiftedPos[1] + walk*uy, shiftedPos[2]};
+
+    std::complex<double> carrier = gaussianCarrierField(shiftedPos, kz, w0);
+    std::complex<double> plus    = gaussianCarrierField(plusPos,  kz, w0);
+    std::complex<double> minus   = gaussianCarrierField(minusPos, kz, w0);
+    if(conjugateCarrier)
+    {
+        carrier = std::conj(carrier);
+        plus    = std::conj(plus);
+        minus   = std::conj(minus);
+    }
+    if(std::abs(carrier) <= 0.0)
+    {
+        return;
+    }
+
+    const double carrierPhase = mode.qx*transverseX + mode.qy*transverseY + mode.psi;
+    const std::complex<double> talbot = std::polar(1.0, -q*q*dzFromMirror/(2.0*k));
+    const std::complex<double> ratio =
+        std::complex<double>(0.0, 0.5*mode.epsilon) * talbot
+        * (std::polar(1.0, carrierPhase) * plus + std::polar(1.0, -carrierPhase) * minus)
+        / carrier;
+
+    // E = E0 (1 + ratio)  =>  to first order  phase = Im(ratio), |E|/|E0| = 1 + Re(ratio).
+    phaseOut = ratio.imag();
+    amplitudeFactorOut = 1.0 + ratio.real();
+}

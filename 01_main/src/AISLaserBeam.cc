@@ -505,52 +505,39 @@ void AISLaserBeam::CarrierCoordinates(const doubleThreeVector& pos,
     dzFromMirror = pos[2] - fourierMode.mirrorZ;
 }
 
-double AISLaserBeam::GetFourierModePhase(const doubleThreeVector& pos) const
+void AISLaserBeam::FourierModeContributions(const doubleThreeVector& pos,
+                                            double& phase, double& amplitudeFactor) const
 {
-    // Phase the mode ADDS to the carrier, so the caller keeps every existing
-    // convention (phi0, reflection shift, Zernike) untouched and simply adds
-    // this. Wrapped to (-pi, pi]: it is small by construction, of order eps.
+    phase = 0.0;
+    amplitudeFactor = 1.0;
     if(!fourierMode.active())
     {
-        return 0.0;
+        return;
     }
     doubleThreeVector shiftedPos;
     double dzFromMirror, zSign;
     CarrierCoordinates(pos, shiftedPos, dzFromMirror, zSign);
+    // confocal with kz > 0 represents the outgoing beam with a negated spatial
+    // phase, i.e. the conjugate carrier; building sidebands from the
+    // unconjugated one flips the sign of the curvature phase difference across
+    // the walk-off and costs several percent for a tightly focused beam.
+    const bool conjugate = (beamType == "confocal" && k[2] > 0);
+    fourierModeFirstOrder(shiftedPos, pos[0], pos[1], dzFromMirror, k[2], w0,
+                          fourierMode, conjugate, phase, amplitudeFactor);
+}
 
-    std::complex<double> carrier = gaussianCarrierField(shiftedPos, k[2], w0);
-    std::complex<double> field   = fourierModeField(shiftedPos, pos[0], pos[1],
-                                                    dzFromMirror, k[2], w0, fourierMode);
-    if(std::abs(carrier) <= 0.0)
-    {
-        return 0.0;
-    }
-    return std::arg(field / carrier);
+double AISLaserBeam::GetFourierModePhase(const doubleThreeVector& pos) const
+{
+    double phase, amplitudeFactor;
+    FourierModeContributions(pos, phase, amplitudeFactor);
+    return phase;
 }
 
 double AISLaserBeam::GetFourierModeAmplitudeFactor(const doubleThreeVector& pos) const
 {
-    // Multiplicative correction to the carrier amplitude. Propagation converts
-    // the mode's phase into amplitude and back with Talbot period, so this is
-    // NOT 1: at 500 cycles/m and 5 m from the mirror it departs from unity by
-    // ~7e-3 for a 1 nm ripple, comparable to the phase modulation itself.
-    if(!fourierMode.active())
-    {
-        return 1.0;
-    }
-    doubleThreeVector shiftedPos;
-    double dzFromMirror, zSign;
-    CarrierCoordinates(pos, shiftedPos, dzFromMirror, zSign);
-
-    std::complex<double> carrier = gaussianCarrierField(shiftedPos, k[2], w0);
-    std::complex<double> field   = fourierModeField(shiftedPos, pos[0], pos[1],
-                                                    dzFromMirror, k[2], w0, fourierMode);
-    double carrierAmplitude = std::abs(carrier);
-    if(carrierAmplitude <= 0.0)
-    {
-        return 1.0;
-    }
-    return std::abs(field) / carrierAmplitude;
+    double phase, amplitudeFactor;
+    FourierModeContributions(pos, phase, amplitudeFactor);
+    return amplitudeFactor;
 }
 
 doubleThreeVector AISLaserBeam::GetFourierModeGradPhase(const doubleThreeVector& pos) const

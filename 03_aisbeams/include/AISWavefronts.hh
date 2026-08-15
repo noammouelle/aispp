@@ -74,4 +74,29 @@ std::complex<double> fourierModeField(const std::array<double, 3>& shiftedPos,
                                       const double& kz, const double& w0,
                                       const FourierMode& mode);
 
+// First-order mode contribution relative to the carrier, as (phase, amplitude
+// factor - 1). Returned together because they are the imaginary and real parts
+// of the same ratio.
+//
+// Computing these directly rather than as arg()/abs() of the truncated field
+// matters for two reasons. The sideband-to-carrier ratio grows exponentially
+// with transverse radius, so once (eps/2)*ratio approaches 1 the ratio circles
+// the origin and arg() wraps -- a central difference across that cut returns
+// gradients of order 1e6 rad/m, comparable to k itself. And |1 + i eps cos|
+// carries a spurious +eps^2/2 amplitude bias where a pure phase imprint must
+// give exactly 1. The first-order forms have neither defect.
+//
+// conjugateCarrier is for beams whose outgoing carrier is represented with a
+// negated spatial phase (confocal with kz > 0), where the shifted z runs
+// backwards along the propagation direction.
+void fourierModeFirstOrder(const std::array<double, 3>& shiftedPos,
+                           const double& transverseX,
+                           const double& transverseY,
+                           const double& dzFromMirror,
+                           const double& kz, const double& w0,
+                           const FourierMode& mode,
+                           bool conjugateCarrier,
+                           double& phaseOut,
+                           double& amplitudeFactorOut);
+
 #endif

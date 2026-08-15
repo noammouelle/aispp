@@ -119,3 +119,42 @@ Unlike `beamradius` and `baseline` — which were inert for the same reason and 
 live again in v0.0.2 now that the Zernike block is restored — `zlaser` has no
 remaining consumer, so the choice is between wiring it to something meaningful or
 removing it.
+
+## Analytic Fourier mode: the wavefront gradient is not yet correct
+
+`wtype` gaussian/confocal with `modeamp` set evaluates a single transverse
+Fourier mode in closed form. **The mode's phase and amplitude are usable; its
+wavefront gradient is not.** `modegradient` therefore defaults to `0`, and
+`GetDelPhi` returns no mode contribution unless it is explicitly set to `1`.
+
+What is known to be right: the sideband expansion itself was checked against an
+FFT split-step propagation of `U0 exp(i eps cos qx)` and agrees to 2e-5 rad,
+consistent with the neglected O(eps^2) term. Walk-off direction, Talbot sign and
+the `i eps/2` prefactor are all correct. The phase and amplitude are evaluated
+in first-order form rather than as `arg()`/`abs()` of the truncated field, which
+avoids both a branch-cut wrap in the beam wings and a spurious `+eps^2/2`
+amplitude bias.
+
+What is wrong. Enabling the gradient changes the shot-to-shot wavefront phase
+noise by factors of 29.3, 7.9, 3.1, 1.5 and 11.7 at 20, 50, 100, 200 and 500
+cycles/m. A physical effect is smooth in spatial frequency, and an independent
+estimate puts the true ratio at 1.00 +/- 0.02: the recoil displaces the atom by
+of order 10 nm to a few um while the ripple varies on 1/q = 1.6 mm, so the
+correction enters as `q dx ~ 1e-3`, sub-percent.
+
+Two contributing causes are identified, both still open:
+
+1. `GetDelPhi` is a *partial* gradient. `gaussianGradientWavefront` still
+   returns `{0,0,0}` (issue above), and the Zernike gradient is likewise
+   absent, so switching the mode gradient on adds the ripple's contribution
+   while a comparable carrier term stays missing. For a 1 cm waist at z = 10 m
+   the carrier's own transverse gradient is 0.44 rad/m at x = 1 mm and
+   4.4 rad/m at x = 1 cm, against the mode's 11 rad/m. Comparing "gradient on"
+   with "gradient off" therefore does not isolate a physical effect.
+2. The ripple is applied only for `k[2] > 0`, on the assumption that it is
+   imprinted on reflection. For a sequence alternating `kz` across pulses this
+   aberrates exactly half of them, and whether that matches the intended
+   geometry has not been established.
+
+Until both are resolved, use `modegradient 0` and treat wavefront-gradient
+recoil as unmodelled, exactly as for the other beam types.
