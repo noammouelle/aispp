@@ -79,6 +79,8 @@ public:
     // there is nothing to fall outside of -- the same call is valid for a
     // source at 0-20 m and one at 100-120 m.
     void SetFourierMode(const FourierMode& mode);
+    // wtype "ripple": phi = phi0 + eps cos(q x + psi), grad phi = (-eps q sin(q x + psi), 0, 0), Omega = rabiFreq.
+    void SetRipple(double q, double eps, double psi);
     FourierMode GetFourierMode() const;
 
     // Whether GetDelPhi returns the mode's wavefront gradient or zero. Zero
@@ -128,6 +130,7 @@ private:
     double tiptiltY = 0.0;
 
     FourierMode fourierMode;
+    double rippleQ = 0.0, rippleEps = 0.0, ripplePsi = 0.0;   // wtype "ripple" only
     bool wavefrontGradientEnabled = false;  // not yet correct; see KNOWN_ISSUES.md
 
     // Mode contributions RELATIVE to the carrier, so callers layer them on top

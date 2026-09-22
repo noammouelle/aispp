@@ -152,7 +152,8 @@ AISParams readParamsFromFile(std::string fName)
         // per pulse, all absent by default so existing input files are
         // unaffected. Not in DoubleArrayParamsKeys, whose keys are mandatory.
         else if (key == "modeqx" || key == "modeqy" || key == "modeamp" ||
-                 key == "modephase" || key == "modemirrorz" || key == "modegradient") {
+                 key == "modephase" || key == "modemirrorz" || key == "modegradient" ||
+                 key == "rippleq" || key == "rippleamp" || key == "ripplephase") {
             std::vector<double> values;
             double value;
             while (iss >> value) values.push_back(value);
@@ -371,6 +372,9 @@ AISParams readParamsFromFile(std::string fName)
     params.modePhase   = optionalArray("modephase");
     params.modeMirrorZ = optionalArray("modemirrorz");
     params.modeGradient = optionalArray("modegradient");
+    params.rippleQ     = optionalArray("rippleq");
+    params.rippleAmp   = optionalArray("rippleamp");
+    params.ripplePhase = optionalArray("ripplephase");
 
     return params;
 }

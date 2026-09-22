@@ -103,6 +103,11 @@ double AISLaserBeam::GetPhi(const doubleThreeVector& pos)
     {
         return phi0;
     }
+    else if(beamType == "ripple")
+    {
+        // Prescribed transverse phase on a uniform field; the k.z carrier is handled by GetK.
+        return phi0 + rippleEps * cos(rippleQ * pos[0] + ripplePsi);
+    }
     else if(beamType == "interpolated")
     {
         // Sampled beam from aisoptics. The exporter writes the slowly varying
@@ -178,6 +183,11 @@ doubleThreeVector AISLaserBeam::GetDelPhi(const doubleThreeVector& pos)
     // curvature), i.e. grad(GetPhi(pos)) with the k*z plane-wave term
     // removed (that part is already handled separately via GetK). Mirrors
     // GetPhi's own shiftedPos construction exactly so the two stay consistent.
+    if(beamType == "ripple")
+    {
+        // Exact gradient of the ripple phase in GetPhi; enters k' = k + grad(phi) (Doppler, recoil, momentum kick).
+        return {-rippleEps * rippleQ * sin(rippleQ * pos[0] + ripplePsi), 0.0, 0.0};
+    }
     if(beamType == "gaussian")
     {
         doubleThreeVector shiftedPos = {pos[0], pos[1], pos[2]};
@@ -219,9 +229,9 @@ double AISLaserBeam::GetRabiFreq(const doubleThreeVector& pos, const __float128&
 {
     // check the beam type
     double effectiveRabiFreq = 0.0;
-    if(beamType == "flat_square")
+    if(beamType == "flat_square" || beamType == "ripple")
     {
-        effectiveRabiFreq = rabiFreq; // constant rabi freq
+        effectiveRabiFreq = rabiFreq; // constant rabi freq, no intensity envelope
     }
     else if(beamType == "interpolated")
     {
@@ -310,7 +320,8 @@ void AISLaserBeam::SetBeamType(std::string beamTypeValue)
 {
     // check if 'flat_square', 'gaussian', 'confocal' or 'interpolated'
     if(beamTypeValue == "flat_square" || beamTypeValue == "gaussian" ||
-       beamTypeValue == "confocal"    || beamTypeValue == "interpolated")
+       beamTypeValue == "confocal"    || beamTypeValue == "interpolated" ||
+       beamTypeValue == "ripple")
     {
         beamType = beamTypeValue;
     }
@@ -320,6 +331,11 @@ void AISLaserBeam::SetBeamType(std::string beamTypeValue)
         exit(1);
     }
 }
+void AISLaserBeam::SetRipple(double q, double eps, double psi)
+{
+    rippleQ = q; rippleEps = eps; ripplePsi = psi;
+}
+
 std::string AISLaserBeam::GetBeamType()
 {
     return beamType;

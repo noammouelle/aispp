@@ -60,6 +60,12 @@ public:
     std::vector<double> modeMirrorZ;   // plane the ripple is imprinted at, m
     std::vector<double> modeGradient;  // 1 = apply wavefront-gradient recoil, 0 = do not.
                                        // Defaults to 0: not yet correct, see KNOWN_ISSUES.md
+    // wtype "ripple": uniform intensity with a prescribed sinusoidal transverse phase,
+    //   phi = phi0 + rippleAmp cos(rippleQ x + ripplePhase),  Omega = rabifreq (no envelope).
+    // One entry per pulse; empty when the input file does not set them.
+    std::vector<double> rippleQ;       // rad/m
+    std::vector<double> rippleAmp;     // rad
+    std::vector<double> ripplePhase;   // rad
 
     // Kinematic parameters
     __float128 detectionTime;

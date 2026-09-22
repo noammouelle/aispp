@@ -331,3 +331,25 @@ zernikecoeff_4 0.0 0.0 0.0
 > **In practice**, use `AISFlow` to generate files like this. For an LMT sequence of
 > order $n = 101$, the pulse arrays each contain ~400 entries with individually
 > Doppler-tuned frequencies; constructing these by hand is infeasible.
+
+## `wtype ripple`: uniform intensity with a prescribed sinusoidal transverse phase
+
+A beam with constant Rabi frequency (no intensity envelope, `waist`/`focallength`/`beamradius` ignored) and the envelope phase
+
+    phi(x) = phi0 + rippleamp * cos(rippleq * x + ripplephase)
+
+on top of the usual `k.r - omega t` carrier (handled by `GetK`, not double counted). `GetDelPhi` returns the exact
+gradient `(-rippleamp*rippleq*sin(rippleq*x + ripplephase), 0, 0)`, so the ripple enters the Doppler/recoil detuning
+through `k' = k + grad(phi)` and gives the transverse momentum kick `+hbar*grad(phi)` on absorption, in both the
+ordinary and the `ultrafast` pulse propagators. Unlike `gaussian`, no reflection shift of pi is added for up-going
+beams. This is a prescribed interaction field over the modelled region, not a freely propagating Maxwell solution.
+
+| key | unit | meaning |
+|---|---|---|
+| `rippleq` | rad/m | transverse wavenumber `2*pi/Lambda`, one value per pulse (optional, default 0) |
+| `rippleamp` | rad | peak phase `epsilon`, one value per pulse (optional, default 0; `0` reproduces `flat_square` exactly) |
+| `ripplephase` | rad | spatial phase `psi`, one value per pulse (optional, default 0) |
+
+Example: `examples/input-files/RIPPLE_EXAMPLE_PSGRID.aisi` (three-pulse MZ at Omega/2pi = 1 kHz on a phase-space
+grid). Unit test: `cmake --build build --target test_ripple && ./build/tests/test_ripple` (phase, finite-difference
+gradient, uniform Rabi frequency, `epsilon = 0` limit).

@@ -1,0 +1,65 @@
+# AISI file - wtype "ripple" example, phase-space grid mode
+# Three-pulse MZ at Omega/2pi = 1 kHz (pi/2 250 us, dark 20 us, pi 500 us, dark 20 us, pi/2 250 us),
+# uniform intensity, transverse phase phi = 0.1 cos(2 pi x / 4 um), all pulses up-going, zero gravity.
+# Run:  ais++ -i RIPPLE_EXAMPLE_PSGRID.aisi -o out.h5     (writes the PSMAP datasets to out.h5)
+natoms 1
+initialstate 0
+sigma 0
+transtemp 0
+longtemp 0
+x0 0 0 0.0
+v0 0 0 0.0
+utype zero_pot
+amplitudethreshold 0
+coherencelength 0.001
+usemcbranching 0
+usepathselection 1
+usestaticapprox 0
+ultrafast 1
+pathstosimulate 0010 0100 0011 0101
+ignoredetuning 0
+seed -1
+usedetvolselection 0
+xdet -1 1
+ydet -1 1
+zdet -1 1
+gslqagabserr 1e-12
+gslqagrelerr 1e-12
+gslkinodeabserr 1e-09
+gslkinoderelerr 0
+gslpulseodeabserr 1e-09
+gslpulseoderelerr 0
+detectiontime 0.001041
+printprobs 0
+printwavepackets 0
+t0 0 0.0002700000000000000272135850739752392 0.0007900000000000000800046941436450915
+t1 0.000250000000000000025577523995694613 0.0007700000000000000783686330653644653 0.001040000000000000105582218139339705
+kx 0.0 0.0 0.0
+ky 0.0 0.0 0.0
+kz 8995953.759572976970660883263721114 8995953.759474347513950220782899023 8995953.759572976970660883263721114
+omega 2696919089636723.796411820078082015 2696919089636723.796411170152669518 2696919089636723.796411820078082015
+rabifreq 1000.0 1000.0 1000.0
+wtype ripple ripple ripple
+phi0 0.0 0.0 0.0
+kxchirp 0 0 0
+kychirp 0 0 0
+kzchirp 0 0 0
+frequencychirp 0 0 0
+waist 0.001 0.001 0.001
+focallength 0.0 0.0 0.0
+zlaser 0 0 0
+beamradius 1.0 1.0 1.0
+baseline 0 0 0
+beaminterpolationparamsfilenames none none none
+tiptiltx 0.0 0.0 0.0
+tiptilty 0.0 0.0 0.0
+initmode psgrid
+xgrid -2e-06 2e-06 9
+vxgrid -0.001 0.001 5
+ygrid 0 0 1
+vygrid 0 0 1
+zgrid 0.0 0.0 1
+vzgrid 0.0 0.0 1
+rippleq 1570796.3267948967 1570796.3267948967 1570796.3267948967
+rippleamp 0.1 0.1 0.1
+ripplephase 0.0 0.0 0.0

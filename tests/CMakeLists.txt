@@ -23,10 +23,15 @@ target_link_libraries(test_rotating ${AISPP_TEST_LIBS})
 add_executable(test_interpolation EXCLUDE_FROM_ALL test_interpolation.cc)
 target_link_libraries(test_interpolation ${AISPP_TEST_LIBS})
 
+# Uniform-intensity beam with a prescribed sinusoidal transverse phase (wtype "ripple").
+add_executable(test_ripple EXCLUDE_FROM_ALL test_ripple.cc)
+target_link_libraries(test_ripple ${AISPP_TEST_LIBS})
+
 add_custom_target(check
     COMMAND test_rotating
     COMMAND test_interpolation
-    DEPENDS test_rotating test_interpolation
+    COMMAND test_ripple
+    DEPENDS test_rotating test_interpolation test_ripple
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     COMMENT "Running ais++ unit tests")
 

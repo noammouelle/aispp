@@ -144,6 +144,10 @@ AISDriver::AISDriver(AISParams params)
         {
             beamType_ = "interpolated";
         }
+        else if(params.wavefrontTypeVector[i] == "ripple")
+        {
+            beamType_ = "ripple";
+        }
         else{
             std::cerr << "Wavefront type " << params.wavefrontTypeVector[i] << " not recognized. Exiting." << std::endl;
             exit(1);
@@ -202,6 +206,8 @@ AISDriver::AISDriver(AISParams params)
         // KNOWN_ISSUES.md), so it must be opted into explicitly rather than
         // silently applied.
         beam->SetWavefrontGradientEnabled(optionalDouble(params.modeGradient, 0.0) != 0.0);
+        // wtype "ripple" parameters (ignored by the other beam types).
+        beam->SetRipple(optionalDouble(params.rippleQ, 0.0), optionalDouble(params.rippleAmp, 0.0), optionalDouble(params.ripplePhase, 0.0));
         beam->SetBeamRadius(beamRadius_);
         beam->SetBeamType(beamType_);
         beam->SetBaselineLength(baselineLength_);
