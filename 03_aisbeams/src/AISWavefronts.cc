@@ -43,13 +43,17 @@ std::array<double,3> gaussianGradientWavefront(const std::array<double, 3>& pos,
         sign = 1.0;
     }
 
+    // gradient of gaussianWavefront = |kz| r^2 z/(2(z^2+zR^2)) - atan(z/zR), in the shifted (waist-centred) frame;
+    // callers apply the z chain-rule sign. d/dz of the curvature term is |kz| r^2 (zR^2 - z^2)/(2 (z^2+zR^2)^2),
+    // written without the 1/z factor so it is finite at the waist. (The former per-direction sign was not part of the
+    // phase that GetPhi returns and is dropped; sign is kept only to avoid an unused-variable warning.)
+    (void)sign;
+    double s2 = z*z + zR*zR;
     double dWdX = abs(kz) * x * RInv;
     double dWdY = abs(kz) * y * RInv;
-    double dWdZ = - 1.0 / (zR*(1 + (z/zR)*(z/zR))) - abs(kz) * r * r * RInv * RInv + abs(kz) * r * r * RInv / (2.0*z);
+    double dWdZ = - zR / s2 + abs(kz) * r * r * (zR*zR - z*z) / (2.0*s2*s2);
 
-    std::array<double,3> gradient = {sign * dWdX, sign * dWdY, sign * dWdZ};
-
-    return {0.0, 0.0, 0.0}; // wavefront curvature accounted for in the zernike coeffs in this branch   
+    return {dWdX, dWdY, dWdZ};   
 }
 
 double Rmn(int m, int n, double rho)
