@@ -21,16 +21,18 @@ network settings and re-run the analysis (Figs. 5–7, 10–12, 14, 17 of
 
 | Element | MAGIS-100 | AION-10 |
 |---|---|---|
-| Baseline | ~100 m vertical, MINOS access shaft, Fermilab ✔ | ~10 m vertical tower, Beecroft building, Oxford ✔ |
-| Atom sources | 3, at top / middle / bottom ✔ | 2 (lower and upper sidearm) ✔ |
-| Source → baseline | horizontal lattice shuttle from source into the main tube, then vertical lattice launch ✔ | sidearms → interconnect chambers (from the brief) |
-| Species / clock line | Sr, 698 nm ¹S₀–³P₀ ✔; 689 nm narrow-line cooling ✔ | ⁸⁷Sr, 698 nm ✔ |
-| Vacuum tube | 6-inch tube ✔; 17 modules of ~5.3 m (*search snippet, possibly a later document*) | modular beam pipe (lengths *unverified*) |
-| Magnetic environment | bias coils inside an **octagonal** mu-metal shield ✔ | 10 m magnetic shield ✔ (layering *unverified*) |
-| Laser entry | from the top; laser room at the surface ✔ | beam-conditioning pipe → transfer pipe across the top → telescope (from the brief) |
-| Top steering | **in-vacuum piezo tip-tilt mirror before the telescope** (Mad City Labs Nano-MTA2, vacuum version) ✔ [2311.05714] | *unverified* |
-| Telescope | f = 150 mm and 4500 mm (×30), ~300 µm waist at the mirror → ~1 cm waist ✔ [2311.05714] | *unverified* |
-| Bottom | **tip-tilt retro-reflection mirror** in a vacuum chamber at the bottom; tripod of 3 piezo stages (2 angles + height), coarse actuators through bellows ✔ [2104.02835] | bottom mirror on a platform (from the brief) |
+| Baseline | ~100 m vertical, MINOS access shaft, Fermilab ✔ | ~10 m tower in the Beecroft building, Oxford: "a gradiometer made of two 5-metre interferometers stacked in one tower" ✔ |
+| Atom sources | 3, at top / middle / bottom ✔ | 2, at the **bottom and middle**; "these clouds are launched upwards" ✔ (AION project site) |
+| Source → baseline | the **same pair of lattice beams** shuttles atoms horizontally out of the source and launches them vertically, switched by a fibre switch ✔ | atoms "transported through XHV connections into the interconnect chambers" at the base of each 5 m pipe ✔ |
+| Detection | 461 nm fluorescence imaging at the nodes ✔ | camera assemblies at the base of each pipe ✔ |
+| Species / clock line | Sr, 698 nm ¹S₀–³P₀ ✔; 689 nm narrow-line cooling ✔; source = oven + Zeeman slower + 2D MOT (AOSense) ✔ | ⁸⁷Sr, 698 nm ✔; ovens, 2D and 3D MOTs ✔ |
+| Vacuum tube | "support frame containing a 6" diameter vacuum tube" ✔. 17 modules of ~5.3 m, from a 2022 MAGIS shield abstract, not 2104.02835 | modular beam pipe; pipe → heater tape + insulation → coils → shield ✔ |
+| Magnetic environment | **single-layer octagonal** mu-metal shield ("four overlapping mu-metal sheets") ✔; **coil bars** along the length giving a 1 G **horizontal** bias ✔ | 10 m magnetic shield ✔ (shape and layering *unverified*) |
+| Laser entry | from the top; laser room at the surface; in-vacuum 4f relay lenses down to the top of the shaft ✔ | input arm → fixed steering mirror in a six-way cross → **vertical** beam-conditioning pipe → **pair of mirrors** in the beam-transfer pipe across the top → telescope ✔ |
+| Top steering | in-vacuum piezo tip-tilt mirror **before** the telescope (Mad City Labs Nano-MTA2, vacuum version) ✔ | "at least one of the two [transfer] mirrors" dynamically adjusted, together with the bottom mirror, for a tunable pivot point ✔ |
+| Telescope | f = 150 mm and 4500 mm (×30), ~300 µm waist at the mirror → ~1 cm waist ✔ | Keplerian, lenses ~2 m apart ✔ |
+| Bottom | **tip-tilt retro-reflection mirror** in a vacuum chamber at the bottom; tripod of 3 piezo stages (2 angles + height) ✔ | piezo retro-reflecting mirror on the phase-shear detection platform ✔ |
+| Operating modes | (A) top and middle clouds dropped ~50 m; (B) short upward launches detected at the origin ✔ | both clouds launched upwards ✔ |
 
 ### Two tip-tilt mirrors, not one
 
@@ -53,11 +55,11 @@ pulses travelling in both directions, so a single downward beam is not
 enough. The figure therefore draws the retro mirror by default, with
 tip-tilt arrows on **both** mirrors, and a down/up arrow pair on the beam.
 
-## 2. Corrections to the original brief
+## 2. Corrections to the original brief, and to the first draft of this figure
 
 1. The brief's ASCII layout has a single "tip–tilt / retro-reflection
-   mirror" at the bottom. MAGIS has **two** actuated mirrors (above).
-   The figure labels both.
+   mirror" at the bottom. Both experiments have **two** actuated mirrors,
+   one at each end. The figure labels both.
 2. In MAGIS the top steering mirror sits **before** the telescope, inside the
    vacuum system. Its position relative to the telescope is physics, not
    decoration, because it sets the pivot point. So the figure orders the top
@@ -65,6 +67,23 @@ tip-tilt arrows on **both** mirrors, and a down/up arrow pair on the beam.
 3. The brief's eight labels are kept, but the three source-scale ones
    (source, cooling/trapping, transport lattice) move mainly into inset (b),
    where they can be drawn legibly. Panel (a) keeps one "atom source" label.
+4. **AION-10 is not "sources at both ends".** The sources are at the bottom
+   and the middle, both launch upwards, and the tube continues 5 m above the
+   middle node to the telescope (`instrument.tube_extent`). The beam does not
+   come straight across the top either: it comes up a vertical conditioning
+   pipe beside the tower and is turned through 180° by two mirrors
+   (`laser.route: periscope`).
+5. **Bias coils are bars, not a solenoid** (MAGIS). They are drawn as
+   conductors running along the tube (`coils.style: bars`), not as rows of
+   windings, and labelled "bias(-field) coils" rather than "guide-field
+   coils".
+6. **The MAGIS shield is single-layer.** The first draft drew two layers in
+   the cross-section.
+7. **Transport and launch lattice** are drawn as two geometries, which is
+   right. The MAGIS config's labels add that the two use the same beams, and
+   no lattice wavelength is given because none was confirmed.
+8. **MAGIS trajectories** now show one documented mode, the ~50 m drops,
+   instead of a mixture of modes.
 
 ## 3. Design decisions carried into the code
 
@@ -88,11 +107,10 @@ the confirmed facts above:
 
 ## 4. Open items to verify once arXiv is reachable
 
-* Exact source/node heights for MAGIS (the middle one is assumed to be at 50 m)
-  and for AION-10 (both drawn at the ends of the baseline).
+* Exact source/node heights for MAGIS (the middle one is assumed to be at 50 m).
 * Which side each sidearm attaches on, and whether MAGIS sidearms all point
   the same way.
-* The AION input-arm position and the true geometry of the conditioning and
-  transfer pipes (TDR Fig. 1).
+* The AION input-arm height, which side of the tower the conditioning pipe is
+  on, and the true telescope length (TDR Fig. 1).
 * Shield layer count (both), and the AION tube diameter and module length.
 * Camera positions on the nodes (MAGIS Fig. 12; AION Figs. 5–8).

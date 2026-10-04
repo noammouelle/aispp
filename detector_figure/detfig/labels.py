@@ -16,7 +16,10 @@ from . import glyphs
 from .tikz import pt
 
 
-class AnchorError(KeyError):
+SIDES = ("left", "right", "top", "bottom")
+
+
+class AnchorError(ValueError):
     pass
 
 
@@ -26,7 +29,10 @@ def resolve(c, name, along=None):
         return c.anchors[name]
     if "@" in name and along is not None:
         base, _, z = name.partition("@")
-        point = along(base, float(z))
+        try:
+            point = along(base, float(z))
+        except ValueError:
+            raise AnchorError(f"anchor '{name}': the part after '@' must be a number") from None
         if point is not None:
             return point
     known = ", ".join(sorted(c.anchors))
@@ -82,27 +88,34 @@ def callouts(c, labels, columns, gap, font, along=None):
     ``side`` is left/right (stacked in a column at ``columns[side]``) or
     top/bottom (spread in a row at height ``columns[side]``).  ``shift``
     moves the text along its column/row without moving the target."""
-    for side in ("left", "right", "top", "bottom"):
-        items = [lab for lab in labels if lab.get("side", "right") == side]
-        if not items:
-            continue
-        if side not in columns:
-            raise KeyError(f"labels with side '{side}' need a '{side}' entry in label_column")
+    for lab in labels:
+        if lab.get("side", "right") not in SIDES:
+            raise ValueError(f"label {lab.get('text')!r}: side must be one of {', '.join(SIDES)}, "
+                             f"not {lab.get('side')!r}")
+    groups = {}
+    for lab in labels:
+        side = lab.get("side", "right")
+        if lab.get("line") is None and side not in columns:
+            raise ValueError(f"labels with side '{side}' need a '{side}' entry in label_column")
+        line = lab["line"] if lab.get("line") is not None else columns[side]
+        groups.setdefault((side, line), []).append(lab)
+    for (side, line), items in groups.items():
         targets = []
         for lab in items:
             if str(lab.get("text", "")).endswith("\\") and not str(lab["text"]).endswith("\\\\"):
                 raise ValueError(f"label text {lab['text']!r} ends in a backslash: in YAML flow style "
                                  "({text: ..., ...}) a comma ends the text, so quote it: text: 'a\\,b'")
+            if "anchor" not in lab:
+                raise ValueError(f"label {lab.get('text')!r} has no 'anchor'")
             x, y = resolve(c, lab["anchor"], along)
             targets.append((x + lab.get("dx", 0.0), y + lab.get("dy", 0.0)))
         vertical = side in ("left", "right")
         if vertical:
-            sizes = [lab["text"].count("\\\\") + 1 for lab in items]
+            sizes = [str(lab["text"]).count("\\\\") + 1 for lab in items]
             pos = spread([t[1] + lab.get("shift", 0.0) for t, lab in zip(targets, items)], sizes, gap)
         else:
-            sizes = [text_width(lab["text"]) + 0.25 for lab in items]
+            sizes = [text_width(str(lab["text"])) + 0.25 for lab in items]
             pos = spread([t[0] + lab.get("shift", 0.0) for t, lab in zip(targets, items)], sizes, 1.0)
-        line = columns[side]
         for lab, (tx, ty), p in zip(items, targets, pos):
             glyphs.dot(c, tx, ty)
             if vertical:
@@ -117,11 +130,12 @@ def callouts(c, labels, columns, gap, font, along=None):
                 align += ", text height=1.6ex, text depth=0.4ex"  # common baseline along the row
             with c.on("annotations"):
                 c.draw(path, "dfleader, line width=0.35pt")
-                c.text(*where, lab["text"],
+                c.text(*where, str(lab["text"]),
                        f"anchor={anchor}, align={align}, inner sep=1.5pt, text=dftext, font={{{font}}}")
 
 
 def markers(c, items, along=None):
     for m in items:
         x, y = resolve(c, m["anchor"], along)
-        glyphs.marker(c, x + m.get("dx", 0.0), y + m.get("dy", 0.0), m["n"])
+        glyphs.marker(c, x + m.get("dx", 0.0), y + m.get("dy", 0.0), m["n"],
+                      target=(x, y) if m.get("leader") else None)

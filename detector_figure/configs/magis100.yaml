@@ -8,8 +8,13 @@
 #                f = 150 mm / 4500 mm telescope (~300 um -> ~1 cm waist);
 #                tip-tilt retro-reflection mirror in a chamber at the bottom;
 #                octagonal mu-metal shield; 6-inch vacuum tube.
+#                single-layer octagonal shield, bias field from coil *bars* running
+#                along the tube (1 G horizontal bias); the same lattice beams
+#                shuttle atoms out of the source and launch them (fibre switch).
 #   unverified - exact source heights (50 m assumed for the middle one),
-#                all launch heights, which side the sidearms are on.
+#                which side the sidearms are on.
+#   trajectories show the "drop" mode (top and middle clouds fall ~50 m);
+#                MAGIS also plans short upward launches detected at their origin.
 extends: generic.yaml
 
 output:
@@ -25,12 +30,11 @@ instrument:
     - {id: bottom, z: 0, source: left}
     - {id: middle, z: 50, source: left}
     - {id: top, z: 100, source: left}
-  beam: {arrows_at: 0.78}
+  beam: {arrows_at: [0.86, 0.3]}
   atoms:
-    trajectories:   # illustrative launches only
-      - {start: 0, apex: 38, end: 2, dx: -0.04}
-      - {start: 50, apex: 86, end: 52, dx: 0.0}
-      - {start: 98, apex: 98, end: 62, dx: 0.04}
+    trajectories:   # drop mode: two clouds released, each falling ~50 m
+      - {id: top, start: 98, apex: 98, end: 53, dx: 0.03}
+      - {id: middle, start: 48, apex: 48, end: 3, dx: -0.03}
 
 overview:
   labels:
@@ -39,23 +43,35 @@ overview:
     - {text: 'telescope\\$f = 150\,$mm$\,/\,4.5\,$m', anchor: telescope, side: right}
     - {text: 'launch\,/\,detection\\node (×3)', anchor: node:top, side: right}
     - {text: 'common clock beam\\(698\,nm, $w_0\approx1\,$cm)', anchor: beam, side: right}
-    - {text: 6-inch UHV tube, anchor: tube@68, side: right}
-    - {text: 'bias coils\,+\,octagonal\\mu-metal shield', anchor: shield@62, side: right}
+    - {text: 6-inch UHV tube, anchor: tube@72, side: right}
+    - {text: bias coil bars, anchor: coil@66, side: right}
+    - {text: octagonal mu-metal\\shield (single layer), anchor: shield@60, side: right}
     - {text: tip--tilt retro-reflection\\mirror (in vacuum), anchor: mirror, side: right}
   markers:
-    - {n: 1, anchor: source:bottom.mot, dy: 0.5}
-    - {n: 2, anchor: node:bottom.center, dx: -0.75, dy: 0.5}
-    - {n: 3, anchor: tube@25, dx: 0.42}
+    - {n: 1, anchor: source:middle.mot, dy: 0.5}
+    - {n: 2, anchor: arm:middle, dy: 0.42}
+    - {n: 3, anchor: tube@25, dx: 0.45}
     - {n: 4, anchor: node:bottom.camera, dx: 0.05, dy: 0.32}
-  zoom: {node: bottom, section_z: 75}
+  zoom: {node: middle, section_z: 80}
   scale_bar: {label: '$\approx$100 m (MINOS shaft)', at: 0.27}
+
+node:
+  below: tube          # (b) is the middle node: shielded tube continues below
+  labels:
+    - {text: 'oven\,/\,2D MOT', anchor: oven, side: top}
+    - {text: 3D MOT, anchor: mot, side: top}
+    - {text: lattice shuttle, anchor: transport, side: bottom, shift: -0.45}
+    - {text: 'lattice launch\\(same beams, switched)', anchor: launch, side: right, shift: -0.25}
+    - {text: fluorescence camera, anchor: camera, side: right}
+    - {text: clock beam, anchor: beam, side: right}
+    - {text: falling atoms, anchor: atoms, side: right}
 
 section:
   layers:
     - {kind: square, size: 1.45, thickness: 0.07, label: support frame}
     - {kind: ring, radius: 1.15, thickness: 0.07, sides: 8, color: shield, label: octagonal mu-metal shield}
-    - {kind: coils, radius: 0.8, count: 18, wire: 0.045, label: bias coils}
+    - {kind: coils, radius: 0.85, count: 16, wire: 0.045, label: bias coil bars}
     - {kind: ring, radius: 0.62, thickness: 0.07, color: metal, label: 6-inch vacuum tube}
     - {kind: vacuum, radius: 0.55}
-    - {kind: beam, radius: 0.36, label: '698\,nm beam, $w_0\approx1\,$cm'}
-    - {kind: atoms, radius: 0.08, label: Sr atom clouds}
+    - {kind: beam, radius: 0.24, label: '698\,nm beam, $w_0\approx1\,$cm'}
+    - {kind: atoms, radius: 0.07, label: Sr atoms, side: left}

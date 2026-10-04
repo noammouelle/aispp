@@ -60,8 +60,12 @@ def _read(path, seen=()):
     path = Path(path).resolve()
     if path in seen:
         raise ConfigError(f"circular 'extends' involving {path}")
-    with open(path) as fh:
-        data = yaml.safe_load(fh) or {}
+    try:
+        with open(path) as fh:
+            data = yaml.safe_load(fh) or {}
+    except yaml.YAMLError as err:
+        raise ConfigError(f"{path}: not valid YAML (text with commas, braces or a leading "
+                          f"special character must be quoted):\n{err}") from None
     if not isinstance(data, dict):
         raise ConfigError(f"{path}: top level must be a mapping")
     parent = data.pop("extends", None)
@@ -94,7 +98,106 @@ def load(*paths, overrides=None):
     if overrides:
         check_keys(overrides, defaults)
         cfg = deep_merge(cfg, overrides)
-    return _wrap(cfg)
+    cfg = _wrap(cfg)
+    validate(cfg)
+    return cfg
+
+
+# Allowed keys of the items of each list in the config (lists replace
+# wholesale, so they cannot be checked against defaults.yaml).
+LABEL_KEYS = {"text", "anchor", "side", "dx", "dy", "shift", "line"}
+MARKER_KEYS = {"n", "anchor", "dx", "dy", "leader"}
+LIST_ITEM_KEYS = {
+    "instrument.nodes": {"id", "z", "source", "camera"},
+    "instrument.atoms.trajectories": {"id", "start", "apex", "end", "dx"},
+    "overview.labels": LABEL_KEYS,
+    "overview.markers": MARKER_KEYS,
+    "node.labels": LABEL_KEYS,
+    "node.markers": MARKER_KEYS,
+    "section.layers": {"kind", "radius", "size", "thickness", "sides", "color", "label", "side",
+                       "angle", "layers", "spacing", "count", "wire"},
+}
+
+# Keys whose value must be one of a fixed set.
+CHOICES = {
+    "instrument.laser.side": ("left", "right"),
+    "instrument.laser.route": ("direct", "periscope"),
+    "instrument.laser.tip_tilt_on": ("axis", "transfer"),
+    "instrument.coils.style": ("bars", "turns"),
+    "overview.scale_bar.style": ("dimension", "axis"),
+    "node.source_side": (None, "left", "right"),
+    "node.below": ("tube", "stub"),
+}
+
+
+def _get(cfg, dotted):
+    for part in dotted.split("."):
+        cfg = cfg[part]
+    return cfg
+
+
+def _choice(value, allowed, where):
+    if value not in allowed:
+        hint = difflib.get_close_matches(str(value), [str(a) for a in allowed if a], n=1)
+        raise ConfigError(f"{where}: {value!r} is not one of {', '.join(map(str, allowed))}"
+                          + (f" (did you mean '{hint[0]}'?)" if hint else ""))
+
+
+def validate(cfg):
+    """Check what defaults.yaml cannot: list items, enumerations, consistency."""
+    for dotted, allowed in LIST_ITEM_KEYS.items():
+        items = _get(cfg, dotted) or []
+        if not isinstance(items, list):
+            raise ConfigError(f"{dotted} must be a list")
+        for i, item in enumerate(items):
+            if not isinstance(item, dict):
+                raise ConfigError(f"{dotted}[{i}] must be a mapping like {{key: value, ...}}")
+            text = str(item.get("text", item.get("label", "")))
+            if text.endswith("\\") and not text.endswith("\\\\"):
+                raise ConfigError(f"{dotted}[{i}]: text {text!r} ends in a backslash - in YAML flow "
+                                  "style ({text: ..., ...}) a comma ends the text, so quote it: "
+                                  "text: 'a\\,b'")
+            for key in item:
+                if key not in allowed:
+                    hint = difflib.get_close_matches(str(key), sorted(allowed), n=1)
+                    raise ConfigError(f"unknown key '{key}' in {dotted}[{i}]"
+                                      + (f" (did you mean '{hint[0]}'?)" if hint else "")
+                                      + f"; allowed: {', '.join(sorted(allowed))}")
+    for dotted, allowed in CHOICES.items():
+        _choice(_get(cfg, dotted), allowed, dotted)
+
+    ins = cfg.instrument
+    if not ins.nodes:
+        raise ConfigError("instrument.nodes must contain at least one node")
+    ids = [n.get("id") for n in ins.nodes]
+    if None in ids or len(set(ids)) != len(ids):
+        raise ConfigError(f"instrument.nodes: every node needs a unique id (got {ids})")
+    if not ins.baseline or ins.baseline <= 0:
+        raise ConfigError("instrument.baseline must be a positive length in metres")
+    for n in ins.nodes:
+        _choice(n.get("source", "none"), ("left", "right", "none"), f"instrument.nodes[{n['id']}].source")
+        if not -1e-9 <= n["z"] <= ins.baseline * (1 + 1e-9):
+            raise ConfigError(f"node '{n['id']}' at z = {n['z']} m lies outside 0..baseline "
+                              f"({ins.baseline} m); heights are metres above the bottom")
+    for side in cfg.node.cameras or []:
+        _choice(side, ("left", "right"), "node.cameras")
+    for name, value in cfg.style.colors.items():
+        if value is None:
+            raise ConfigError(f"style.colors.{name} is empty - in YAML an unquoted '#' starts a "
+                              "comment, so write colours as \"B2182B\" or '#B2182B'")
+    for lay in cfg.section.layers:
+        if str(lay.get("color", "")).startswith("#"):
+            raise ConfigError(f"section layer colour {lay['color']!r}: define it under style.colors "
+                              "and refer to it by name")
+        if lay.get("kind") == "coils" and lay.get("count", 16) < 1:
+            raise ConfigError("section coils layer needs count >= 1")
+    if cfg.overview.scale_bar.step < 0:
+        raise ConfigError("overview.scale_bar.step must be >= 0 (0 = no ticks)")
+    panels = cfg.layout.panels
+    if len(set(panels)) != len(panels):
+        raise ConfigError(f"layout.panels lists a panel twice: {panels}")
+    if "section" in panels and not cfg.section.layers:
+        raise ConfigError("section.layers is empty; add layers or remove 'section' from layout.panels")
 
 
 def parse_override(text):

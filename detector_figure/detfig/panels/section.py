@@ -14,7 +14,13 @@ from ..labels import callouts
 from ..tikz import Canvas, num, pt
 
 
-def _ring_path(radius, sides, rot=22.5):
+def _rot(sides):
+    """Polygon rotation that puts a flat edge at the top (and bottom)."""
+    return 90 - 180 / sides if sides else 0
+
+
+def _ring_path(radius, sides):
+    rot = _rot(sides)
     if not sides:
         return f"(0,0) circle[radius={num(radius)}]"
     pts = [(radius * math.cos(math.radians(rot + 360 * k / sides)),
@@ -22,10 +28,11 @@ def _ring_path(radius, sides, rot=22.5):
     return " -- ".join(pt(x, y) for x, y in pts) + " -- cycle"
 
 
-def _edge_radius(radius, sides, angle, rot=22.5):
+def _edge_radius(radius, sides, angle):
     """Distance from the centre to a polygon's edge in direction ``angle``."""
     if not sides:
         return radius
+    rot = _rot(sides)
     seg = 360 / sides
     rel = (angle - rot) % seg - seg / 2
     return radius * math.cos(math.radians(seg / 2)) / math.cos(math.radians(rel))
@@ -36,15 +43,19 @@ def draw(cfg):
     c = Canvas()
     layers = sec.layers
     labelled = [lay for lay in layers if lay.get("label")]
-    # labels are evenly spaced top-to-bottom in layer order; each leader starts
-    # on its layer at the angle where the layer is level with its label
+    # labels are evenly spaced top-to-bottom in layer order on each side; each
+    # leader starts on its layer at the angle where the layer is level with it
     r_out = max(lay.get("radius", lay.get("size", 1.0)) for lay in layers) if layers else 1.0
-    n_lab = max(len(labelled) - 1, 1)
-    wanted = {id(lay): r_out * 0.9 * (1 - 2 * i / n_lab) for i, lay in enumerate(labelled)}
-    auto = {}
-    for lay in labelled:
-        R0 = lay.get("radius", lay.get("size", 1.0))
-        auto[id(lay)] = math.degrees(math.asin(max(-0.9, min(0.9, wanted[id(lay)] / R0))))
+    wanted, auto = {}, {}
+    for side in ("right", "left"):
+        group = [lay for lay in labelled if lay.get("side", "right") == side]
+        n_lab = max(len(group) - 1, 1)
+        for i, lay in enumerate(group):
+            y = r_out * 0.9 * (1 - 2 * i / n_lab) if len(group) > 1 else 0.0
+            wanted[id(lay)] = y
+            R0 = lay.get("radius", lay.get("size", 1.0))
+            a = math.degrees(math.asin(max(-0.9, min(0.9, y / R0))))
+            auto[id(lay)] = a if side == "right" else 180 - a
     labels = []
     outer = 0.0
     for lay in layers:
@@ -105,7 +116,7 @@ def draw(cfg):
         if lay.get("label"):
             name = f"layer{len(labels)}"
             c.anchor(name, *anchor)
-            labels.append({"text": lay["label"], "anchor": name, "side": "right",
+            labels.append({"text": lay["label"], "anchor": name, "side": lay.get("side", "right"),
                            "shift": wanted[id(lay)] - anchor[1]})
 
     callouts(c, labels, {"right": sec.label_column, "left": -sec.label_column}, sec.label_gap,

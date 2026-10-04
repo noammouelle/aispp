@@ -1,52 +1,73 @@
-# AION-10 (technical design report, arXiv:2508.03491), as a topology sketch.
+# AION-10 (technical design report, arXiv:2508.03491).
 #
-# Confirmed from abstracts/search snippets: ~10 m vertical tower in the
-# Beecroft building (Oxford) with two Sr atom-interferometer sources (lower
-# and upper sidearms), 10 m magnetic shield, modular beam pipe, 698 nm clock
-# interferometry with the beam brought across the top through a long
-# beam-conditioning / transfer pipe into a telescope.
-#
-# UNVERIFIED (could not open the TDR from this environment): the sidearm
-# heights (drawn at the ends of the baseline), which side they attach on,
-# the shield layering and tube diameter.  Check against TDR Figs. 1, 5-8, 16
-# before using this for anything quantitative.
+# Confirmed from TDR / project-site text (see ANALYSIS.md):
+#   ~10 m tower in the Beecroft building, Oxford; a gradiometer of two 5 m
+#   interferometers stacked in one tower, with atom sources at the BOTTOM and
+#   MIDDLE whose clouds are launched UPWARDS; interconnect chambers and
+#   cameras at the base of each 5 m pipe; 698 nm clock interferometry.
+#   Beam path: input arm -> fixed steering mirror in a six-way cross ->
+#   vertical beam-conditioning pipe -> a pair of mirrors in the beam-transfer
+#   pipe across the top (at least one dynamically tip-tilted, with the bottom
+#   retro mirror, for a tunable pivot point) -> Keplerian telescope with its
+#   lenses ~2 m apart -> down the tower -> piezo retro-reflecting mirror on
+#   the phase-shear detection platform.
+# UNVERIFIED: which side the sidearms and the conditioning pipe are on, the
+#   input-arm height, shield shape/layering, tube diameter.
 extends: generic.yaml
 
 output:
   name: aion10
+
+layout:
+  overview: {letter: [-3.3, 17.0]}
+  node: {x: 6.4, y: 3.6, letter: [-4.1, 2.25]}
+  section: {x: 7.2, y: -0.2, letter: [-2.6, 1.75]}
 
 instrument:
   name: AION-10
   baseline: 10
   nodes:
     - {id: lower, z: 0, source: left}
-    - {id: upper, z: 10, source: left}
+    - {id: middle, z: 5, source: left}
+  tube_extent: [0, 10]
+  telescope: {length: 2.4}      # lenses ~2 m apart (drawn ~1.6 m: horizontal-free schematic)
   laser:
+    route: periscope
     side: right
-    pipe_length: 2.4
-    text: laser lab\\(clock laser)
-  beam: {arrows_at: 0.7}
+    offset: 1.1
+    input_z: 1.2
+    pipe_length: 0.7
+    box_width: 1.7
+    tip_tilt_on: axis
+    text: clock laser
+  beam: {arrows_at: [0.8, 0.3]}
   atoms:
-    trajectories:
-      - {start: 0, apex: 4.5, end: 0.3, dx: -0.035}
-      - {start: 9.7, apex: 9.7, end: 5.5, dx: 0.035}
+    trajectories:   # both clouds launched upwards, one per 5 m interferometer
+      - {id: lower, start: 0, apex: 4.3, end: 0.3, dx: -0.02}
+      - {id: middle, start: 5, apex: 9.3, end: 5.3, dx: 0.02}
 
 overview:
-  height: 15.0
+  height: 13.0
   labels:
-    - {text: upper sidearm (source), anchor: source:upper.oven, side: top, dy: 0.13}
-    - {text: steering mirror\\(tip--tilt), anchor: fold, side: left}
-    - {text: 'beam-conditioning\,/\\transfer pipe', anchor: pipe, side: right, shift: 0.0}
-    - {text: telescope, anchor: telescope, side: right}
-    - {text: interconnect chamber, anchor: node:upper, side: right}
-    - {text: 10 m UHV interferometer tube, anchor: tube@7.5, side: right}
+    - {text: middle sidearm (source), anchor: source:middle.oven, side: top, dy: 0.13, line: 7.35}
+    - {text: 'beam-transfer pipe\\(2 mirrors, one tip--tilt)', anchor: fold, side: left}
+    - {text: Keplerian telescope, anchor: telescope, side: left, dx: -0.6}
+    - {text: beam-conditioning pipe, anchor: pipe, side: right}
+    - {text: interconnect chamber, anchor: node:middle, side: right}
     - {text: '698\,nm clock beam', anchor: beam, side: right}
-    - {text: 10 m magnetic shield, anchor: shield@5.5, side: right}
-    - {text: bottom mirror\\(on platform), anchor: mirror, side: right}
+    - {text: 10 m magnetic shield, anchor: shield@7.5, side: right}
+    - {text: steering mirror\\(six-way cross), anchor: cross, side: bottom, shift: 1.5}
+    - {text: input arm, anchor: input, side: bottom, shift: 1.6}
+    - {text: piezo retro mirror\\(phase-shear platform), anchor: mirror, side: left, shift: -0.25}
+  label_column: {left: -0.5, right: 1.85, top: 14.6, bottom: -1.0}
   markers:
     - {n: 1, anchor: source:lower.mot, dy: 0.5}
-    - {n: 2, anchor: node:lower.center, dx: -0.75, dy: 0.5}
-    - {n: 3, anchor: tube@3, dx: 0.42}
+    - {n: 2, anchor: arm:lower, dy: 0.42}
+    - {n: 3, anchor: apex:lower, dx: 0.7, dy: 0.25, leader: true}
     - {n: 4, anchor: node:lower.camera, dx: 0.05, dy: 0.32}
-  scale_bar: {label: 10 m baseline, step: 1}
-  zoom: {node: lower, section_z: 5}
+  scale_bar: {label: 10 m tower, at: 0.28}
+  cycle_legend: {y: -1.75}
+  zoom: {node: lower, section_z: 2.5}
+
+node:
+  below: stub

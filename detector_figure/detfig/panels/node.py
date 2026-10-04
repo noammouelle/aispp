@@ -9,7 +9,7 @@ passes straight through the node.  The node centre is at (0, 0).
 
 from .. import glyphs as g
 from ..labels import callouts, markers
-from ..tikz import Canvas, pt
+from ..tikz import Canvas
 
 
 def draw(cfg):
@@ -17,21 +17,32 @@ def draw(cfg):
     c = Canvas()
     r, wall, depth = nd.tube_radius, nd.wall, st.depth
     hw, hh = nd.half_width, nd.half_height
-    s = -1 if nd.source_side == "left" else 1
+    side = nd.source_side
+    if side is None:  # follow the node that panel (a) zooms into
+        zoomed = next((n for n in ins.nodes if n["id"] == cfg.overview.zoom.node), None)
+        side = zoomed.get("source", "left") if zoomed else "left"
+        side = "left" if side == "none" else side
+    s = -1 if side == "left" else 1
+    cameras = nd.cameras if nd.cameras is not None else ["right" if s < 0 else "left"]
 
     # tube above and below, with coils and shield, broken at the far ends
     sh_gap, sh_t = 0.2, 0.07
-    for y0, y1 in ((hh, hh + nd.tube_length), (-hh - nd.tube_length, -hh)):
+    stub_below = nd.below == "stub"
+    below_len = 0.45 if stub_below else nd.tube_length
+    for y0, y1 in ((hh, hh + nd.tube_length), (-hh - below_len, -hh)):
         g.vtube(c, 0, y0 - 0.01, y1 + 0.01, r, wall, depth)
+        if y0 < 0 and stub_below:
+            continue  # bare stub towards the retro mirror: no shield, no coils
         inner0, inner1 = (y0 + 0.15, y1) if y0 > 0 else (y0, y1 - 0.15)
         if ins.shield.show:
-            g.shield(c, 0, inner0, inner1, r + wall, sh_t, sh_gap)
+            for j in range(ins.shield.layers):
+                g.shield(c, 0, inner0, inner1, r + wall, sh_t, sh_gap + j * sh_t * 1.8)
         if ins.coils.show:
-            g.coils(c, 0, inner0 + 0.05, inner1 - 0.05, r + wall + sh_gap / 2, 0.22, 0.045)
-    y_top, y_bot = hh + nd.tube_length, -hh - nd.tube_length
+            g.coils(c, 0, inner0 + 0.05, inner1 - 0.05, r + wall + sh_gap / 2, 0.22, 0.045, ins.coils.style)
+    y_top, y_bot = hh + nd.tube_length, -hh - below_len
     edge = r + wall + sh_gap + sh_t + 0.05
     g.break_mark(c, 0, y_top - 0.12, edge)
-    g.break_mark(c, 0, y_bot + 0.04, edge)
+    g.break_mark(c, 0, y_bot + 0.04, r + wall + 0.05 if stub_below else edge)
 
     # node chamber
     g.chamber(c, -hw, -hh, hw, hh, wall, depth)
@@ -58,7 +69,7 @@ def draw(cfg):
     # interferometry beam straight through
     g.vbeam(c, 0, y_bot, y_top, nd.beam_width)
     g.beam_arrows(c, 0, hh + nd.tube_length * 0.55, nd.beam_width, ins.retro_mirror.show, size=0.4)
-    c.anchor("beam", nd.beam_width * 0.3, -hh - nd.tube_length * 0.45)
+    c.anchor("beam", nd.beam_width * 0.3, -hh - below_len * 0.5)
 
     # transport lattice along the arm, with a cloud on its way in
     g.lattice_line(c, xm, 0, 0, 0, width=0.9)
@@ -79,7 +90,7 @@ def draw(cfg):
     c.anchor("atoms", 0.06, hh + nd.tube_length * 0.25)
 
     # cameras on viewports, imaging the node centre
-    for side in nd.cameras:
+    for side in cameras:
         k = 1 if side == "right" else -1
         if k == s:
             raise ValueError(f"node.cameras: no room for a camera on the source side ({side})")
@@ -91,9 +102,9 @@ def draw(cfg):
         with c.on("content"):
             c.polyline([(0, 0), (xv, 0.18), (xv, -0.18)], "fill=dfoptics, fill opacity=0.12, draw=none",
                        closed=True, cmd="filldraw")
-        c.anchor(f"camera:{side}", xv + k * 0.7, 0.18)
-    if nd.cameras:
-        c.anchor("camera", *c.anchors[f"camera:{nd.cameras[0]}"])
+        c.anchor(f"camera:{side}", xv + k * 0.62, 0.17)
+    if cameras:
+        c.anchor("camera", *c.anchors[f"camera:{cameras[0]}"])
 
     def along(base, z):
         # here z is a page offset (cm) above the node centre, not metres

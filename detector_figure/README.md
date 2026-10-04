@@ -17,6 +17,7 @@ pip install pyyaml            # plus a TeX installation with TikZ (pdflatex)
 cd detector_figure
 python -m detfig configs/generic.yaml -o out
 python -m detfig configs/magis100.yaml -o out --set overview.height=12
+python -m detfig configs/aion10.yaml -o out
 ```
 
 Each run writes these files to `out/`:
@@ -49,8 +50,24 @@ style:
   colors: {beam: "B2182B"}       # one colour changed, the rest kept
 ```
 
-A misspelt key is an error, not silently ignored:
+Mistakes stop the run with a message rather than being silently ignored.
+This covers misspelt keys (including keys inside list items such as labels
+and nodes), invalid choices (`laser.side: rigth`), duplicate node ids, node
+heights outside the baseline, and unquoted `#` colours:
 `unknown key 'config.instrument.shiled' (did you mean 'shield'?)`.
+
+### Instrument layouts
+
+| option | what it changes |
+|---|---|
+| `instrument.nodes` | number and height of launch/detection nodes; `source: left/right/none` per node |
+| `instrument.tube_extent: [0, 10]` | tube continues beyond the outermost nodes (AION-10: nodes at 0 and 5 m of a 10 m tower) |
+| `instrument.laser.route` | `direct`: one pipe and fold mirror above the telescope (MAGIS-like). `periscope`: input arm → steering mirror in a cross → vertical conditioning pipe → two-mirror transfer pipe (AION-like) |
+| `steering_mirror.tip_tilt`, `retro_mirror.{show,tip_tilt}` | the two actuated mirrors |
+| `coils.style` | `bars` (conductors along the tube, transverse bias) or `turns` (solenoid) |
+| `shield.layers`, `section.layers[].sides` | number of shield layers; circular or polygonal (octagonal for MAGIS) cross-section |
+| `atoms.trajectories` | fountains (`start < apex`) or drops (`start == apex`), in metres |
+| `node.below` | `tube` (shielded tube continues below the node in (b)) or `stub` (bare stub to the retro mirror) |
 
 **Units.** Heights along the baseline (`z`, `baseline`, `apex`,
 `section_z`, `anchor@z`) are in metres. All other sizes are page
@@ -81,10 +98,19 @@ overview:
   `label_column.top/bottom`. Labels push each other apart automatically.
 * `dx`, `dy`: move the point the leader line touches.
 * `shift`: move only the text along its column or row.
+* `line`: put this label in its own column or row, at this x (left/right)
+  or y (top/bottom) instead of the shared `label_column` value.
+* Markers take `leader: true` to draw a short line from the circled
+  number to its anchor.
+
+Placement is per config. After moving sources to the other side, or
+changing the laser route, re-check the labels and `layout` offsets in the
+rendered PNG; the geometry follows automatically, but text placement
+does not.
 
 | panel | anchors |
 |---|---|
-| (a) overview | `node:<id>`, `node:<id>.center`, `.launch`, `.camera`, `source:<id>`, `source:<id>.mot`, `.oven`, `arm:<id>`, `telescope`, `fold` (steering mirror), `pipe`, `laser`, `mirror` (retro), `beam`, plus `tube@z`, `beam@z`, `wall@z`, `coil@z`, `shield@z`, `support@z` |
+| (a) overview | `node:<id>`, `node:<id>.center`, `.launch`, `.camera`, `source:<id>`, `source:<id>.mot`, `.oven`, `arm:<id>`, `apex:<trajectory id>`, `telescope`, `fold` (mirror above the telescope), `laser`, `pipe`, `mirror` (retro) or `flange`, `beam`; periscope route adds `transfer`, `cross`, `input`; plus `tube@z`, `beam@z`, `wall@z`, `coil@z`, `shield@z`, `support@z` |
 | (b) node | `node`, `mot`, `source`, `oven`, `transport`, `launch`, `atoms`, `beam`, `camera`, `camera:right`, plus `tube@y` etc., where *y* is a page offset (cm) above the node centre |
 
 An unknown anchor name raises an error that lists all valid anchors.
@@ -125,6 +151,8 @@ meets a chamber, the interior is therefore drawn open, without any
 port-cutting code. To add a new element, write a glyph and call it from a
 panel. To add a new panel, write a `draw(cfg) -> Canvas` function, register
 it in `panels/__init__.py`, and add its defaults to `defaults.yaml`.
+
+Rendered previews of all three configs are in `previews/`.
 
 Tests: `python -m pytest tests` (the compile tests are skipped without
 `pdflatex`).

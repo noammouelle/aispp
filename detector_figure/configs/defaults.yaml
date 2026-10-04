@@ -61,27 +61,43 @@ style:
 instrument:
   name: Generic long-baseline atom interferometer
   baseline: 100              # m, height of the highest node above the lowest
-  # Launch/detection nodes along the vertical tube.  `source` is the side of
-  # the attached atom-source sidearm: left, right, or none.
+  # Launch/detection nodes along the vertical tube: {id, z, source, camera}.
+  # `source` is the side of the attached atom-source sidearm (left, right or
+  # none); `camera: false` omits the node camera.
   nodes:
     - {id: lower, z: 0, source: left}
     - {id: upper, z: 100, source: left}
+  # Extra tube beyond the outermost nodes, [z_bottom, z_top] in m; null = the
+  # tube ends at the outermost nodes.  (AION-10: nodes at 0 and 5 m of 10 m.)
+  tube_extent: null
   tube:
     radius: 0.2              # cm, inner radius as drawn
   shield:
     show: true
     gap: 0.1                 # cm between tube wall and shield (coils sit here)
     thickness: 0.045
+    layers: 1                # number of shield layers drawn
+    spacing: 0.07            # cm between layers
   coils:
     show: true
-    pitch: 0.3               # cm between drawn windings
+    style: bars              # bars (conductors along the tube, transverse bias) | turns (solenoid)
+    pitch: 0.3               # cm between drawn windings (turns only)
   support:
     show: false              # dashed structural frame outside the shield
     offset: 0.12
   laser:
     show: true
     side: right              # side of the laser lab / beam-conditioning pipe
-    pipe_length: 1.6         # cm, length of the horizontal conditioning pipe
+    # direct:    laser -> horizontal pipe -> fold mirror -> telescope (MAGIS-like)
+    # periscope: laser -> input arm at height input_z -> steering mirror in a
+    #            cross -> vertical conditioning pipe at `offset` from the axis
+    #            -> two-mirror transfer pipe across the top (AION-like)
+    route: direct
+    pipe_length: 1.6         # cm, horizontal pipe (direct) or input arm (periscope)
+    offset: 1.0              # cm, periscope: distance of the conditioning pipe from the axis
+    input_z: null            # m, periscope: height of the input arm (null: just above the bottom)
+    tip_tilt_on: axis        # periscope: which top mirror is tip-tilt: axis | transfer
+    box_width: 1.5           # cm
     text: stabilised\\clock laser   # text inside the laser box
   telescope:
     show: true
@@ -98,12 +114,16 @@ instrument:
   beam:
     width: 0.16              # cm, full width inside the main tube
     input_width: 0.06        # cm, width before the telescope expands it
-    arrows_at: 0.5           # where along the baseline (0..1) to draw the arrows
+    arrow_gap: 0.04          # cm between beam edge and its direction arrows
+    arrows_at: [0.5]         # where along the tube (0..1) to draw down/up arrow pairs
   atoms:
     show: true
     clouds: 4                # snapshots drawn along each trajectory
+    cloud_radius: 0.05       # cm
+    leg_gap: 0.06            # cm between the up and down legs of a fountain
     # Fountain trajectories, in metres: launched at `start`, turning at
     # `apex`, ending at `end`.  `dx` is the horizontal offset on the page.
+    # An optional `id` creates the anchor `apex:<id>`.
     trajectories:
       - {start: 0, apex: 44, end: 2, dx: -0.03}
       - {start: 98, apex: 98, end: 56, dx: 0.03}
@@ -120,8 +140,9 @@ overview:
   scale_bar:
     show: true
     style: dimension         # dimension (arrow between end nodes) | axis (ticked, numbered)
-    step: 10                 # m between ticks
-    label: 100 m             # dimension: text on the arrow; axis: axis title
+    step: 0                  # m between ticks; 0 = none (ticks would suggest the
+                             # nodes and sidearms are drawn to scale - they are not)
+    label: '{length:g} m'    # dimension: text on the arrow; axis: axis title ({length} = tube length)
     at: 0.5                  # dimension: where along the arrow (0..1) the text sits
     x: -0.75                 # cm, horizontal position
   label_column: {left: -3.0, right: 1.55, top: 17.5, bottom: -1.0}
@@ -136,11 +157,11 @@ overview:
     show: true
     steps: [prepare, 'transport\,/\,launch', interrogate, detect]
     x: -2.6                  # cm, left end of the legend
-    y: -1.75                 # cm below the lowest node
+    y: -1.3                  # cm below the bottom of the beam
 
 node:
   # Panel (b): enlarged launch/detection node with its source sidearm.
-  source_side: left
+  source_side: null         # left | right | null = same side as the zoomed node's source
   tube_radius: 0.42
   tube_length: 1.4           # cm of tube drawn above and below the node
   half_width: 0.95
@@ -150,8 +171,9 @@ node:
   arm_radius: 0.2
   source: {width: 1.35, height: 1.1}
   oven: true                 # draw the oven / 2D-MOT stub feeding the source
-  cameras: [right]           # any of: right, left (left only if no source there)
-  beam_width: 0.34
+  cameras: null              # list of sides (left/right); null = opposite the source
+  beam_width: 0.26
+  below: tube                # tube (shielded tube continues) | stub (bare stub, e.g. to the retro mirror)
   label_column: {left: -4.6, right: 1.9, top: 1.0, bottom: -1.0}
   label_gap: 0.4
   labels: []

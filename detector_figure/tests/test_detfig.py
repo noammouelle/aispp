@@ -37,15 +37,15 @@ def test_typo_is_reported_with_suggestion(tmp_path):
 
 
 def test_override_from_command_line():
-    cfg = load(ROOT / "configs" / "generic.yaml", overrides=parse_override("instrument.baseline=10"))
-    assert cfg.instrument.baseline == 10
+    cfg = load(ROOT / "configs" / "generic.yaml", overrides=parse_override("overview.height=12"))
+    assert cfg.overview.height == 12
 
 
 def test_unknown_anchor_lists_known_ones(tmp_path):
     cfg_file = tmp_path / "c.yaml"
     cfg_file.write_text("extends: %s\noverview:\n  labels:\n    - {text: x, anchor: nosuch}\n"
                         % (ROOT / "configs" / "generic.yaml"))
-    with pytest.raises(KeyError, match="telescope"):
+    with pytest.raises(ValueError, match="telescope"):
         standalone(load(cfg_file))
 
 
@@ -53,8 +53,25 @@ def test_unquoted_comma_in_flow_label_is_caught(tmp_path):
     cfg_file = tmp_path / "c.yaml"
     cfg_file.write_text("extends: %s\noverview:\n  labels:\n    - {text: a\\,b, anchor: beam}\n"
                         % (ROOT / "configs" / "generic.yaml"))
-    with pytest.raises(ValueError, match="quote it"):
-        standalone(load(cfg_file))
+    with pytest.raises(ConfigError, match="quote it"):
+        load(cfg_file)
+
+
+@pytest.mark.parametrize("yaml_text, message", [
+    ("overview:\n  labels:\n    - {text: x, anchor: beam, sid: left}\n", "did you mean 'side'"),
+    ("instrument:\n  laser: {side: rigth}\n", "did you mean 'right'"),
+    ("instrument:\n  nodes:\n    - {id: a, z: 0, source: Left}\n", "not one of"),
+    ("instrument:\n  baseline: 10\n", "outside 0..baseline"),
+    ("overview:\n  scale_bar: {step: -5}\n", "step"),
+    ("layout:\n  panels: [overview, overview]\n", "twice"),
+    ("instrument:\n  nodes:\n    - {id: a, z: 0}\n    - {id: a, z: 100}\n", "unique id"),
+    ("style:\n  colors:\n    beam: #B2182B\n", "unquoted '#'"),
+])
+def test_validation_errors(tmp_path, yaml_text, message):
+    cfg_file = tmp_path / "c.yaml"
+    cfg_file.write_text(f"extends: {ROOT / 'configs' / 'generic.yaml'}\n" + yaml_text)
+    with pytest.raises(ConfigError, match=message):
+        load(cfg_file)
 
 
 def test_spread_keeps_order_and_gap():

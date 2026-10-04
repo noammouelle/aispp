@@ -7,11 +7,13 @@ the document preamble.  The panels compose these glyphs; nothing in here
 knows about YAML.
 """
 
+import itertools
 import math
 
-from .tikz import num, opts, pt
+from .tikz import num, pt
 
 PALETTE = set()  # filled by build.py with the names under style.colors
+_MARKER_IDS = itertools.count(1)  # unique TikZ node names for markers
 
 
 def color(name):
@@ -79,11 +81,20 @@ def shield(c, x, y0, y1, r_in, thickness, gap):
             c.rect(min(xa, xb), y0, max(xa, xb), y1, "fill=dfshield, draw=dfshield!70!black")
 
 
-def coils(c, x, y0, y1, r, pitch, size):
-    """Guide/bias coil windings seen in section: rows of wire cross-sections."""
-    n = max(int((y1 - y0) / pitch), 1)
-    step = (y1 - y0) / n
+def coils(c, x, y0, y1, r, pitch, size, style="bars"):
+    """Bias/guide coils seen in a longitudinal section.
+
+    ``bars``: conductors running along the tube (MAGIS-style bars giving a
+    transverse bias field) drawn as lines; ``turns``: solenoid windings drawn
+    as rows of wire cross-sections."""
     with c.on("back"):
+        if style == "bars":
+            for side in (-1, 1):
+                c.draw(f"{pt(x + side * r, y0)} -- {pt(x + side * r, y1)}",
+                       f"dfcoil, line width={num(size * 2 * 28.45)}pt")
+            return
+        n = max(int((y1 - y0) / pitch), 1)
+        step = (y1 - y0) / n
         for i in range(n):
             y = y0 + (i + 0.5) * step
             for side in (-1, 1):
@@ -129,15 +140,15 @@ def beam_cone(c, x, y_narrow, y_wide, w_narrow, w_wide, name="beam"):
                    beam_shading(name), closed=True, cmd="shade")
 
 
-def beam_arrows(c, x, y, w, retro, size=0.28):
-    """White arrows on the beam: down (incoming) and, with ``retro``, up (reflected)."""
-    style = f"-{{Stealth[length={num(size * 0.45)}cm, width={num(max(w * 0.7, 0.05))}cm]}}, white, line width=0.6pt"
+def beam_arrows(c, x, y, w, retro, size=0.5, gap=0.05):
+    """Propagation arrows beside the beam edges: down on the left (incoming) and,
+    with ``retro``, up on the right (retro-reflected)."""
+    style = "dfbeam!65!black, line width=0.8pt, -{Stealth[length=1.6mm, width=1.4mm]}"
+    xl, xr = x - w / 2 - gap, x + w / 2 + gap
     with c.on("front"):
+        c.draw(f"{pt(xl, y + size / 2)} -- {pt(xl, y - size / 2)}", style)
         if retro:
-            c.draw(f"{pt(x - w * 0.22, y + size / 2)} -- {pt(x - w * 0.22, y - size / 2)}", style)
-            c.draw(f"{pt(x + w * 0.22, y - size / 2)} -- {pt(x + w * 0.22, y + size / 2)}", style)
-        else:
-            c.draw(f"{pt(x, y + size / 2)} -- {pt(x, y - size / 2)}", style)
+            c.draw(f"{pt(xr, y - size / 2)} -- {pt(xr, y + size / 2)}", style)
 
 
 def lattice_line(c, x0, y0, x1, y1, width=0.6):
@@ -176,16 +187,21 @@ def mirror(c, x, y, half_w, facing_up, tip_tilt, t=0.06):
                        "{Stealth[length=1.1mm]}-{Stealth[length=1.1mm]}, dfoptics!80!black, line width=0.5pt")
 
 
-def fold_mirror(c, x, y, size, beam_from_right, tip_tilt):
-    """45-degree mirror turning a horizontal beam downward."""
-    s = 1 if beam_from_right else -1
-    a, b = (x - s * size, y - size), (x + s * size, y + size)
+def fold(c, x, y, size, d_in, d_out, tip_tilt=False):
+    """45-degree mirror turning a beam travelling along ``d_in`` into ``d_out``.
+
+    Directions are unit vectors such as (-1, 0) (travelling left) or (0, -1)
+    (travelling down).  The mirror surface is perpendicular to d_out - d_in."""
+    nx, ny = d_out[0] - d_in[0], d_out[1] - d_in[1]
+    norm = math.hypot(nx, ny)
+    tx, ty = -ny / norm, nx / norm  # along the mirror surface
+    a, b = (x - tx * size, y - ty * size), (x + tx * size, y + ty * size)
     with c.on("front"):
         c.draw(f"{pt(*a)} -- {pt(*b)}", "dfoptics!50!black, line width=1.6pt")
-        if tip_tilt:
-            cx, cy = x - s * 0.24, y + 0.22
-            c.draw(f"{pt(cx - s * 0.14, cy - 0.12)} to[bend {'left' if s > 0 else 'right'}=45] {pt(cx + s * 0.12, cy + 0.12)}",
-                   "{Stealth[length=1.1mm]}-{Stealth[length=1.1mm]}, dfoptics!80!black, line width=0.5pt")
+        if tip_tilt:  # rocking arrow behind the mirror (opposite to its normal)
+            bx, by = x - nx / norm * 0.2, y - ny / norm * 0.2
+            c.draw(f"{pt(bx - tx * 0.15, by - ty * 0.15)} to[bend left=40] {pt(bx + tx * 0.15, by + ty * 0.15)}",
+                   "{Stealth[length=1.2mm]}-{Stealth[length=1.2mm]}, dfoptics!80!black, line width=0.6pt")
 
 
 # -- atoms -------------------------------------------------------------------
@@ -196,23 +212,27 @@ def cloud(c, x, y, r, opacity=1.0):
                 f"inner color=dfatoms, outer color=dfatoms!25, opacity={num(opacity)}")
 
 
-def trajectory(c, x, y_start, y_apex, y_end, dx, clouds, r):
+def trajectory(c, x, y_start, y_apex, y_end, dx, clouds, r, leg_gap=0.05):
     """Fountain trajectory: up on one side, turn at the apex, down on the other.
 
-    When start == apex the atoms are simply dropped (no upward leg)."""
-    w = 0.025
+    The two legs are ``leg_gap`` apart.  When start == apex the atoms are
+    simply dropped (one downward leg)."""
+    w = leg_gap / 2
+    style = "dfatoms, line width=0.9pt, opacity=0.75, -{Stealth[length=1.5mm]}"
+    fountain = y_apex - y_start > 1e-6
     with c.on("front"):
-        style = "dfatoms, line width=0.5pt, opacity=0.55"
-        if y_apex - y_start > 1e-6:
+        if fountain:
             c.draw(f"{pt(x + dx - w, y_start)} -- {pt(x + dx - w, y_apex - w)} "
-                   f"arc[start angle=180, end angle=0, radius={num(w)}] -- {pt(x + dx + w, y_end)}",
-                   style + ", -{Stealth[length=1.1mm]}")
+                   f"arc[start angle=180, end angle=0, radius={num(w)}] -- {pt(x + dx + w, y_end)}", style)
         else:
-            c.draw(f"{pt(x + dx, y_start)} -- {pt(x + dx, y_end)}", style + ", -{Stealth[length=1.1mm]}")
+            c.draw(f"{pt(x + dx, y_start)} -- {pt(x + dx, y_end)}", style)
     for i in range(clouds):
         f = (i + 1) / (clouds + 1)
-        cloud(c, x + dx, y_start + f * (y_apex - y_start) if y_apex > y_start + 1e-6
-              else y_start + f * (y_end - y_start), r, 0.35 + 0.55 * f)
+        if fountain:  # clouds on the way up, slowing down towards the apex
+            y = y_start + (1 - (1 - f) ** 2) * (y_apex - y_start)
+            cloud(c, x + dx - w, y, r, 0.45 + 0.5 * f)
+        else:
+            cloud(c, x + dx, y_start + f * f * (y_end - y_start), r, 0.45 + 0.5 * f)
 
 
 def mot(c, x, y, size):
@@ -245,11 +265,16 @@ def laser_box(c, x0, y0, x1, y1, text, font):
                f"align=center, text=dftext, font={{{font}}}, inner sep=1pt")
 
 
-def marker(c, x, y, n):
-    """Circled step number of the experimental cycle."""
+def marker(c, x, y, n, target=None):
+    """Circled step number of the experimental cycle, optionally with a short
+    leader to ``target`` (x, y)."""
     with c.on("annotations"):
+        name = f"marker{next(_MARKER_IDS)}"
         c.raw(f"\\node[circle, draw=dfmarker, fill=white, line width=0.5pt, inner sep=0.6pt, "
-              f"minimum size=3.4mm, font=\\sffamily\\bfseries\\scriptsize, text=dfmarker] at {pt(x, y)} {{{n}}};")
+              f"minimum size=3.4mm, font=\\sffamily\\bfseries\\scriptsize, text=dfmarker] ({name}) "
+              f"at {pt(x, y)} {{{n}}};")
+        if target is not None:
+            c.raw(f"\\draw[dfmarker, line width=0.4pt] ({name}) -- {pt(*target)};")
 
 
 def dot(c, x, y, r=0.022):
