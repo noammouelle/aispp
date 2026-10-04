@@ -1,0 +1,52 @@
+# AION-10 (technical design report, arXiv:2508.03491), as a topology sketch.
+#
+# Confirmed from abstracts/search snippets: ~10 m vertical tower in the
+# Beecroft building (Oxford) with two Sr atom-interferometer sources (lower
+# and upper sidearms), 10 m magnetic shield, modular beam pipe, 698 nm clock
+# interferometry with the beam brought across the top through a long
+# beam-conditioning / transfer pipe into a telescope.
+#
+# UNVERIFIED (could not open the TDR from this environment): the sidearm
+# heights (drawn at the ends of the baseline), which side they attach on,
+# the shield layering and tube diameter.  Check against TDR Figs. 1, 5-8, 16
+# before using this for anything quantitative.
+extends: generic.yaml
+
+output:
+  name: aion10
+
+instrument:
+  name: AION-10
+  baseline: 10
+  nodes:
+    - {id: lower, z: 0, source: left}
+    - {id: upper, z: 10, source: left}
+  laser:
+    side: right
+    pipe_length: 2.4
+    text: laser lab\\(clock laser)
+  beam: {arrows_at: 0.7}
+  atoms:
+    trajectories:
+      - {start: 0, apex: 4.5, end: 0.3, dx: -0.035}
+      - {start: 9.7, apex: 9.7, end: 5.5, dx: 0.035}
+
+overview:
+  height: 15.0
+  labels:
+    - {text: upper sidearm (source), anchor: source:upper.oven, side: top, dy: 0.13}
+    - {text: steering mirror\\(tip--tilt), anchor: fold, side: left}
+    - {text: 'beam-conditioning\,/\\transfer pipe', anchor: pipe, side: right, shift: 0.0}
+    - {text: telescope, anchor: telescope, side: right}
+    - {text: interconnect chamber, anchor: node:upper, side: right}
+    - {text: 10 m UHV interferometer tube, anchor: tube@7.5, side: right}
+    - {text: '698\,nm clock beam', anchor: beam, side: right}
+    - {text: 10 m magnetic shield, anchor: shield@5.5, side: right}
+    - {text: bottom mirror\\(on platform), anchor: mirror, side: right}
+  markers:
+    - {n: 1, anchor: source:lower.mot, dy: 0.5}
+    - {n: 2, anchor: node:lower.center, dx: -0.75, dy: 0.5}
+    - {n: 3, anchor: tube@3, dx: 0.42}
+    - {n: 4, anchor: node:lower.camera, dx: 0.05, dy: 0.32}
+  scale_bar: {label: 10 m baseline, step: 1}
+  zoom: {node: lower, section_z: 5}

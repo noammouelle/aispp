@@ -1,0 +1,167 @@
+# ---------------------------------------------------------------------------
+# detfig defaults: every key the generator understands, with its default.
+#
+# Your own config only needs the keys you want to change (start it with
+# `extends: generic.yaml` or similar).  Dictionaries merge key by key; lists
+# (nodes, labels, markers, layers, ...) are replaced as a whole.
+#
+# Units: `z`, `baseline`, `apex` etc. are physical metres.  Everything else
+# (radii, widths, offsets) is centimetres on the page.  The horizontal
+# direction is deliberately NOT to scale - a 15 cm tube on a 100 m tower
+# would be invisible.
+#
+# Colours are HTML hex codes without '#'.  Wherever a colour is asked for
+# you can give either one of the names under style.colors (e.g. `shield`)
+# or any TikZ colour expression (e.g. `red!60!black`).
+#
+# Label text is LaTeX: `$^{87}$Sr`, `\\` for a line break, etc.
+# ---------------------------------------------------------------------------
+
+output:
+  name: detector_overview   # basename of the .tex/.pdf/.png written
+  png_dpi: 300               # 0 disables the PNG preview
+
+document:
+  font: \sffamily\footnotesize
+  scale: 1.0                 # scales geometry (not text) of the whole picture
+  border: 3pt
+  preamble: ""               # extra LaTeX for the standalone preamble
+
+layout:
+  panels: [overview, node, section]   # drop one to omit that panel
+  panel_letters: true
+  zoom_indicators: true      # dashed box (b) and section line (c) in panel (a)
+  letter_style: \bfseries\small
+  # Offset (cm) of each panel's own coordinate frame.  `letter: [x, y]`
+  # (in the panel's frame) overrides where the panel letter goes.
+  overview: {x: 0.0, y: 0.0, letter: null}
+  node: {x: 11.0, y: 9.6, letter: null}
+  section: {x: 9.6, y: 2.6, letter: null}
+
+style:
+  line_width: 0.4            # pt, default stroke width
+  wall: 0.05                 # cm, wall thickness of vacuum hardware (overview)
+  depth: 0.55                # 0 = flat, 1 = strong pseudo-3D shading of interiors
+  colors:
+    metal: "8E979F"          # vacuum walls
+    interior: "F3F6F9"       # inside of the vacuum system
+    beam: "D7301F"           # interferometry beam (698 nm)
+    lattice: "E08A00"        # transport / launch lattices
+    cooling: "3B6FD4"        # MOT beams (461 nm)
+    atoms: "1F3A8A"
+    shield: "4F86B5"
+    coil: "B5651D"
+    support: "9A9A9A"
+    optics: "5C6B7A"
+    laser: "3A3A3A"
+    leader: "6A6A6A"
+    marker: "222222"
+    text: "1A1A1A"
+
+instrument:
+  name: Generic long-baseline atom interferometer
+  baseline: 100              # m, height of the highest node above the lowest
+  # Launch/detection nodes along the vertical tube.  `source` is the side of
+  # the attached atom-source sidearm: left, right, or none.
+  nodes:
+    - {id: lower, z: 0, source: left}
+    - {id: upper, z: 100, source: left}
+  tube:
+    radius: 0.2              # cm, inner radius as drawn
+  shield:
+    show: true
+    gap: 0.1                 # cm between tube wall and shield (coils sit here)
+    thickness: 0.045
+  coils:
+    show: true
+    pitch: 0.3               # cm between drawn windings
+  support:
+    show: false              # dashed structural frame outside the shield
+    offset: 0.12
+  laser:
+    show: true
+    side: right              # side of the laser lab / beam-conditioning pipe
+    pipe_length: 1.6         # cm, length of the horizontal conditioning pipe
+    text: stabilised\\clock laser   # text inside the laser box
+  telescope:
+    show: true
+    length: 0.9              # cm
+  # Two independently actuated mirrors (cf. Glick et al., arXiv:2311.05714):
+  # the steering mirror folds the beam into the telescope at the top; the
+  # retro mirror at the bottom sends it back up.  LMT clock sequences need
+  # pulses travelling in both directions, so the retro mirror is on by default.
+  steering_mirror:
+    tip_tilt: true           # draw tip-tilt actuation arrows on the top fold mirror
+  retro_mirror:
+    show: true
+    tip_tilt: true
+  beam:
+    width: 0.16              # cm, full width inside the main tube
+    input_width: 0.06        # cm, width before the telescope expands it
+    arrows_at: 0.5           # where along the baseline (0..1) to draw the arrows
+  atoms:
+    show: true
+    clouds: 4                # snapshots drawn along each trajectory
+    # Fountain trajectories, in metres: launched at `start`, turning at
+    # `apex`, ending at `end`.  `dx` is the horizontal offset on the page.
+    trajectories:
+      - {start: 0, apex: 44, end: 2, dx: -0.03}
+      - {start: 98, apex: 98, end: 56, dx: 0.03}
+
+overview:
+  height: 15.0               # cm spanned by the baseline
+  node: {half_width: 0.48, half_height: 0.3}
+  source:
+    arm: 1.0                 # cm, length of the transport sidearm
+    arm_radius: 0.08
+    width: 0.8
+    height: 0.62
+  stub: 0.35                 # cm of tube between end nodes and mirror / telescope
+  scale_bar:
+    show: true
+    style: dimension         # dimension (arrow between end nodes) | axis (ticked, numbered)
+    step: 10                 # m between ticks
+    label: 100 m             # dimension: text on the arrow; axis: axis title
+    at: 0.5                  # dimension: where along the arrow (0..1) the text sits
+    x: -0.75                 # cm, horizontal position
+  label_column: {left: -3.0, right: 1.55, top: 17.5, bottom: -1.0}
+  label_gap: 0.36            # cm, minimum vertical distance between labels
+  labels:                    # see README for the list of anchors
+    - {text: atom source, anchor: source:lower, side: left}
+  markers: []                # [{n: 1, anchor: ..., dx: 0, dy: 0}]
+  zoom:
+    node: lower              # node shown enlarged in panel (b); null = none
+    section_z: 50            # m, height of the cut shown in panel (c); null = none
+  cycle_legend:
+    show: true
+    steps: [prepare, 'transport\,/\,launch', interrogate, detect]
+    x: -2.6                  # cm, left end of the legend
+    y: -1.75                 # cm below the lowest node
+
+node:
+  # Panel (b): enlarged launch/detection node with its source sidearm.
+  source_side: left
+  tube_radius: 0.42
+  tube_length: 1.4           # cm of tube drawn above and below the node
+  half_width: 0.95
+  half_height: 0.68
+  wall: 0.08
+  arm: 1.25
+  arm_radius: 0.2
+  source: {width: 1.35, height: 1.1}
+  oven: true                 # draw the oven / 2D-MOT stub feeding the source
+  cameras: [right]           # any of: right, left (left only if no source there)
+  beam_width: 0.34
+  label_column: {left: -4.6, right: 1.9, top: 1.0, bottom: -1.0}
+  label_gap: 0.4
+  labels: []
+  markers: []
+
+section:
+  # Panel (c): cross-section of the interferometry region, outside -> in.
+  # kind: square | ring | coils | beam | atoms
+  # sides: number of polygon sides for rings (0 = circle)
+  layers: []
+  label_column: 2.3          # cm right of the centre
+  label_gap: 0.4
+  title: ""                  # optional caption under the section

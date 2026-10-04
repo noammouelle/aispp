@@ -1,0 +1,82 @@
+# Generic long-baseline atom-interferometric detector: the thesis overview
+# figure.  Topology is the intersection of MAGIS-100 and AION-10: sources on
+# sidearms feeding launch/detection nodes on one shielded vertical UHV tube,
+# one common clock beam from the top (in-vacuum tip-tilt steering mirror,
+# expanding telescope), retro-reflected by a tip-tilt mirror at the bottom so
+# that LMT clock pulses can be applied from both directions.
+#
+# Panel (a) carries the instrument-scale labels; the source-scale labels
+# (oven, MOT, transport and launch lattices, camera) live in panel (b) and the
+# layer structure of the tube in panel (c).
+#
+# Text containing a comma must be quoted: {text: 'a\,b', ...}.
+
+output:
+  name: generic_detector
+
+layout:
+  # (b) and (c) sit in the empty band to the right of the long tube
+  overview: {letter: [-3.3, 17.75]}
+  node: {x: 5.75, y: 5.6, letter: [-4.1, 2.25]}
+  section: {x: 3.9, y: 1.25, letter: [-1.45, 1.95]}
+
+instrument:
+  name: Generic detector
+  baseline: 100
+  nodes:
+    - {id: lower, z: 0, source: left}
+    - {id: upper, z: 100, source: left}
+  beam: {arrows_at: 0.66}
+  atoms:
+    trajectories:
+      - {start: 0, apex: 44, end: 3, dx: -0.035}
+      - {start: 97, apex: 97, end: 55, dx: 0.035}
+
+overview:
+  label_column: {left: -0.5, right: 1.55, top: 15.95}
+  labels:
+    # anchor@z means "this element at height z (m)", e.g. shield@55
+    - {text: atom source, anchor: source:upper.oven, side: top, dy: 0.13}
+    - {text: steering mirror\\(tip--tilt), anchor: fold, side: left}
+    - {text: telescope, anchor: telescope, side: right}
+    - {text: 'launch\,/\,detection\\node', anchor: node:upper, side: right}
+    - {text: ultrahigh-vacuum\\interferometry region, anchor: tube@75, side: right}
+    - {text: 'common clock beam\\(698\,nm, finite waist)', anchor: beam, side: right}
+    - {text: guide-field coils, anchor: coil@62, side: right}
+    - {text: magnetic shield, anchor: shield@55, side: right}
+    - {text: retro-reflection mirror\\(tip--tilt), anchor: mirror, side: right}
+  markers:
+    - {n: 1, anchor: source:lower.mot, dy: 0.5}
+    - {n: 2, anchor: node:lower.center, dx: -0.75, dy: 0.5}
+    - {n: 3, anchor: tube@30, dx: 0.42}
+    - {n: 4, anchor: node:lower.camera, dx: 0.05, dy: 0.32}
+  zoom: {node: lower, section_z: 50}
+  scale_bar: {label: 100 m baseline}
+
+node:
+  arm: 1.0
+  source: {width: 1.2, height: 1.05}
+  label_column: {left: -4.2, right: 2.0, top: 1.05, bottom: -1.0}
+  labels:
+    - {text: 'oven\,/\,2D MOT', anchor: oven, side: top}
+    - {text: 3D MOT, anchor: mot, side: top}
+    - {text: transport lattice, anchor: transport, side: bottom, shift: -0.45}
+    - {text: launch lattice, anchor: launch, side: right, shift: -0.15}
+    - {text: camera, anchor: camera, side: right}
+    - {text: clock beam, anchor: beam, side: right}
+    - {text: returning atoms, anchor: atoms, side: right}
+  markers:
+    - {n: 1, anchor: mot, dx: -0.45, dy: -0.35}
+    - {n: 2, anchor: transport, dx: 0.1, dy: -0.4}
+    - {n: 3, anchor: tube@1.55, dx: -1.0}
+    - {n: 4, anchor: camera, dx: -0.3, dy: 0.35}
+
+section:
+  layers:   # outside -> in
+    - {kind: square, size: 1.45, thickness: 0.07, label: structural support}
+    - {kind: ring, radius: 1.15, thickness: 0.06, sides: 8, color: shield, layers: 2, spacing: 0.13, label: magnetic shield}
+    - {kind: coils, radius: 0.78, count: 18, wire: 0.045, label: guide-field coils}
+    - {kind: ring, radius: 0.62, thickness: 0.07, color: metal, label: UHV tube}
+    - {kind: vacuum, radius: 0.55}
+    - {kind: beam, radius: 0.36, label: clock beam (cm waist)}
+    - {kind: atoms, radius: 0.08, label: atom clouds}
