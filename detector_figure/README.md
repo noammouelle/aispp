@@ -77,7 +77,8 @@ heights outside the baseline, and unquoted `#` colours:
 | `node.launch_lattice` | `crossed` (two beams folded by scaffold mirrors, MAGIS/AION) or `standing` |
 | `overview.baseline_break` | cut the tube at height `z` with a gap and ⋮, so one drawing stands for any baseline |
 | `instrument.pivot` | mark the pivot point of the Coriolis-compensating beam rotation |
-| `trajectory.*` | panel (d): clouds (default: those of panel (a)), pulse times `t0 + k·T`, labels, arm split |
+| `trajectory.*` | panel (d): clouds (default: those of panel (a), named by their `label`), pulse times `t0 + k·T`, π/2–π–π/2 labels, |g⟩/|e⟩ arm labels, down/up pulse arrows, the T marker, arm split (exaggerated) |
+| `node.launch_arrow` | hide the upward launch arrow in (b) when the clouds are dropped (MAGIS mode A) |
 | `section.layers[].pair_spread` | coil conductors in pairs about each side (MAGIS: 8 bars, 2 per side) |
 
 **Units.** Heights along the baseline (`z`, `baseline`, `apex`,

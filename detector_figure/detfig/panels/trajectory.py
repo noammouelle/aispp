@@ -24,7 +24,7 @@ def clouds_from_instrument(cfg):
     out = []
     for t in cfg.instrument.atoms.trajectories:
         rise = t["apex"] - t["start"]
-        out.append((t.get("id", ""), t["start"], math.sqrt(2 * grav * rise) if rise > 0 else 0.0, t["end"]))
+        out.append((t.get("label", t.get("id", "")), t["start"], math.sqrt(2 * grav * rise) if rise > 0 else 0.0, t["end"]))
     return out
 
 
@@ -86,6 +86,18 @@ def draw(cfg):
             c.draw(f"{pt(X(tp), 0)} -- {pt(X(tp), Hp)}", "dfbeam, line width=1.1pt, opacity=0.75")
         if k < len(ifo.labels):
             c.text(X(tp), Hp, ifo.labels[k], f"anchor=south, inner sep=1.5pt, text=dfbeam!70!black, font={{{font}}}")
+        if ifo.pulse_arrows:  # each pulse goes down and, retro-reflected, comes back up
+            style = "dfbeam!70!black, line width=0.6pt, -{Stealth[length=1.1mm]}"
+            with c.on("front"):
+                c.draw(f"{pt(X(tp) - 0.07, Hp - 0.06)} -- {pt(X(tp) - 0.07, Hp - 0.36)}", style)
+                c.draw(f"{pt(X(tp) + 0.07, Hp - 0.36)} -- {pt(X(tp) + 0.07, Hp - 0.06)}", style)
+    if ifo.show_T and len(t_pulses) > 1:  # mark the pulse separation T
+        ya = Hp + 0.48
+        with c.on("annotations"):
+            c.draw(f"{pt(X(t_pulses[0]), ya)} -- {pt(X(t_pulses[1]), ya)}",
+                   "dfleader, line width=0.45pt, {Stealth[length=1.1mm]}-{Stealth[length=1.1mm]}")
+            c.text((X(t_pulses[0]) + X(t_pulses[1])) / 2, ya, "$T$",
+                   f"anchor=south, inner sep=1pt, text=dftext, font={{{font}}}")
     # clouds: waiting in the source (t < 0), then ballistic, split between pulses
     for name, z0, v0, z_end in clouds:
         t1 = t_stop(z0, v0, z_end)
@@ -97,6 +109,13 @@ def draw(cfg):
             if ifo.show_arms and t_split1 <= t1:
                 path = " -- ".join(pt(X(t), Y(z_at(z0, v0, t) + kick(t))) for t in _samples(t_split0, t_split1, 40))
                 c.draw(path, "dfatoms!55, line width=0.9pt")
+        if ifo.arm_labels and t_split1 <= t1 and name == clouds[-1][0]:
+            # label the two arms of one cloud in the first half of the sequence
+            tq = t_split0 + 0.55 * (t_mid - t_split0)
+            lo, hi = sorted([(Y(z_at(z0, v0, tq)), 0), (Y(z_at(z0, v0, tq) + kick(tq)), 1)])
+            for (yv, k), anchor in ((lo, "north west"), (hi, "south east")):
+                c.text(X(tq), yv, ifo.arm_labels[k],
+                       f"anchor={anchor}, inner sep=1pt, text=dftext, font=\\sffamily\\scriptsize")
         if t1 < t_end:  # detected where it lands
             g.cloud(c, X(t1), Y(z_at(z0, v0, t1)), 0.05, 0.9)
         g.cloud(c, X(0), Y(z0), 0.06)

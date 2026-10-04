@@ -184,7 +184,7 @@ def draw(cfg):
                 c.draw(f"{pt(xb + 0.08, yb0)} -- {pt(xb, yb0)} -- {pt(xb, yb1)} -- {pt(xb + 0.08, yb1)}",
                        "dfleader, line width=0.5pt, dashed")
                 y_tag = yb0 + cfg.trajectory.zoom_at * (yb1 - yb0)
-                c.text(xb, y_tag, f"({letters['trajectory']})",
+                c.text(xb - 0.04, y_tag, f"({letters['trajectory']})",
                        "anchor=east, fill=white, inner sep=1pt, font=\\sffamily\\scriptsize, text=dfleader")
         if zm.section_z is not None and "section" in letters:
             g.cut_line(c, 0, y_of(zm.section_z), r_shield + sh.thickness + 0.18, letters["section"])

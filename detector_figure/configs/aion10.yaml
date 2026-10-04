@@ -72,11 +72,11 @@ overview:
     - {text: input arm, anchor: input, side: bottom, shift: 0.6}
     - {text: retro mirror on\\phase-shear platform, anchor: mirror, side: left, shift: -0.35}
   markers:
-    - {n: 1, anchor: source:lower.mot, dy: 0.5}
-    - {n: 2, anchor: arm:lower, dy: 0.42}
+    - {n: 1, anchor: source:lower.mot, dy: 0.62}
+    - {n: 2, anchor: arm:lower, dx: 0.25, dy: 0.62}
     - {n: 3, anchor: apex:lower, dx: 0.7, dy: 0.25, leader: true}
-    - {n: 4, anchor: node:lower.camera, dx: 0.0, dy: 0.5}
-  scale_bar: {label: 10 m tower, at: 0.28}
+    - {n: 4, anchor: node:lower.camera, dx: 0.3, dy: 0.45}
+  scale_bar: {label: 10 m tower, at: 0.62}
   cycle_legend: {y: -1.6}
   zoom: {node: lower, section_z: 2.5}
 
@@ -102,7 +102,7 @@ section:
     - {kind: ring, radius: 0.68, thickness: 0.04, color: coil!35, label: heater + insulation}
     - {kind: ring, radius: 0.58, thickness: 0.06, color: metal, label: beam pipe}
     - {kind: vacuum, radius: 0.52}
-    - {kind: beam, radius: 0.2, label: '698\,nm beam'}
+    - {kind: beam, radius: 0.2, label: '698\,nm beam', side: left}
     - {kind: atoms, radius: 0.06, label: Sr atoms, side: left}
 
 trajectory:

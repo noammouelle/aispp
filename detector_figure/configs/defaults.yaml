@@ -191,6 +191,7 @@ node:
   launch_lattice: crossed
   scaffold: 0.75
   cross_half_width: 0.2      # cm, half the horizontal span of the crossed beams at the mirrors
+  launch_arrow: true         # arrow showing the cloud launched upwards from the node
   label_column: {left: -4.6, right: 1.9, top: 1.0, bottom: -1.0}
   label_gap: 0.4
   labels: []
@@ -227,6 +228,9 @@ trajectory:
     pulses: [0, 1, 2]        # pulse times in units of T after t0
     labels: ['$\pi/2$', '$\pi$', '$\pi/2$']
     show_arms: true
+    arm_labels: ['$|g\rangle$', '$|e\rangle$']   # unkicked / kicked arm of the top cloud; [] = none
+    pulse_arrows: true       # small down/up arrows: each pulse travels down and back up
+    show_T: true             # dimension arrow marking T between the first two pulses
     split: 3.0               # m/s, arm velocity difference (exaggerated for visibility)
   zoom: true                 # bracket in panel (a) marking the trajectories shown here
   zoom_at: 0.5               # where along that bracket (0..1) its letter sits

@@ -109,7 +109,7 @@ LABEL_KEYS = {"text", "anchor", "side", "dx", "dy", "shift", "line"}
 MARKER_KEYS = {"n", "anchor", "dx", "dy", "leader"}
 LIST_ITEM_KEYS = {
     "instrument.nodes": {"id", "z", "source", "camera"},
-    "instrument.atoms.trajectories": {"id", "start", "apex", "end", "dx"},
+    "instrument.atoms.trajectories": {"id", "label", "start", "apex", "end", "dx"},
     "overview.labels": LABEL_KEYS,
     "overview.markers": MARKER_KEYS,
     "node.labels": LABEL_KEYS,

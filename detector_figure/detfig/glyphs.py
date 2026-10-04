@@ -342,4 +342,5 @@ def cut_line(c, x, y, half_w, letter):
         for s in (-1, 1):
             xe = x + s * half_w
             c.draw(f"{pt(xe, y)} -- {pt(xe, y - 0.18)}", style + ", -{Stealth[length=1.2mm]}")
-        c.text(x + half_w, y, f"({letter})", "anchor=west, inner sep=1.5pt, font=\\sffamily\\scriptsize, text=dfleader")
+        c.text(x - half_w, y + 0.02, f"({letter})",
+               "anchor=south east, inner sep=1pt, font=\\sffamily\\scriptsize, text=dfleader")

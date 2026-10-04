@@ -117,8 +117,9 @@ def draw(cfg):
     else:
         g.lattice_fringes(c, 0, -hh + wall + 0.08, hh - wall - 0.08, nd.beam_width * 0.75, 0.07)
     g.cloud(c, 0, 0, 0.07)
-    with c.on("front"):
-        c.arrow(-nd.beam_width * 0.9, -0.05, -nd.beam_width * 0.9, hh * 0.85, "dfatoms, line width=0.6pt")
+    if nd.launch_arrow:
+        with c.on("front"):
+            c.arrow(-nd.beam_width * 0.9, -0.05, -nd.beam_width * 0.9, hh * 0.85, "dfatoms, line width=0.6pt")
     c.anchor("launch", nd.cross_half_width * 0.55 if nd.launch_lattice == "crossed" else nd.beam_width * 0.75,
              -hh * 0.45)
     # a returning cloud in the tube above (the one that will be imaged)

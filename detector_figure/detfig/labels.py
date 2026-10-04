@@ -124,8 +124,8 @@ def callouts(c, labels, columns, gap, font, along=None):
                 where, anchor = (line, p), ("west" if side == "right" else "east")
                 align = "left" if side == "right" else "right"
             else:
-                knee = line + (-0.1 if side == "top" else 0.1)
-                path = f"{pt(tx, ty)} -- {pt(p, knee)} -- {pt(p, line)}"
+                s = -1 if side == "top" else 1
+                path = f"{pt(tx, ty)} -- {pt(p, line + s * 0.12)} -- {pt(p, line + s * 0.04)}"
                 where, anchor, align = (p, line), ("south" if side == "top" else "north"), "center"
                 align += ", text height=1.6ex, text depth=0.4ex"  # common baseline along the row
             with c.on("annotations"):
