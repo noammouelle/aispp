@@ -84,8 +84,10 @@ def write(cfg, outdir, compile_pdf=True):
     run = subprocess.run(["pdflatex", "-interaction=nonstopmode", "-halt-on-error", tex.name],
                          cwd=outdir, capture_output=True, text=True)
     if run.returncode != 0:
-        log = run.stdout[-3000:]
-        raise RuntimeError(f"pdflatex failed on {tex}:\n{log}")
+        lines = run.stdout.splitlines()
+        errors = [" | ".join(lines[i:i + 3]) for i, ln in enumerate(lines) if ln.startswith("!")]
+        detail = "\n".join(errors) if errors else "\n".join(lines[-25:])
+        raise RuntimeError(f"pdflatex failed on {tex} (full log: {tex.with_suffix('.log')}):\n{detail}")
     for ext in ("aux", "log"):
         (outdir / f"{name}.{ext}").unlink(missing_ok=True)
     written["pdf"] = outdir / f"{name}.pdf"

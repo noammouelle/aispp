@@ -1,16 +1,21 @@
 # detfig: YAML → TikZ schematics of long-baseline atom interferometers
 
-Draws a three-panel overview figure of a vertical atom-interferometric
-detector (MAGIS-100, AION-10, or a generic one) as a functionally annotated
+Draws an overview figure of a vertical atom-interferometric detector
+(MAGIS-100, AION-10, or a generic one) as a functionally annotated
 cutaway. The panels are:
 
-* **(a)** the whole instrument, with the vertical axis drawn to scale;
+* **(a)** the whole instrument, with the vertical axis drawn to scale, or
+  with a baseline break for a generic 10 m – 1 km detector;
 * **(b)** one source, launch and detection node;
-* **(c)** a cross-section of the interferometry region.
+* **(c)** a cross-section of the interferometry region;
+* **(d)** the clouds' heights z(t) during one shot, with the clock pulses
+  and the cycle steps ①–④.
+
+Each panel is optional (`layout.panels`).
 
 The output is plain TikZ, so fonts match the thesis and everything stays
-vector. See [ANALYSIS.md](ANALYSIS.md) for the reasoning behind the design
-and for which numbers are confirmed and which are not.
+vector. See [ANALYSIS.md](ANALYSIS.md) for the facts each drawing is based on (with
+line references into the three papers) and the reasoning behind the design.
 
 ```
 pip install pyyaml            # plus a TeX installation with TikZ (pdflatex)
@@ -68,6 +73,12 @@ heights outside the baseline, and unquoted `#` colours:
 | `shield.layers`, `section.layers[].sides` | number of shield layers; circular or polygonal (octagonal for MAGIS) cross-section |
 | `atoms.trajectories` | fountains (`start < apex`) or drops (`start == apex`), in metres |
 | `node.below` | `tube` (shielded tube continues below the node in (b)) or `stub` (bare stub to the retro mirror) |
+| `node.stages` | pre-cooling chain before the 3D MOT, in order: `oven`, `zeeman`, `mot2d` |
+| `node.launch_lattice` | `crossed` (two beams folded by scaffold mirrors, MAGIS/AION) or `standing` |
+| `overview.baseline_break` | cut the tube at height `z` with a gap and ⋮, so one drawing stands for any baseline |
+| `instrument.pivot` | mark the pivot point of the Coriolis-compensating beam rotation |
+| `trajectory.*` | panel (d): clouds (default: those of panel (a)), pulse times `t0 + k·T`, labels, arm split |
+| `section.layers[].pair_spread` | coil conductors in pairs about each side (MAGIS: 8 bars, 2 per side) |
 
 **Units.** Heights along the baseline (`z`, `baseline`, `apex`,
 `section_z`, `anchor@z`) are in metres. All other sizes are page
@@ -110,8 +121,8 @@ does not.
 
 | panel | anchors |
 |---|---|
-| (a) overview | `node:<id>`, `node:<id>.center`, `.launch`, `.camera`, `source:<id>`, `source:<id>.mot`, `.oven`, `arm:<id>`, `apex:<trajectory id>`, `telescope`, `fold` (mirror above the telescope), `laser`, `pipe`, `mirror` (retro) or `flange`, `beam`; periscope route adds `transfer`, `cross`, `input`; plus `tube@z`, `beam@z`, `wall@z`, `coil@z`, `shield@z`, `support@z` |
-| (b) node | `node`, `mot`, `source`, `oven`, `transport`, `launch`, `atoms`, `beam`, `camera`, `camera:right`, plus `tube@y` etc., where *y* is a page offset (cm) above the node centre |
+| (a) overview | `node:<id>`, `node:<id>.center`, `.launch`, `.camera`, `source:<id>`, `source:<id>.mot`, `.oven`, `arm:<id>`, `apex:<trajectory id>`, `pivot`, `break`, `telescope`, `fold` (mirror above the telescope), `laser`, `pipe`, `mirror` (retro) or `flange`, `beam`; periscope route adds `transfer`, `cross`, `input`; plus `tube@z`, `beam@z`, `wall@z`, `coil@z`, `shield@z`, `support@z` |
+| (b) node | `node`, `mot`, `source`, `oven`, `zeeman`, `mot2d`, `transport`, `launch`, `scaffold`, `atoms`, `beam`, `camera`, `camera:right`, plus `tube@y` etc., where *y* is a page offset (cm) above the node centre |
 
 An unknown anchor name raises an error that lists all valid anchors.
 
@@ -141,7 +152,7 @@ detfig/
   tikz.py        Canvas: TikZ commands in ordered layers
   glyphs.py      tubes, chambers, beam, lenses, mirrors, MOT, camera, ...
   labels.py      anchors, collision-free callouts, cycle markers
-  panels/        overview.py (a), node.py (b), section.py (c)
+  panels/        overview.py (a), node.py (b), section.py (c), trajectory.py (d)
   build.py       assembles panels, writes .tex, runs pdflatex
 ```
 

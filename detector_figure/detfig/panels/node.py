@@ -11,6 +11,9 @@ from .. import glyphs as g
 from ..labels import callouts, markers
 from ..tikz import Canvas
 
+# page length (cm) of each pre-cooling stage in the source sidearm
+STAGE_LENGTH = {"oven": 0.35, "zeeman": 0.75, "mot2d": 0.5}
+
 
 def draw(cfg):
     nd, st, ins = cfg.node, cfg.style, cfg.instrument
@@ -58,17 +61,36 @@ def draw(cfg):
     g.mot(c, xm, 0, min(sw, sh) * 0.33)
     c.anchor("mot", xm, -min(sw, sh) * 0.12)
     c.anchor("source", xm - s * sw * 0.3, sh / 2)
-    if nd.oven:
-        xo = xc1 + s * 0.45
-        g.htube(c, min(xc1, xo) - 0.01, max(xc1, xo) + 0.01, 0, nd.arm_radius * 0.7, wall, depth)
-        with c.on("front"):
-            c.rect(min(xo, xo + s * 0.35), -0.24, max(xo, xo + s * 0.35), 0.24,
-                   "fill=dfmetal!80!black, draw=dfmetal!50!black, rounded corners=1pt")
-        c.anchor("oven", xo + s * 0.17, -0.24)
+    # pre-cooling stages, listed from the oven towards the 3D MOT, drawn outwards
+    x = xc1
+    r_stage = nd.arm_radius * 0.7
+    for stage in reversed(nd.stages):
+        length = STAGE_LENGTH[stage]
+        x_far = x + s * (length + 0.18)
+        g.htube(c, min(x, x_far) - 0.01, max(x, x_far) + 0.01, 0, r_stage, wall, depth)
+        xs0, xs1 = x + s * 0.18, x_far
+        xmid = (xs0 + xs1) / 2
+        if stage == "oven":
+            with c.on("front"):
+                c.rect(min(xs0, xs1), -0.24, max(xs0, xs1), 0.24,
+                       "fill=dfmetal!80!black, draw=dfmetal!50!black, rounded corners=1pt")
+            c.anchor("oven", xmid, -0.24)
+        elif stage == "zeeman":
+            g.zeeman_slower(c, min(xs0, xs1), max(xs0, xs1), 0, r_stage + wall, s)
+            c.anchor("zeeman", xmid, -(r_stage + wall + 0.06))
+        elif stage == "mot2d":
+            g.chamber(c, min(xs0, xs1), -0.27, max(xs0, xs1), 0.27, wall, depth, vertical=False)
+            g.mot2d(c, xmid, 0, 0.2)
+            c.anchor("mot2d", xmid, -0.27)
+        x = x_far
+    if nd.stages:  # thermal / pre-cooled atomic beam feeding the 3D MOT
+        with c.on("content"):
+            c.draw(f"({x - s * 0.1:.3f},0) -- ({xm + s * 0.12:.3f},0)",
+                   "dfatoms, line width=0.6pt, dash pattern=on 0.8pt off 1.2pt, opacity=0.8")
 
     # interferometry beam straight through
     g.vbeam(c, 0, y_bot, y_top, nd.beam_width)
-    g.beam_arrows(c, 0, hh + nd.tube_length * 0.55, nd.beam_width, ins.retro_mirror.show, size=0.4)
+    g.beam_arrows(c, 0, hh + nd.tube_length * 0.8, nd.beam_width, ins.retro_mirror.show, size=0.4)
     c.anchor("beam", nd.beam_width * 0.3, -hh - below_len * 0.5)
 
     # transport lattice along the arm, with a cloud on its way in
@@ -79,12 +101,26 @@ def draw(cfg):
         c.arrow(xt - s * 0.05, 0.16, xt - s * 0.38, 0.16, "dfatoms, line width=0.5pt")
     c.anchor("transport", xt + s * 0.2, -0.0)
 
-    # launch lattice: fringes along the axis inside the node, cloud launched up
-    g.lattice_fringes(c, 0, -hh + wall + 0.08, hh - wall - 0.08, nd.beam_width * 0.75, 0.07)
+    # launch lattice: either two beams crossing at a shallow angle, folded by
+    # mirrors on a scaffold above and below the node (MAGIS, AION), or a plain
+    # standing wave along the axis
+    if nd.launch_lattice == "crossed":
+        reach = hh + nd.scaffold
+        reach_lo = min(reach, hh + below_len - 0.08)  # a short stub below leaves less room
+        for k in (-1, 1):
+            g.lattice_line(c, -k * nd.cross_half_width, -reach_lo, k * nd.cross_half_width, reach, width=0.9)
+            for y_end, x_end in ((-reach_lo, -k * nd.cross_half_width), (reach, k * nd.cross_half_width)):
+                with c.on("front"):
+                    c.draw(f"({x_end - 0.07:.3f},{y_end:.3f}) -- ({x_end + 0.07:.3f},{y_end:.3f})",
+                           "dfoptics!50!black, line width=1.3pt")
+        c.anchor("scaffold", nd.cross_half_width + 0.04, reach)
+    else:
+        g.lattice_fringes(c, 0, -hh + wall + 0.08, hh - wall - 0.08, nd.beam_width * 0.75, 0.07)
     g.cloud(c, 0, 0, 0.07)
     with c.on("front"):
         c.arrow(-nd.beam_width * 0.9, -0.05, -nd.beam_width * 0.9, hh * 0.85, "dfatoms, line width=0.6pt")
-    c.anchor("launch", nd.beam_width * 0.75, -hh * 0.45)
+    c.anchor("launch", nd.cross_half_width * 0.55 if nd.launch_lattice == "crossed" else nd.beam_width * 0.75,
+             -hh * 0.45)
     # a returning cloud in the tube above (the one that will be imaged)
     g.cloud(c, 0.0, hh + nd.tube_length * 0.25, 0.06, 0.7)
     c.anchor("atoms", 0.06, hh + nd.tube_length * 0.25)

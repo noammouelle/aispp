@@ -1,27 +1,32 @@
-# MAGIS-100 (Abe et al., QST 6, 044003 (2021), arXiv:2104.02835; beam
-# delivery: Glick et al., arXiv:2311.05714).
+# MAGIS-100, from Abe et al., QST 6, 044003 (2021), arXiv:2104.02835
+# ("M" below, main.tex line numbers) and Glick et al., arXiv:2311.05714
+# ("G").  See ANALYSIS.md for the full list with quotes.
 #
-# Status of each number (see ANALYSIS.md):
-#   confirmed  - ~100 m vertical baseline in the MINOS shaft at Fermilab;
-#                three Sr sources at top, middle and bottom; 698 nm clock
-#                beam from the top; in-vacuum tip-tilt mirror before an
-#                f = 150 mm / 4500 mm telescope (~300 um -> ~1 cm waist);
-#                tip-tilt retro-reflection mirror in a chamber at the bottom;
-#                octagonal mu-metal shield; 6-inch vacuum tube.
-#                single-layer octagonal shield, bias field from coil *bars* running
-#                along the tube (1 G horizontal bias); the same lattice beams
-#                shuttle atoms out of the source and launch them (fibre switch).
-#   unverified - exact source heights (50 m assumed for the middle one),
-#                which side the sidearms are on.
-#   trajectories show the "drop" mode (top and middle clouds fall ~50 m);
-#                MAGIS also plans short upward launches detected at their origin.
+#   100 m vertical vacuum pipe in the MINOS shaft, 17 modules of 5.3 m
+#     (M L386, L396); three sources at top / middle / bottom, 50 m apart, all
+#     on the same side (M Fig. 6, Fig. 7a).
+#   Source: AOSense beam source (oven, Zeeman slower, 2D MOT) -> blue 3D MOT
+#     -> red MOT -> crossed 1064 nm dipole trap -> horizontal lattice shuttle
+#     -> crossed-beam launch lattice in the connection node (M L452-489).
+#   Shield: single-layer octagon of mu-metal around a square aluminium
+#     scaffolding truss, 8 coil bars giving a 1 G horizontal bias (M L401-409).
+#   Beam: laser room ~10 m away, 4f relay in rough vacuum + 1 m fibre, up
+#     3.5 m, across 1 m, 45-degree tip-tilt mirror turns it down through the
+#     x30 telescope (f = 150 mm, 4500 mm); tip-tilt retro mirror in its own
+#     chamber at the bottom (G L372-446, L249-253; M L544, L599-609).
+#   Shown: operating mode A - top and middle clouds dropped together, each
+#     falling 50 m in ~3.2 s (M L371).
 extends: generic.yaml
 
 output:
   name: magis100
 
 layout:
+  panels: [overview, node, section, trajectory]
   overview: {letter: [-3.3, 17.75]}
+  trajectory: {x: 6.4, y: 10.6, letter: [-0.9, 4.35]}
+  node: {x: 7.0, y: 5.6, letter: [-4.6, 2.25]}
+  section: {x: 4.9, y: 1.25, letter: [-2.6, 1.95]}
 
 instrument:
   name: MAGIS-100
@@ -30,48 +35,80 @@ instrument:
     - {id: bottom, z: 0, source: left}
     - {id: middle, z: 50, source: left}
     - {id: top, z: 100, source: left}
+  telescope: {length: 0.75}      # 4.65 m: ~5 % of the baseline
+  laser:
+    route: periscope             # up 3.5 m beside the telescope, across 1 m, down
+    side: right
+    offset: 0.75
+    input_z: 108
+    pipe_length: 0.9
+    box_width: 2.5
+    box_height: 0.75
+    tip_tilt_on: axis            # the 45-degree mirror above the telescope
+    text: 'laser room ($\sim$10\,m)\\4f relay\,+\,1\,m fibre'
+  pivot: {show: true, z: 0}
   beam: {arrows_at: [0.86, 0.3]}
   atoms:
-    trajectories:   # drop mode: two clouds released, each falling ~50 m
-      - {id: top, start: 98, apex: 98, end: 53, dx: 0.03}
-      - {id: middle, start: 48, apex: 48, end: 3, dx: -0.03}
+    trajectories:   # mode A: two clouds dropped together, each falling 50 m
+      - {id: top, start: 100, apex: 100, end: 50.5, dx: 0.03}
+      - {id: middle, start: 50, apex: 50, end: 0.5, dx: -0.03}
 
 overview:
+  label_column: {left: -0.5, right: 1.55, top: 16.25}
   labels:
-    - {text: 'Sr source\,+\,sidearm', anchor: source:top.oven, side: top, dy: 0.13}
-    - {text: in-vacuum tip--tilt\\steering mirror, anchor: fold, side: left}
-    - {text: 'telescope\\$f = 150\,$mm$\,/\,4.5\,$m', anchor: telescope, side: right}
-    - {text: 'launch\,/\,detection\\node (×3)', anchor: node:top, side: right}
-    - {text: 'common clock beam\\(698\,nm, $w_0\approx1\,$cm)', anchor: beam, side: right}
-    - {text: 6-inch UHV tube, anchor: tube@72, side: right}
+    - {text: 'Sr source\,+\,sidearm (×3)', anchor: source:top.oven, side: top, dy: 0.13}
+    - {text: 45° tip--tilt mirror\\(in vacuum), anchor: fold, side: left}
+    - {text: '×30 telescope ($f = 150\,$mm$\,/\,4.5\,$m)', anchor: telescope, side: right, shift: -0.4}
+    - {text: 'connection node', anchor: node:top, side: right}
+    - {text: 'clock beam\\(698\,nm, $w_0\approx1\,$cm)', anchor: beam, side: right}
+    - {text: 17 modules of 5.3 m, anchor: tube@72, side: right}
     - {text: bias coil bars, anchor: coil@66, side: right}
     - {text: octagonal mu-metal\\shield (single layer), anchor: shield@60, side: right}
-    - {text: tip--tilt retro-reflection\\mirror (in vacuum), anchor: mirror, side: right}
+    - {text: pivot point, anchor: pivot, side: right, shift: 0.15}
+    - {text: tip--tilt retro-reflection\\mirror (own chamber), anchor: mirror, side: right}
   markers:
     - {n: 1, anchor: source:middle.mot, dy: 0.5}
     - {n: 2, anchor: arm:middle, dy: 0.42}
     - {n: 3, anchor: tube@25, dx: 0.45}
     - {n: 4, anchor: node:bottom.camera, dx: 0.05, dy: 0.32}
   zoom: {node: middle, section_z: 80}
-  scale_bar: {label: '$\approx$100 m (MINOS shaft)', at: 0.27}
+  baseline_break: {show: false}   # a specific 100 m instrument: draw it to scale
+  scale_bar: {label: '100 m (MINOS shaft)', at: 0.27, x: -1.0}
+  cycle_legend: {y: -1.75}
 
 node:
   below: tube          # (b) is the middle node: shielded tube continues below
+  stages: [oven, zeeman, mot2d]
+  arm: 0.8
+  label_column: {left: -4.6, right: 2.0, top: 1.05, bottom: -1.0}
   labels:
-    - {text: 'oven\,/\,2D MOT', anchor: oven, side: top}
-    - {text: 3D MOT, anchor: mot, side: top}
-    - {text: lattice shuttle, anchor: transport, side: bottom, shift: -0.45}
-    - {text: 'lattice launch\\(same beams, switched)', anchor: launch, side: right, shift: -0.25}
-    - {text: fluorescence camera, anchor: camera, side: right}
+    - {text: oven, anchor: oven, side: top}
+    - {text: Zeeman slower, anchor: zeeman, side: top}
+    - {text: 2D MOT, anchor: mot2d, side: top}
+    - {text: '3D MOT, red MOT,\\dipole trap', anchor: mot, side: bottom, shift: -1.2}
+    - {text: lattice shuttle, anchor: transport, side: bottom, shift: 0.35}
+    - {text: 'launch lattice\\(same beams, switched)', anchor: launch, side: right, shift: -0.25}
+    - {text: '461\,nm fluorescence\\imaging (2 axes)', anchor: camera, side: right}
     - {text: clock beam, anchor: beam, side: right}
     - {text: falling atoms, anchor: atoms, side: right}
+  markers:
+    - {n: 1, anchor: mot, dx: -0.6, dy: 0.65}
+    - {n: 2, anchor: transport, dx: 0.1, dy: -0.4}
+    - {n: 3, anchor: tube@1.55, dx: -1.25}
+    - {n: 4, anchor: camera, dx: -0.3, dy: 0.4}
 
 section:
-  layers:
-    - {kind: square, size: 1.45, thickness: 0.07, label: support frame}
+  label_column: 1.9
+  layers:   # outside -> in (M Fig. 8)
+    - {kind: square, size: 1.45, thickness: 0.07, label: structural cage}
     - {kind: ring, radius: 1.15, thickness: 0.07, sides: 8, color: shield, label: octagonal mu-metal shield}
-    - {kind: coils, radius: 0.85, count: 16, wire: 0.045, label: bias coil bars}
-    - {kind: ring, radius: 0.62, thickness: 0.07, color: metal, label: 6-inch vacuum tube}
-    - {kind: vacuum, radius: 0.55}
-    - {kind: beam, radius: 0.24, label: '698\,nm beam, $w_0\approx1\,$cm'}
-    - {kind: atoms, radius: 0.07, label: Sr atoms, side: left}
+    - {kind: coils, radius: 0.93, count: 8, pair_spread: 30, wire: 0.05, label: 8 bias coil bars}
+    - {kind: ring, radius: 0.86, thickness: 0.05, sides: 4, color: support, label: aluminium scaffolding}
+    - {kind: ring, radius: 0.55, thickness: 0.06, color: metal, label: vacuum tube}
+    - {kind: vacuum, radius: 0.49}
+    - {kind: beam, radius: 0.2, label: '698\,nm beam'}
+    - {kind: atoms, radius: 0.06, label: Sr atoms, side: left}
+
+trajectory:
+  zoom_at: 0.6
+  interferometer: {t0: 0.25, T: 1.4}

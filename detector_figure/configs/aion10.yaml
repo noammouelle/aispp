@@ -1,73 +1,109 @@
-# AION-10 (technical design report, arXiv:2508.03491).
+# AION-10, from the technical design report arXiv:2508.03491 (CDR.tex line
+# numbers; dimensions from Fig. 1, drawing PDR-D03, origin = beam axis at
+# the bottom retro-reflecting mirror, 0.5 m above the floor).  See ANALYSIS.md.
 #
-# Confirmed from TDR / project-site text (see ANALYSIS.md):
-#   ~10 m tower in the Beecroft building, Oxford; a gradiometer of two 5 m
-#   interferometers stacked in one tower, with atom sources at the BOTTOM and
-#   MIDDLE whose clouds are launched UPWARDS; interconnect chambers and
-#   cameras at the base of each 5 m pipe; 698 nm clock interferometry.
-#   Beam path: input arm -> fixed steering mirror in a six-way cross ->
-#   vertical beam-conditioning pipe -> a pair of mirrors in the beam-transfer
-#   pipe across the top (at least one dynamically tip-tilted, with the bottom
-#   retro mirror, for a tunable pivot point) -> Keplerian telescope with its
-#   lenses ~2 m apart -> down the tower -> piezo retro-reflecting mirror on
-#   the phase-shear detection platform.
-# UNVERIFIED: which side the sidearms and the conditioning pipe are on, the
-#   input-arm height, shield shape/layering, tube diameter.
+#   "aligned pair of 5 m baseline atom interferometers in a 10 m vertical
+#     vacuum tube", camera assemblies at the base of each pipe (L262).
+#   Interconnect chambers with sidearms at 0.5 m and 5.5 m; beam pipe up to
+#     ~10.5 m, then the 2 m telescope (f = 55 mm / 1947 mm, ~1 cm waist, L339).
+#   Beam: input arm (~1.6 m, at the lower-chamber level) -> steering mirror in
+#     a six-way cross -> vertical beam-conditioning pipe 0.72 m from the axis
+#     -> two mirrors in the beam-transfer pipe turn it through 180 degrees
+#     (one dynamic) -> telescope -> down -> bottom retro-reflecting mirror on
+#     the phase-shear detection platform (L262, L281, L325).
+#   Shield: double layer, octagonal, 3 x 0.8 mm mu-metal each, 15 mm apart,
+#     4.6 m long per pipe (L1542-1565); saddle coils on a 272 mm circle (L1630).
+#   Source: oven + 2D MOT (inclined axis) -> 3D MOT 0.5 m from the axis ->
+#     horizontal transport; no Zeeman slower mentioned (L264, Fig. 1 Detail A).
+#   Launch lattice: two interfering beams, mirrors on a scaffold ~0.5 m above
+#     and below each chamber (L467).  Clouds launched upwards.
+# Schematic licence: in plan the sidearms and the conditioning pipe are ~90
+# degrees apart; here they are drawn on opposite sides.  Launch heights and
+# T are not given in the TDR: the trajectories are illustrative.
 extends: generic.yaml
 
 output:
   name: aion10
 
 layout:
-  overview: {letter: [-3.3, 17.0]}
-  node: {x: 6.4, y: 3.6, letter: [-4.1, 2.25]}
-  section: {x: 7.2, y: -0.2, letter: [-2.6, 1.75]}
+  overview: {letter: [-3.3, 18.6]}
+  trajectory: {x: 6.6, y: 10.6, letter: [-0.9, 4.35]}
+  node: {x: 6.8, y: 3.9, letter: [-4.3, 2.1]}
+  section: {x: 7.8, y: -0.2, letter: [-2.6, 1.95]}
 
 instrument:
   name: AION-10
   baseline: 10
   nodes:
     - {id: lower, z: 0, source: left}
-    - {id: middle, z: 5, source: left}
+    - {id: upper, z: 5, source: left}
   tube_extent: [0, 10]
-  telescope: {length: 2.4}      # lenses ~2 m apart (drawn ~1.6 m: horizontal-free schematic)
+  telescope: {length: 2.6}      # 2.0 m
+  shield: {layers: 2, spacing: 0.06}
   laser:
     route: periscope
     side: right
-    offset: 1.1
-    input_z: 1.2
-    pipe_length: 0.7
-    box_width: 1.7
+    offset: 0.95                # 0.72 m
+    input_z: 0                  # at the lower-chamber level
+    pipe_length: 1.6            # ~1.6 m input arm (drawn shorter)
+    box_width: 1.65
     tip_tilt_on: axis
     text: clock laser
   beam: {arrows_at: [0.8, 0.3]}
   atoms:
-    trajectories:   # both clouds launched upwards, one per 5 m interferometer
-      - {id: lower, start: 0, apex: 4.3, end: 0.3, dx: -0.02}
-      - {id: middle, start: 5, apex: 9.3, end: 5.3, dx: 0.02}
+    trajectories:   # both clouds launched upwards (heights illustrative)
+      - {id: lower, start: 0, apex: 4.0, end: 0.2, dx: -0.02}
+      - {id: upper, start: 5, apex: 9.0, end: 5.2, dx: 0.02}
 
 overview:
   height: 13.0
+  stub: 0.65                    # BRM 0.5 m below the lower chamber
+  baseline_break: {show: false}
+  label_column: {left: -0.5, right: 1.85, top: 14.6, bottom: -1.35}
   labels:
-    - {text: middle sidearm (source), anchor: source:middle.oven, side: top, dy: 0.13, line: 7.35}
+    - {text: upper sidearm (source), anchor: source:upper.oven, side: top, dy: 0.13, line: 7.35}
     - {text: 'beam-transfer pipe\\(2 mirrors, one tip--tilt)', anchor: fold, side: left}
-    - {text: Keplerian telescope, anchor: telescope, side: left, dx: -0.6}
+    - {text: 'telescope (2\,m)', anchor: telescope, side: left, dx: -0.65}
     - {text: beam-conditioning pipe, anchor: pipe, side: right}
-    - {text: interconnect chamber, anchor: node:middle, side: right}
+    - {text: interconnect chamber, anchor: node:upper, side: right}
     - {text: '698\,nm clock beam', anchor: beam, side: right}
-    - {text: 10 m magnetic shield, anchor: shield@7.5, side: right}
-    - {text: steering mirror\\(six-way cross), anchor: cross, side: bottom, shift: 1.5}
-    - {text: input arm, anchor: input, side: bottom, shift: 1.6}
-    - {text: piezo retro mirror\\(phase-shear platform), anchor: mirror, side: left, shift: -0.25}
-  label_column: {left: -0.5, right: 1.85, top: 14.6, bottom: -1.0}
+    - {text: 'double octagonal\\shield (2 $\times$ 4.6\,m)', anchor: shield@7.5, side: right}
+    - {text: steering mirror\\(six-way cross), anchor: cross, side: right, shift: 0.9}
+    - {text: input arm, anchor: input, side: bottom, shift: 0.6}
+    - {text: retro mirror on\\phase-shear platform, anchor: mirror, side: left, shift: -0.35}
   markers:
     - {n: 1, anchor: source:lower.mot, dy: 0.5}
     - {n: 2, anchor: arm:lower, dy: 0.42}
     - {n: 3, anchor: apex:lower, dx: 0.7, dy: 0.25, leader: true}
-    - {n: 4, anchor: node:lower.camera, dx: 0.05, dy: 0.32}
+    - {n: 4, anchor: node:lower.camera, dx: 0.0, dy: 0.5}
   scale_bar: {label: 10 m tower, at: 0.28}
-  cycle_legend: {y: -1.75}
+  cycle_legend: {y: -1.6}
   zoom: {node: lower, section_z: 2.5}
 
 node:
   below: stub
+  stages: [oven, mot2d]
+  labels:
+    - {text: oven, anchor: oven, side: top}
+    - {text: 2D MOT, anchor: mot2d, side: top}
+    - {text: 3D MOT, anchor: mot, side: top}
+    - {text: transport lattice, anchor: transport, side: bottom, shift: -0.45}
+    - {text: launch lattice, anchor: launch, side: right, shift: -0.15}
+    - {text: 'cameras (horizontal\\and 45$^\circ$ above)', anchor: camera, side: right}
+    - {text: clock beam, anchor: beam, side: right}
+    - {text: launched atoms, anchor: atoms, side: right}
+
+section:
+  label_column: 1.9
+  layers:   # outside -> in (TDR beam-pipe layers, shielding and coil figures)
+    - {kind: square, size: 1.45, thickness: 0.07, label: support frame}
+    - {kind: ring, radius: 1.17, thickness: 0.05, sides: 8, color: shield, layers: 2, spacing: 0.11, label: double octagonal shield}
+    - {kind: coils, radius: 0.85, count: 10, wire: 0.045, label: saddle coils}
+    - {kind: ring, radius: 0.68, thickness: 0.04, color: coil!35, label: heater + insulation}
+    - {kind: ring, radius: 0.58, thickness: 0.06, color: metal, label: beam pipe}
+    - {kind: vacuum, radius: 0.52}
+    - {kind: beam, radius: 0.2, label: '698\,nm beam'}
+    - {kind: atoms, radius: 0.06, label: Sr atoms, side: left}
+
+trajectory:
+  interferometer: {t0: 0.15, T: 0.7, split: 1.5}

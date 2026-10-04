@@ -15,8 +15,10 @@ output:
   name: generic_detector
 
 layout:
-  # (b) and (c) sit in the empty band to the right of the long tube
-  overview: {letter: [-3.3, 17.75]}
+  # (b), (c) and (d) sit in the band to the right of the long tube
+  panels: [overview, node, section, trajectory]
+  trajectory: {x: 6.1, y: 10.3, letter: [-0.9, 4.35]}
+  overview: {letter: [-3.3, 18.55]}
   node: {x: 5.75, y: 5.6, letter: [-4.1, 2.25]}
   section: {x: 4.6, y: 1.25, letter: [-2.6, 1.95]}
 
@@ -33,7 +35,7 @@ instrument:
       - {id: upper, start: 97, apex: 97, end: 55, dx: 0.03}
 
 overview:
-  label_column: {left: -0.5, right: 1.55, top: 15.95}
+  label_column: {left: -0.5, right: 1.55, top: 16.25}
   labels:
     # anchor@z means "this element at height z (m)", e.g. shield@55
     - {text: atom source, anchor: source:upper.oven, side: top, dy: 0.13}
@@ -48,10 +50,12 @@ overview:
   markers:
     - {n: 1, anchor: source:lower.mot, dy: 0.5}
     - {n: 2, anchor: arm:lower, dy: 0.42}
-    - {n: 3, anchor: apex:lower, dx: 0.7, dy: 0.25, leader: true}
+    - {n: 3, anchor: apex:lower, dx: 0.65, dy: -0.75, leader: true}
     - {n: 4, anchor: node:lower.camera, dx: 0.05, dy: 0.32}
-  zoom: {node: lower, section_z: 52}
-  scale_bar: {label: '{length:g} m baseline', at: 0.75}
+  zoom: {node: lower, section_z: 40}
+  # not to scale: the same layout serves 10 m, 100 m and km baselines
+  baseline_break: {show: true, z: 66, gap: 0.8}
+  scale_bar: {label: 'baseline $L \sim 10\,$m -- $1\,$km', at: 0.3, x: -1.0}
 
 node:
   below: stub          # (b) is the bottom node: only a bare stub to the retro mirror below it
@@ -60,6 +64,7 @@ node:
   label_column: {left: -4.2, right: 2.0, top: 1.05, bottom: -1.0}
   labels:
     - {text: oven, anchor: oven, side: top}
+    - {text: 2D MOT, anchor: mot2d, side: top}
     - {text: 3D MOT, anchor: mot, side: top}
     - {text: transport lattice, anchor: transport, side: bottom, shift: -0.45}
     - {text: launch lattice, anchor: launch, side: right, shift: -0.15}

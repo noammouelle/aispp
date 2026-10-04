@@ -111,6 +111,24 @@ def break_mark(c, x, y, half_w):
         c.draw(f"{pt(x - half_w, y - h + 0.09)} -- {pt(x + half_w, y + h + 0.09)}", "dfmetal!60!black")
 
 
+def baseline_gap(c, x0, x1, y0, y1, half_w, slope=0.12, dots=True):
+    """Cut out the band y0..y1 of the drawing (for x0 < x < x1): the baseline
+    continues, but is not drawn to scale.  Slanted cut lines across the tube
+    (|x| < half_w) and a vertical ellipsis mark the break."""
+    def edge(y, x):
+        return y + slope * x
+    with c.on("annotations"):
+        c.polyline([(x0, edge(y0, x0)), (x1, edge(y0, x1)), (x1, edge(y1, x1)), (x0, edge(y1, x0))],
+                   "fill=white, draw=none", closed=True, cmd="filldraw")
+        for y in (y0, y1):
+            c.draw(f"{pt(-half_w, edge(y, -half_w))} -- {pt(half_w, edge(y, half_w))}",
+                   "dfmetal!60!black, line width=0.6pt")
+        if dots:
+            ym = (y0 + y1) / 2
+            for k in (-1, 0, 1):
+                c.circle(0, ym + k * (y1 - y0) * 0.22, 0.035, "fill=dfleader, draw=none", cmd="fill")
+
+
 # -- light -------------------------------------------------------------------
 
 def beam_shading(name="beam"):
@@ -233,6 +251,34 @@ def trajectory(c, x, y_start, y_apex, y_end, dx, clouds, r, leg_gap=0.05):
             cloud(c, x + dx - w, y, r, 0.45 + 0.5 * f)
         else:
             cloud(c, x + dx, y_start + f * f * (y_end - y_start), r, 0.45 + 0.5 * f)
+
+
+def zeeman_slower(c, x0, x1, y, r, s):
+    """Zeeman slower: coil windings around the atomic-beam tube, denser towards
+    the MOT end (``s``: direction from the MOT towards the oven, +1 or -1)."""
+    n = 9
+    with c.on("front"):
+        for i in range(n):
+            f = (i / (n - 1)) ** 0.6  # windings bunch up towards the MOT end
+            xw = x1 - f * (x1 - x0) if s < 0 else x0 + f * (x1 - x0)
+            c.draw(f"{pt(xw, y - r - 0.03)} -- {pt(xw, y + r + 0.03)}", "dfcoil, line width=1.1pt")
+
+
+def mot2d(c, x, y, size):
+    """2D MOT: transverse cooling beams (one pair in the plane, one pair
+    perpendicular to it, drawn as dot/cross) around the atomic beam."""
+    with c.on("content"):
+        for sy in (-1, 1):
+            c.draw(f"{pt(x, y + sy * size)} -- {pt(x, y + sy * size * 0.3)}",
+                   "dfcooling, line width=0.7pt, -{Stealth[length=1mm]}")
+        for dx, sym in ((-0.11, "dot"), (0.11, "cross")):
+            c.circle(x + dx, y, 0.04, "draw=dfcooling, fill=white, line width=0.5pt")
+            if sym == "dot":
+                c.circle(x + dx, y, 0.012, "fill=dfcooling, draw=none", cmd="fill")
+            else:
+                c.draw(f"{pt(x + dx - 0.028, y - 0.028)} -- {pt(x + dx + 0.028, y + 0.028)} "
+                       f"{pt(x + dx - 0.028, y + 0.028)} -- {pt(x + dx + 0.028, y - 0.028)}",
+                       "dfcooling, line width=0.4pt")
 
 
 def mot(c, x, y, size):

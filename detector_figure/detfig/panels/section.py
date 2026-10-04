@@ -59,7 +59,11 @@ def draw(cfg):
     labels = []
     outer = 0.0
     for lay in layers:
-        kind, col = lay["kind"], g.color(lay.get("color", _default_color(lay["kind"])))
+        kind = lay["kind"]
+        # name each layer's colour so expressions like "coil!35" can be mixed further
+        col = f"dflayer{layers.index(lay)}"
+        with c.on("back"):
+            c.raw(f"\\colorlet{{{col}}}{{{g.color(lay.get('color', _default_color(kind)))}}}")
         R = lay.get("radius", lay.get("size", 1.0))
         outer = max(outer, R)
         t = lay.get("thickness", 0.06)
@@ -91,12 +95,17 @@ def draw(cfg):
         elif kind == "coils":
             n = lay.get("count", 16)
             size = lay.get("wire", 0.05)
+            pair = lay.get("pair_spread")  # degrees: conductors in pairs about each side's centre
+            if pair:
+                angles = [math.radians(90 * side + s * pair / 2) for side in range(4) for s in (-1, 1)]
+                angles = angles[:n] if n < len(angles) else angles
+            else:
+                angles = [2 * math.pi * k / n for k in range(n)]
             with c.on("walls"):
-                for k in range(n):
-                    a = 2 * math.pi * k / n
+                for a in angles:
                     c.circle(R * math.cos(a), R * math.sin(a), size,
                              f"fill={col}, draw={col}!60!black, line width=0.2pt")
-            a = 2 * math.pi * round(math.radians(ang) / (2 * math.pi / n)) / n
+            a = min(angles, key=lambda v: abs(math.remainder(v - math.radians(ang), 2 * math.pi)))
             anchor = (R * math.cos(a), R * math.sin(a))
         elif kind == "vacuum":
             with c.on("interiors"):

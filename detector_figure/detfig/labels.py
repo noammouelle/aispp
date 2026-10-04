@@ -75,7 +75,7 @@ def _layout(cluster, desired, heights, gap):
     return [o + shift for o in offs]
 
 
-def text_width(text, char=0.155):
+def text_width(text, char=0.175):
     """Rough width (cm) of a label: longest line, at ~footnotesize sans."""
     lines = text.split("\\\\")
     plain = [re.sub(r"\\[a-zA-Z]+|[{}$^_\\]", "", ln) for ln in lines]

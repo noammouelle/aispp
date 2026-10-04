@@ -114,8 +114,9 @@ LIST_ITEM_KEYS = {
     "overview.markers": MARKER_KEYS,
     "node.labels": LABEL_KEYS,
     "node.markers": MARKER_KEYS,
+    "trajectory.clouds": {"z0", "v0", "z_end", "label"},
     "section.layers": {"kind", "radius", "size", "thickness", "sides", "color", "label", "side",
-                       "angle", "layers", "spacing", "count", "wire"},
+                       "angle", "layers", "spacing", "count", "wire", "pair_spread"},
 }
 
 # Keys whose value must be one of a fixed set.
@@ -127,6 +128,7 @@ CHOICES = {
     "overview.scale_bar.style": ("dimension", "axis"),
     "node.source_side": (None, "left", "right"),
     "node.below": ("tube", "stub"),
+    "node.launch_lattice": ("crossed", "standing"),
 }
 
 
@@ -179,6 +181,8 @@ def validate(cfg):
         if not -1e-9 <= n["z"] <= ins.baseline * (1 + 1e-9):
             raise ConfigError(f"node '{n['id']}' at z = {n['z']} m lies outside 0..baseline "
                               f"({ins.baseline} m); heights are metres above the bottom")
+    for stage in cfg.node.stages:
+        _choice(stage, ("oven", "zeeman", "mot2d"), "node.stages")
     for side in cfg.node.cameras or []:
         _choice(side, ("left", "right"), "node.cameras")
     for name, value in cfg.style.colors.items():

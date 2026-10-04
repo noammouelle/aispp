@@ -32,8 +32,13 @@ def draw(cfg):
     c = Canvas()
     H, L = ov.height, float(ins.baseline)
 
+    brk = ov.baseline_break
+    z_brk = brk.z if brk.show else None
+
     def y_of(z):
-        return z / L * H
+        """Page height of physical height z (m); above a baseline break the
+        drawing is shifted up by the break's gap."""
+        return z / L * H + (brk.gap if z_brk is not None and z > z_brk else 0.0)
 
     r, wall, depth = ins.tube.radius, st.wall, st.depth
     hw, hh = ov.node.half_width, ov.node.half_height
@@ -134,10 +139,27 @@ def draw(cfg):
             if t.get("id"):
                 c.anchor(f"apex:{t['id']}", t.get("dx", 0.0), y_of(t["apex"]))
 
+    # -- pivot point of the Coriolis-compensating beam rotation -----------------
+    if ins.pivot.show:
+        yp = y_of(ins.pivot.z)
+        with c.on("front"):
+            c.circle(0, yp, 0.07, "draw=dfoptics!50!black, fill=white, line width=0.6pt")
+            c.draw(f"{pt(-0.1, yp)} -- {pt(0.1, yp)} {pt(0, yp - 0.1)} -- {pt(0, yp + 0.1)}",
+                   "dfoptics!50!black, line width=0.5pt")
+        c.anchor("pivot", 0.07, yp)
+
     # -- scale: a dimension line along the tube, or a ticked axis -------------
     sb = ov.scale_bar
     if sb.show:
         _scale_bar(c, sb, y_of, z_lo, z_hi, L, nodes, hw, sw, wall)
+
+    # -- baseline break: the tube continues, not drawn to scale -----------------
+    if z_brk is not None:
+        y0 = z_brk / L * H
+        half = r_shield + sh.thickness + 0.06
+        x_left = min(-half, sb.x - 0.15) if sb.show else -half
+        g.baseline_gap(c, x_left, half + 0.02, y0, y0 + brk.gap, half)
+        c.anchor("break", half, y0 + brk.gap / 2)
 
     # -- zoom indicators --------------------------------------------------------
     zm = ov.zoom
@@ -154,6 +176,16 @@ def draw(cfg):
             x1 = ext if side == "right" else hw + 0.35
             half = max(hh, sw.height / 2) + 0.12
             g.zoom_box(c, x0, y - half, x1, y + half, letters["node"])
+        if "trajectory" in letters and cfg.trajectory.zoom and ins.atoms.trajectories:
+            zs = [z for t in ins.atoms.trajectories for z in (t["start"], t["apex"], t["end"])]
+            yb0, yb1 = y_of(min(zs)), y_of(max(zs))
+            xb = -(r_shield + sh.thickness + 0.1)
+            with c.on("annotations"):
+                c.draw(f"{pt(xb + 0.08, yb0)} -- {pt(xb, yb0)} -- {pt(xb, yb1)} -- {pt(xb + 0.08, yb1)}",
+                       "dfleader, line width=0.5pt, dashed")
+                y_tag = yb0 + cfg.trajectory.zoom_at * (yb1 - yb0)
+                c.text(xb, y_tag, f"({letters['trajectory']})",
+                       "anchor=east, fill=white, inner sep=1pt, font=\\sffamily\\scriptsize, text=dfleader")
         if zm.section_z is not None and "section" in letters:
             g.cut_line(c, 0, y_of(zm.section_z), r_shield + sh.thickness + 0.18, letters["section"])
 
@@ -273,8 +305,9 @@ def _laser_box(c, cfg, x_end, y, s):
                "fill=dfoptics!30, draw=dfoptics")
     bx0, bx1 = x_end + s * 0.12, x_end + s * (0.12 + lz.box_width)
     g.hbeam(c, min(x_end, bx0), max(x_end, bx0), y, cfg.instrument.beam.input_width)
-    g.laser_box(c, min(bx0, bx1), y - 0.32, max(bx0, bx1), y + 0.32, lz.text, cfg.document.font)
-    c.anchor("laser", (bx0 + bx1) / 2, y + 0.32)
+    hb = lz.box_height / 2
+    g.laser_box(c, min(bx0, bx1), y - hb, max(bx0, bx1), y + hb, lz.text, cfg.document.font)
+    c.anchor("laser", (bx0 + bx1) / 2, y + hb)
 
 
 def _scale_bar(c, sb, y_of, z_lo, z_hi, L, nodes, hw, sw, wall):
