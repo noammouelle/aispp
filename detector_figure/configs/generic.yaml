@@ -17,7 +17,7 @@ output:
 layout:
   # (b), (c) and (d) sit in the band to the right of the long tube
   panels: [overview, node, section, trajectory]
-  trajectory: {x: 6.1, y: 10.3, letter: [-0.9, 4.35]}
+  trajectory: {x: 5.9, y: 10.0, letter: [-0.9, 4.9]}
   overview: {letter: [-3.3, 18.55]}
   node: {x: 5.75, y: 5.6, letter: [-4.1, 2.25]}
   section: {x: 5.7, y: 1.25, letter: [-1.6, 1.95]}
@@ -93,5 +93,17 @@ section:
     - {kind: atoms, radius: 0.07, label: atom clouds, side: left}
 
 trajectory:
+  # Drawn by mz-plots (github.com/noammouelle/mz-plots): an LMT (n = 3)
+  # gradiometer with finite light travel time - pulses alternate direction
+  # (down from the telescope, up from the retro mirror) and reach the upper
+  # cloud L/c later.  Falls back to the built-in panel if mz-plots is missing.
+  engine: mzplots
+  mzplots:
+    path: ../../mz-plots     # relative to detector_figure/; not needed if pip-installed
+    config: {n: 3, T: [2.4], gradiometer: true, baseline: 3.0, c_pulse: 30.0,
+             dt: 0.4, v0: 1.2, dv: 0.5, g: 0.3, tail: 0.8, show_lmt_labels: true,
+             show_ports: true, show_state_labels: false}
+  width: 4.6
+  height: 4.0
   label_clouds: true
   interferometer: {t0: 0.3, T: 2.1}

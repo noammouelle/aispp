@@ -233,5 +233,15 @@ trajectory:
     show_T: true             # dimension arrow marking T between the first two pulses
     split: 3.0               # m/s, arm velocity difference (exaggerated for visibility)
   zoom: true                 # bracket in panel (a) marking the trajectories shown here
+  # builtin: the clouds of panel (a) with a single pi/2-pi-pi/2 sequence.
+  # mzplots: draw with mz-plots' LMT generator (github.com/noammouelle/mz-plots;
+  # pip install -e it, or give its checkout as `path`): LMT pulse ladders,
+  # alternating pulse directions, finite light travel time, gradiometer pair.
+  engine: builtin
+  mzplots:
+    path: null               # mz-plots checkout (relative to detector_figure/) if not pip-installed
+    fallback: true           # if mz-plots is missing, warn and use the builtin engine
+    font: \scriptsize        # font of mz-plots' own labels inside the panel
+    config: {}               # lmt_sequence_diagram.Config fields: n, T, gradiometer, c_pulse, ...
   zoom_at: 0.5               # where along that bracket (0..1) its letter sits
 

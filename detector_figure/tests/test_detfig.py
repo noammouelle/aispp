@@ -106,6 +106,33 @@ def test_unknown_source_stage_is_rejected(tmp_path):
         load(cfg_file)
 
 
+def _mzplots_available():
+    import importlib.util
+    return importlib.util.find_spec("lmt_sequence_diagram") is not None
+
+
+@pytest.mark.skipif(not _mzplots_available(), reason="mz-plots not installed")
+def test_mzplots_engine_embeds_lmt_diagram():
+    cfg = load(ROOT / "configs" / "generic.yaml")
+    assert cfg.trajectory.engine == "mzplots"
+    tex = standalone(cfg)
+    assert "\\usepackage{braket}" in tex                 # mz-plots' packages added
+    assert "xscale=" in tex and "port" in tex              # its picture, scaled in
+
+
+def test_mzplots_engine_falls_back_when_missing(tmp_path, monkeypatch):
+    import detfig.panels.trajectory as trajectory
+    monkeypatch.setattr(trajectory, "load_mzplots", lambda cfg: None)
+    cfg = load(ROOT / "configs" / "generic.yaml")
+    tex = standalone(cfg)
+    assert "braket" not in tex and "\\pi/2" in tex       # builtin panel instead
+    cfg_file = tmp_path / "c.yaml"
+    cfg_file.write_text(f"extends: {ROOT / 'configs' / 'generic.yaml'}\n"
+                        "trajectory: {mzplots: {fallback: false}}\n")
+    with pytest.raises(ValueError, match="mz-plots|lmt_sequence_diagram"):
+        standalone(load(cfg_file))
+
+
 def test_spread_keeps_order_and_gap():
     ys = spread([0.0, 0.05, 0.1, 3.0], [1, 2, 1, 1], gap=0.4)
     assert ys[0] < ys[1] < ys[2] < ys[3]

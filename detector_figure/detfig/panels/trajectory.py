@@ -10,9 +10,18 @@ time axis mark the cycle steps (1)-(4) used in panel (a).
 
 By default the clouds are the fountains/drops of ``instrument.atoms``, so
 panels (a) and (d) cannot disagree.
+
+With ``trajectory.engine: mzplots`` the panel is drawn by the LMT sequence
+generator of mz-plots (github.com/noammouelle/mz-plots) instead: order-n LMT
+pulse ladders with alternating directions, finite light travel time and a
+gradiometer pair, embedded here in a scaled scope.  Only the cycle-step
+brackets are added on top, aligned with its t0 / t_close / t_det.
 """
 
+import importlib
 import math
+import sys
+from pathlib import Path
 
 from .. import glyphs as g
 from ..tikz import Canvas, pt
@@ -34,7 +43,73 @@ def landing_time(z0, v0, z_end, grav):
     return (v0 + math.sqrt(disc)) / grav if disc >= 0 else None
 
 
+def load_mzplots(cfg):
+    """Import mz-plots' lmt_sequence_diagram (installed, or from trajectory.mzplots.path)."""
+    path = cfg.trajectory.mzplots.path
+    if path:  # relative paths are relative to the detector_figure directory
+        base = Path(__file__).resolve().parents[2]
+        path = str((base / Path(path).expanduser()).resolve())
+        if path not in sys.path:
+            sys.path.insert(0, path)
+    try:
+        return importlib.import_module("lmt_sequence_diagram")
+    except ImportError:
+        return None
+
+
+def latex_packages(cfg):
+    """Extra LaTeX packages this panel needs (mz-plots uses amsmath, braket)."""
+    if "trajectory" not in cfg.layout.panels or cfg.trajectory.engine != "mzplots":
+        return ()
+    lmt = load_mzplots(cfg)
+    return tuple(lmt.LATEX_PACKAGES) if lmt else ()
+
+
 def draw(cfg):
+    if cfg.trajectory.engine == "mzplots":
+        lmt = load_mzplots(cfg)
+        if lmt is not None:
+            return _draw_mzplots(cfg, lmt)
+        if not cfg.trajectory.mzplots.fallback:
+            raise ValueError("trajectory.engine is mzplots but lmt_sequence_diagram cannot be imported: "
+                             "pip install -e <mz-plots checkout>, or set trajectory.mzplots.path")
+        print("detfig: mz-plots not found, drawing panel (d) with the built-in engine", file=sys.stderr)
+    return _draw_builtin(cfg)
+
+
+def _draw_mzplots(cfg, lmt):
+    tr = cfg.trajectory
+    c = Canvas()
+    mcfg = lmt.config_from_mapping(dict(tr.mzplots.config), "trajectory.mzplots.config")
+    body, info = lmt.picture_body(mcfg)
+    sx = tr.width / (info["tmax"] - info["tmin"])
+    sy = tr.height / (info["zmax"] - info["zmin"])
+
+    def X(t):
+        return (t - info["tmin"]) * sx
+
+    with c.on("content"):
+        c.raw(f"\\begin{{scope}}[shift={{({-info['tmin'] * sx:.4f},{-info['zmin'] * sy:.4f})}}, "
+              f"xscale={sx:.5f}, yscale={sy:.5f}, font={{{tr.mzplots.font}}}]")
+        for line in body:
+            c.raw(line)
+        c.raw("\\end{scope}")
+    # cycle steps under the time axis, below mz-plots' own t labels (at z = -0.3)
+    yb = min(0.0, (-0.3 - info["zmin"]) * sy) - 0.32
+    t_prep_end = info["tmin"] + 0.45 * (info["t0"] - info["tmin"])
+    spans = [(info["tmin"], t_prep_end), (t_prep_end, info["t0"]),
+             (info["t0"], info["t_close"]), (info["t_close"], info["t_det"])]
+    for n, (a, b) in enumerate(spans, 1):
+        xa, xb = X(a) + 0.03, X(b) - 0.03
+        with c.on("annotations"):
+            c.draw(f"{pt(xa, yb + 0.08)} -- {pt(xa, yb)} -- {pt(xb, yb)} -- {pt(xb, yb + 0.08)}",
+                   "dfleader, line width=0.45pt")
+        g.marker(c, (xa + xb) / 2, yb - 0.2, n)
+    c.anchor("_letter", -0.75, tr.height + 0.65)
+    return c
+
+
+def _draw_builtin(cfg):
     tr = cfg.trajectory
     c = Canvas()
     grav, W, Hp = tr.g, tr.width, tr.height

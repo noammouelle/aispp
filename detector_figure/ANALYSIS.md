@@ -76,7 +76,12 @@ than its 1 cm waist (G L142).
   * The generic version breaks the baseline (`overview.baseline_break`), so the same drawing stands for 10 m, 100 m or 1 km.
 * **(b) Node inset**: oven → 2D MOT → 3D MOT → transport lattice → crossed launch lattice → camera, with the common beam passing straight through. Source preparation and transport are *local* to each node; only the clock beam spans the baseline.
 * **(c) Cross-section**, built layer by layer from YAML.
-* **(d) z(t) panel**: the clouds of panel (a), released at t = 0, with common π/2–π–π/2 pulses and the arms split (exaggerated). The ①–④ brackets under the time axis link "where" in (a) to "when".
+* **(d) z(t) panel**. MAGIS and AION use the built-in engine: the clouds of panel (a), released at t = 0, with common π/2–π–π/2 pulses and the arms split (exaggerated). The generic figure uses [mz-plots](https://github.com/noammouelle/mz-plots), which draws:
+  * order-n LMT pulse ladders with alternating directions (M L327, L553);
+  * finite light travel time, so a pulse reaches the upper cloud L/c later;
+  * |e⟩/|g⟩ output ports.
+
+  In both engines, the ①–④ brackets under the time axis link "where" in (a) to "when".
 * **Left out on purpose:** pumps, bellows, bakeout hardware, flanges, truss members, the laser-locking chain, and tip-tilt stage internals.
 
 ## 5. Schematic licence and remaining uncertainty

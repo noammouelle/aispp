@@ -19,6 +19,7 @@ line references into the three papers) and the reasoning behind the design.
 
 ```
 pip install pyyaml            # plus a TeX installation with TikZ (pdflatex)
+pip install -e ../../mz-plots # optional: panel (d) via mz-plots (or keep the checkout next to aispp)
 cd detector_figure
 python -m detfig configs/generic.yaml -o out
 python -m detfig configs/magis100.yaml -o out --set overview.height=12
@@ -78,6 +79,7 @@ heights outside the baseline, and unquoted `#` colours:
 | `overview.baseline_break` | cut the tube at height `z` with a gap and ⋮, so one drawing stands for any baseline |
 | `instrument.pivot` | mark the pivot point of the Coriolis-compensating beam rotation |
 | `trajectory.*` | panel (d): clouds (default: those of panel (a), named by their `label`), pulse times `t0 + k·T`, π/2–π–π/2 labels, |g⟩/|e⟩ arm labels, down/up pulse arrows, the T marker, arm split (exaggerated) |
+| `trajectory.engine: mzplots` | draw panel (d) with [mz-plots](https://github.com/noammouelle/mz-plots): order-n LMT ladders, alternating pulse directions, finite light travel time, gradiometer pair (options under `trajectory.mzplots`, falls back to the built-in panel if mz-plots is missing) |
 | `node.launch_arrow` | hide the upward launch arrow in (b) when the clouds are dropped (MAGIS mode A) |
 | `section.layers[].pair_spread` | coil conductors in pairs about each side (MAGIS: 8 bars, 2 per side) |
 
