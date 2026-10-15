@@ -77,6 +77,8 @@ public:
     bool useDetVolSelection;
     double gslQagAbsError, gslQagRelError, gslKinAbsError, gslKinRelError, gslPulseAbsError, gslPulseRelError;
     bool ultraFast;
+    bool ultraFastAction;  // skip the free-flight action phase
+    bool ultraFastPulse;   // closed-form constant-coefficient pulse instead of the numeric ODE
 
     // Output parameters
     bool printPorts;

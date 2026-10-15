@@ -118,7 +118,7 @@ AISDriver::AISDriver(AISParams params)
     kinematicPropagator->odeAbsTol = params.gslKinAbsError;
     kinematicPropagator->qagRelTol = params.gslQagRelError;
     kinematicPropagator->qagAbsTol = params.gslQagAbsError;
-    kinematicPropagator->ultraFast = params.ultraFast;  
+    kinematicPropagator->ultraFast = params.ultraFastAction;  
 
     __float128 omega_, omegaChirp_;
     doubleThreeVector k_, kChirp_;
@@ -218,7 +218,7 @@ AISDriver::AISDriver(AISParams params)
         pulsePropagator->SetIgnoreDetuning(params.ignoreDetuning);
         pulsePropagator->relTol = params.gslPulseRelError;
         pulsePropagator->absTol = params.gslPulseAbsError;
-        pulsePropagator->ultraFast = params.ultraFast;
+        pulsePropagator->ultraFast = params.ultraFastPulse;
 
         pulsePropagator->SetUsePathSelection(params.usePathSelection);
         pulsePropagator->SetPathsToSimulate(params.pathsToSimulate);
