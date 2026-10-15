@@ -263,6 +263,7 @@ std::array<doubleThreeVector, 2> AISKinematicPropagator::CalculateNewPhaseSpaceC
         printf("error, return value=%d\n", status);
     }
     gsl_odeiv2_driver_free(d);
+    delete linearizedParams;
 
     doubleThreeVector newPos = {y[0], y[1], y[2]};
     doubleThreeVector newVel = {y[3], y[4], y[5]};
@@ -483,6 +484,7 @@ std::array<double,2> AISKinematicPropagator::get_dScl(const double& t0, const do
                          key, w, &result, &error);
 
     gsl_integration_workspace_free (w);
+    delete static_cast<LagrangianParams*>(integrand.params);
 
     return {result, error};
 }
