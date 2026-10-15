@@ -219,6 +219,7 @@ AISDriver::AISDriver(AISParams params)
         pulsePropagator->relTol = params.gslPulseRelError;
         pulsePropagator->absTol = params.gslPulseAbsError;
         pulsePropagator->ultraFast = params.ultraFastPulse;
+        pulsePropagator->coupledPulseODE = params.pulseODECoupled;
 
         pulsePropagator->SetUsePathSelection(params.usePathSelection);
         pulsePropagator->SetPathsToSimulate(params.pathsToSimulate);

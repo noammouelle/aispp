@@ -332,6 +332,40 @@ int AISPulsePropagator::funcU3(double t, const double y[], double f[], void *par
 
 }
 
+int AISPulsePropagator::funcU3Coupled(double t, const double y[], double f[], void *params)
+{
+    U3Params* u3Params = static_cast<U3Params*>(params);
+    std::shared_ptr<AISLaserBeam> laserBeam = u3Params->laserBeam;
+    doubleThreeVector posStar = u3Params->posStar;
+    doubleThreeVector velStar = u3Params->velStar;
+    AISPulsePropagator* pulsePropagator = u3Params->pulsePropagator;
+    double t0 = u3Params->t0;
+
+    // linearised phase-space coordinates carried in the state vector
+    doubleThreeVector posPrime = {y[4], y[5], y[6]};
+    doubleThreeVector velPrime = {y[7], y[8], y[9]};
+    std::array<doubleThreeVector,2> dotCoords = pulsePropagator->kinematicPropagator->get_dotPhaseSpaceCoordsLinearized(t0,t,posPrime,velPrime,posStar,velStar);
+
+    double delta = pulsePropagator->getDelta(posPrime,velPrime, posStar, velStar, t0,t,laserBeam);
+    double RabiFreq = laserBeam->GetRabiFreq(posPrime,t0,t);
+    if (pulsePropagator->ignoreDetuning)
+    {
+        delta = 0.0;
+    }
+
+    f[0] =   RabiFreq / 2 * y[3];
+    f[1] =   delta * y[3] + RabiFreq / 2 * y[2];
+    f[2] = - RabiFreq / 2 * y[1];
+    f[3] = - delta * y[1] - RabiFreq / 2 * y[0];
+    for (int i = 0; i < 3; i++)
+    {
+        f[4 + i] = dotCoords[0][i];
+        f[7 + i] = dotCoords[1][i];
+    }
+
+    return GSL_SUCCESS;
+}
+
 int AISPulsePropagator::funcU3StaticApprox(double t, const double y[], double f[], void *params)
 {
     // extract the params
@@ -391,6 +425,10 @@ void AISPulsePropagator::ApplyU3(std::unique_ptr<AISWavePacket>& wavepacket0, st
 
     // define the ode system
     gsl_odeiv2_system sys = {funcU3, nullptr, 4, params};
+    if (this->coupledPulseODE)
+    {
+        sys = {funcU3Coupled, nullptr, 10, params};
+    }
     // setup the driver
     double reltol = this->relTol;
     double abstol = this->absTol;
@@ -399,7 +437,7 @@ void AISPulsePropagator::ApplyU3(std::unique_ptr<AISWavePacket>& wavepacket0, st
     gsl_odeiv2_driver_alloc_y_new (&sys, gsl_odeiv2_step_rk8pd,
                                   hstart, abstol, reltol);
 
-    double y[4];
+    double y[10];
     if(wavepacket0->GetState()==0)
     {
         double amplitudeGround = wavepacket0->GetAmplitude();
@@ -415,6 +453,11 @@ void AISPulsePropagator::ApplyU3(std::unique_ptr<AISWavePacket>& wavepacket0, st
         y[1] = amplitudeExcited;
         y[2] = 0.0;
         y[3] = 0.0;
+    }
+    for (int i = 0; i < 3; i++)
+    {
+        y[4 + i] = wavepacket0->GetPosition()[i];
+        y[7 + i] = wavepacket0->GetVelocity()[i];
     }
     int status = gsl_odeiv2_driver_apply(d, &t0Double, t1Double, y);
 

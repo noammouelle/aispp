@@ -160,7 +160,7 @@ AISParams readParamsFromFile(std::string fName)
         }
         // printtrajectory: optional bool, default false
         // ultrafastaction / ultrafastpulse: optional bools, default `ultrafast`
-        else if (key == "printtrajectory" || key == "ultrafastaction" || key == "ultrafastpulse") {
+        else if (key == "printtrajectory" || key == "ultrafastaction" || key == "ultrafastpulse" || key == "pulseodecoupled") {
             bool value;
             iss >> value;
             BoolParams[key] = value;
@@ -319,6 +319,7 @@ AISParams readParamsFromFile(std::string fName)
     // Optional split of the two ultrafast approximations; each defaults to `ultrafast`.
     params.ultraFastAction = BoolParams.count("ultrafastaction") ? BoolParams["ultrafastaction"] : params.ultraFast;
     params.ultraFastPulse = BoolParams.count("ultrafastpulse") ? BoolParams["ultrafastpulse"] : params.ultraFast;
+    params.pulseODECoupled = BoolParams.count("pulseodecoupled") ? BoolParams["pulseodecoupled"] : false;
 
     params.pathsToSimulate = StrArrayParams["pathstosimulate"];
 

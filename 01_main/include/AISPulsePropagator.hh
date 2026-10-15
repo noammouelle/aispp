@@ -71,6 +71,9 @@ protected:
     void ApplyPathSelection(std::unique_ptr<wavePacketVector>& newWavePackets, std::vector<std::string> pathsToSimulate);
 
     static int funcU3(double t, const double y[], double f[], void *params);
+    // funcU3 with the linearised phase-space coordinates integrated alongside the amplitudes
+    // (y[4..9]) instead of re-solved from t0 at every evaluation
+    static int funcU3Coupled(double t, const double y[], double f[], void *params);
     static int funcU3StaticApprox(double t, const double y[], double f[], void *params);
 
     double getDelta(doubleThreeVector posPrime, doubleThreeVector velPrime, doubleThreeVector posStar, doubleThreeVector velStar,
@@ -89,6 +92,8 @@ public:
     // ode tolerances
     double relTol = 0.0;
     double absTol = 1e-9;
+    // integrate the linearised coordinates inside the pulse ODE (same equations, one solve)
+    bool coupledPulseODE = false;
 
     // whether or not to use ultrafast
     bool ultraFast;
