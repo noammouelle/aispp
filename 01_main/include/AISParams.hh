@@ -79,7 +79,8 @@ public:
     bool ultraFast;
     bool ultraFastAction;  // skip the free-flight action phase
     bool ultraFastPulse;
-    bool pulseODECoupled;  // integrate the linearised coordinates inside the pulse ODE   // closed-form constant-coefficient pulse instead of the numeric ODE
+    bool pulseODECoupled;
+    bool actionInQuad;     // accumulate the free-flight action in quad precision  // integrate the linearised coordinates inside the pulse ODE   // closed-form constant-coefficient pulse instead of the numeric ODE
 
     // Output parameters
     bool printPorts;

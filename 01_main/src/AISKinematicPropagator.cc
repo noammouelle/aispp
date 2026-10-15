@@ -133,7 +133,15 @@ void AISKinematicPropagator::PropagateWavePacket(std::unique_ptr<AISWavePacket>&
 
     std::array<double,2> phaseDoubleRes;
 
-    if (ultraFast==false){
+    if (ultraFast==false && actionInQuad){
+        // carry the action in the quad phase: the per-arm action is large enough that
+        // accumulating it in phaseDouble loses ~1e-4 rad to rounding over an LMT sequence
+        std::array<double,2> scl = get_dScl(t0_double, t1_double, currentPos, currentVel, atomInitialPos, atomInitialVel, atomInitialTime);
+        wavePacket->SetPhaseQuad(wavePacket->GetPhaseQuad() + static_cast<__float128>(scl[0]) * static_cast<__float128>(massSr87overHbar));
+        double dErr = scl[1] * massSr87overHbar;
+        phaseDoubleRes = {currentPhaseDouble, sqrt(dErr * dErr + currentPhaseDoubleErr * currentPhaseDoubleErr)};
+    }
+    else if (ultraFast==false){
         phaseDoubleRes = CalculateNewPhaseDouble(currentPhaseDouble, currentPhaseDoubleErr, currentPos, currentVel,
                                                                   atomInitialPos, atomInitialVel,
                                                                   t0_double, t1_double, atomInitialTime);
@@ -144,6 +152,7 @@ void AISKinematicPropagator::PropagateWavePacket(std::unique_ptr<AISWavePacket>&
 
     double newPhaseDouble    = phaseDoubleRes[0];
     double newPhaseDoubleErr = phaseDoubleRes[1];
+
 
     // if double phase error above 0.5e-3 radians, print a warning
     if(newPhaseDoubleErr > 5e-4)

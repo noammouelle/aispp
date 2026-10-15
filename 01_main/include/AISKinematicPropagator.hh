@@ -93,6 +93,8 @@ public:
 
     // wether or not use ultrafast version
     bool ultraFast;
+    // accumulate the action phase in quad precision (phaseQuad) instead of phaseDouble
+    bool actionInQuad = false;
 };
 
 // struct for the Lagrangian parameters

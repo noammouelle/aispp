@@ -118,7 +118,8 @@ AISDriver::AISDriver(AISParams params)
     kinematicPropagator->odeAbsTol = params.gslKinAbsError;
     kinematicPropagator->qagRelTol = params.gslQagRelError;
     kinematicPropagator->qagAbsTol = params.gslQagAbsError;
-    kinematicPropagator->ultraFast = params.ultraFastAction;  
+    kinematicPropagator->ultraFast = params.ultraFastAction;
+    kinematicPropagator->actionInQuad = params.actionInQuad;  
 
     __float128 omega_, omegaChirp_;
     doubleThreeVector k_, kChirp_;
