@@ -25,3 +25,6 @@ myconfig.cmake
 
 # ignore notebook-generated figures
 /examples/*.png
+# local tooling / example outputs
+/.claude/
+/examples/output-files/
