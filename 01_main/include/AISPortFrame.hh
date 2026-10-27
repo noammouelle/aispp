@@ -15,11 +15,13 @@ using portVector = std::vector<std::unique_ptr<AISPort>>;
 class AISPortFrame
 {
 public:
-    AISPortFrame(std::unique_ptr<AISAtom>& anAtom, double coherenceLength, bool ultraFast = false);
+    AISPortFrame(std::unique_ptr<AISAtom>& anAtom, double coherenceLength, bool ultraFast = false,
+                 bool includeSeparationPhase = true);
     ~AISPortFrame();
 
     double coherenceLength;
     bool ultraFast;
+    bool includeSeparationPhase;
 
     void initializePortVector(int numberOfPorts);
     void associatePortsWithWavePackets(std::unique_ptr<AISAtom>& anAtom, intTuple adjacentWavepacketIndices);

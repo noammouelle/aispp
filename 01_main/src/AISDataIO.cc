@@ -164,6 +164,12 @@ AISParams readParamsFromFile(std::string fName)
             iss >> value;
             BoolParams[key] = value;
         }
+        // separationphase: optional bool, default true
+        else if (key == "separationphase") {
+            bool value;
+            iss >> value;
+            BoolParams[key] = value;
+        }
         // initmode: "gaussian" (default) or "psgrid"
         else if (key == "initmode") {
             std::string value;
@@ -309,6 +315,7 @@ AISParams readParamsFromFile(std::string fName)
 
     params.printPorts = BoolParams["printprobs"];
     params.printTrajectory = BoolParams.count("printtrajectory") ? BoolParams["printtrajectory"] : false;
+    params.includeSeparationPhase = BoolParams.count("separationphase") ? BoolParams["separationphase"] : true;
     params.useMcBranching = BoolParams["usemcbranching"];
     params.ignoreDetuning = BoolParams["ignoredetuning"];
     params.printWavePackets = BoolParams["printwavepackets"];

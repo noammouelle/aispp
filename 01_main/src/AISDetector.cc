@@ -1,6 +1,7 @@
 #include "AISDetector.hh"
 
-AISDetector::AISDetector(std::unique_ptr<AISAtomEnsemble>& pAtomEnsemble, double coherenceLength, bool ultraFast)
+AISDetector::AISDetector(std::unique_ptr<AISAtomEnsemble>& pAtomEnsemble, double coherenceLength, bool ultraFast,
+                         bool includeSeparationPhase)
 {
     // Pre-allocate so each thread writes to its own slot — preserves atom ordering.
     int nAtoms = pAtomEnsemble->GetNumberOfAtoms();
@@ -10,7 +11,8 @@ AISDetector::AISDetector(std::unique_ptr<AISAtomEnsemble>& pAtomEnsemble, double
     for(int atomIndex = 0; atomIndex < nAtoms; atomIndex++)
     {
         std::unique_ptr<AISAtom>& currentAtom = pAtomEnsemble->GetAtom(atomIndex);
-        (*fpPortFrameVector)[atomIndex] = std::make_unique<AISPortFrame>(currentAtom, coherenceLength, ultraFast);
+        (*fpPortFrameVector)[atomIndex] = std::make_unique<AISPortFrame>(currentAtom, coherenceLength, ultraFast,
+                                                                         includeSeparationPhase);
     }
 }
 

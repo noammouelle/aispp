@@ -83,6 +83,12 @@ public:
     bool printWavePackets;
     bool printTrajectory = false;
 
+    // Add the separation phase m vbar.(r2 - r1)/hbar to each port phase.  In
+    // ultrafast mode the action phase it should be paired with is dropped, so
+    // under rotation (where the arms open transversally) keeping it double
+    // counts the Sagnac phase; set separationphase 0 there.
+    bool includeSeparationPhase = true;
+
     // Phase space grid parameters (used when usePhaseSpaceGrid = true)
     bool usePhaseSpaceGrid = false;
     double xGridMin = 0.0,  xGridMax = 0.0;  int nGridX = 1;
