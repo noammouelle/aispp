@@ -223,7 +223,8 @@ void AISPortFrame::setPortParameters(std::unique_ptr<AISAtom>& anAtom)
                     doubleThreeVector meanV  = matrixAdd(v1, v2);
                     meanV = scalarMultiply(meanV, 0.5);
                     double separationPhase = includeSeparationPhase
-                                             ? dotProduct(meanV, deltaX) / hbar * massSr87 : 0.0;
+                                             ? dotProduct(meanV, deltaX) / hbar * massSr87
+                                         : meanV[2] * deltaX[2] / hbar * massSr87;
                     double dphi = phi1 - phi2 + phi1Quad - phi2Quad + separationPhase;
 
                     offDiagonalContribution += 2*A1*A2*cos(dphi);
@@ -268,7 +269,8 @@ void AISPortFrame::setPortParameters(std::unique_ptr<AISAtom>& anAtom)
                 doubleThreeVector meanV  = matrixAdd(v1, v2);
                 meanV = scalarMultiply(meanV, 0.5);
                 double separationPhase = includeSeparationPhase
-                                         ? dotProduct(meanV, deltaX) / hbar * massSr87 : 0.0;
+                                         ? dotProduct(meanV, deltaX) / hbar * massSr87
+                                         : meanV[2] * deltaX[2] / hbar * massSr87;
                 double dphi = phi1 - phi2 + (double)(phi1Quad - phi2Quad) + separationPhase;
                 double dphiError = sqrt(pow(error1, 2) + pow(error2, 2));
                 port->phaseShift = dphi;

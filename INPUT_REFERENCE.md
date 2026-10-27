@@ -174,7 +174,7 @@ relevant when `ultrafast = 0`.
 |------------------|------|-------------|
 | `printprobs`     | 0/1  | Write detection probabilities to the HDF5 output file. |
 | `printwavepackets`| 0/1 | Write full wavepacket data (position, velocity, amplitude, phase) to the HDF5 output file. Produces large files for big ensembles. |
-| `separationphase`| 0/1  | Add the separation phase $m\bar{\vec v}\cdot(\vec r_2-\vec r_1)/\hbar$ to each port phase. Optional; default `1`. In `ultrafast` mode the action phase is dropped, so under rotation (where the arms open transversally) the separation phase is left uncompensated and doubles the first-order Sagnac phase; set `0` there to recover it (checked against $2m\vec\Omega\cdot\vec A/\hbar$ for 1-, 2- and 4-loop sequences). |
+| `separationphase`| 0/1  | Add the separation phase $m\bar{\vec v}\cdot(\vec r_2-\vec r_1)/\hbar$ to each port phase. Optional; default `1`. In `ultrafast` mode the action phase is dropped, so under rotation (where the arms open transversally) the separation phase is left uncompensated and doubles the first-order Sagnac phase; set `0` there to keep only the component along the beam axis $z$ (needed for the two ports to stay complementary) and recover it (checked against $2m\vec\Omega\cdot\vec A/\hbar$ for 1-, 2- and 4-loop sequences). |
 | `printtrajectory`| 0/1  | Write a snapshot of every wavepacket at every pulse boundary to a companion `*_TRAJ.h5` file. Consumed by `aispy.trajectory` for arm reconstruction, enclosed-area and Sagnac-phase analysis. Optional; default `0`. |
 
 ---
